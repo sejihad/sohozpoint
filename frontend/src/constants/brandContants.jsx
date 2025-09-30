@@ -1,0 +1,37 @@
+// constants/brandConstants.js
+
+// ✅ All Brands (Public)
+export const ALL_BRAND_REQUEST = "ALL_BRAND_REQUEST";
+export const ALL_BRAND_SUCCESS = "ALL_BRAND_SUCCESS";
+export const ALL_BRAND_FAIL = "ALL_BRAND_FAIL";
+
+// ✅ Admin Brands
+export const ADMIN_BRAND_REQUEST = "ADMIN_BRAND_REQUEST";
+export const ADMIN_BRAND_SUCCESS = "ADMIN_BRAND_SUCCESS";
+export const ADMIN_BRAND_FAIL = "ADMIN_BRAND_FAIL";
+
+// ✅ Brand Details
+export const BRAND_DETAILS_REQUEST = "BRAND_DETAILS_REQUEST";
+export const BRAND_DETAILS_SUCCESS = "BRAND_DETAILS_SUCCESS";
+export const BRAND_DETAILS_FAIL = "BRAND_DETAILS_FAIL";
+
+// ✅ Create Brand
+export const NEW_BRAND_REQUEST = "NEW_BRAND_REQUEST";
+export const NEW_BRAND_SUCCESS = "NEW_BRAND_SUCCESS";
+export const NEW_BRAND_FAIL = "NEW_BRAND_FAIL";
+export const NEW_BRAND_RESET = "NEW_BRAND_RESET";
+
+// ✅ Update Brand
+export const UPDATE_BRAND_REQUEST = "UPDATE_BRAND_REQUEST";
+export const UPDATE_BRAND_SUCCESS = "UPDATE_BRAND_SUCCESS";
+export const UPDATE_BRAND_FAIL = "UPDATE_BRAND_FAIL";
+export const UPDATE_BRAND_RESET = "UPDATE_BRAND_RESET";
+
+// ✅ Delete Brand
+export const DELETE_BRAND_REQUEST = "DELETE_BRAND_REQUEST";
+export const DELETE_BRAND_SUCCESS = "DELETE_BRAND_SUCCESS";
+export const DELETE_BRAND_FAIL = "DELETE_BRAND_FAIL";
+export const DELETE_BRAND_RESET = "DELETE_BRAND_RESET";
+
+// ✅ Clear Errors
+export const CLEAR_ERRORS = "CLEAR_ERRORS";
