@@ -39,6 +39,12 @@ import {
 } from "./reducers/productReducer";
 
 import {
+  bannerDetailsReducer,
+  bannerReducer,
+  bannersReducer,
+  newBannerReducer,
+} from "./reducers/bannerReducer";
+import {
   brandDetailsReducer,
   brandReducer,
   brandsReducer,
@@ -126,6 +132,11 @@ const rootReducer = combineReducers({
   logos: logosReducer,
   logo: logoReducer,
   logoDetails: logoDetailsReducer,
+  // Logo reducers
+  newBanner: newBannerReducer,
+  banners: bannersReducer,
+  banner: bannerReducer,
+  bannerDetails: bannerDetailsReducer,
   // Charge reducers
   newCharge: newChargeReducer,
   charge: chargesReducer,

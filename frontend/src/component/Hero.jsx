@@ -1,35 +1,29 @@
 import { useEffect, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { getBanners } from "../actions/bannerAction";
 
-import banner1 from "../assets/banner/banner1.jpg";
-import banner2 from "../assets/banner/banner2.jpg";
-import banner3 from "../assets/banner/banner3.jpg";
-import banner4 from "../assets/banner/banner4.jpg";
-import banner5 from "../assets/banner/banner5.jpg";
 const Hero = () => {
+  const dispatch = useDispatch();
+  const { banners, loading, error } = useSelector((state) => state.banners);
+
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Import your banner images
-
-  const slides = [
-    {
-      image: banner1,
-    },
-    {
-      image: banner2,
-    },
-    {
-      image: banner3,
-    },
-    {
-      image: banner4,
-    },
-    {
-      image: banner5,
-    },
-  ];
-
+  // Fetch banners on mount
   useEffect(() => {
+    dispatch(getBanners());
+  }, [dispatch]);
+
+  // Map banners to slides array
+  const slides =
+    banners?.map((banner) => ({
+      image: banner.image?.url || "", // adjust based on your API response
+    })) || [];
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (slides.length === 0) return; // no slides yet
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
     }, 5000);
@@ -45,12 +39,34 @@ const Hero = () => {
     setCurrentSlide(currentSlide === 0 ? slides.length - 1 : currentSlide - 1);
   };
 
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
+  const goToSlide = (index) => setCurrentSlide(index);
+
+  if (loading) {
+    return (
+      <section className="relative container h-[50vh] sm:h-[60vh] flex items-center justify-center">
+        <p className="text-white text-lg">Loading banners...</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="relative container h-[50vh] sm:h-[60vh] flex items-center justify-center">
+        <p className="text-red-500 text-lg">{error}</p>
+      </section>
+    );
+  }
+
+  if (slides.length === 0) {
+    return (
+      <section className="relative container h-[50vh] sm:h-[60vh] flex items-center justify-center bg-gray-200">
+        <p className="text-gray-700 text-lg">No banners available</p>
+      </section>
+    );
+  }
 
   return (
-    <section className="relative  container h-[50vh] sm:h-[60vh] overflow-hidden">
+    <section className="relative container h-[50vh] sm:h-[60vh] overflow-hidden">
       {/* Image Slider */}
       <div className="relative h-full w-full">
         {slides.map((slide, index) => (
@@ -72,7 +88,7 @@ const Hero = () => {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute   left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
         aria-label="Previous slide"
       >
         <FiChevronLeft className="text-2xl text-white" />
@@ -80,7 +96,7 @@ const Hero = () => {
 
       <button
         onClick={nextSlide}
-        className="absolute  right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
         aria-label="Next slide"
       >
         <FiChevronRight className="text-2xl text-white" />

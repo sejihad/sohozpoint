@@ -43,6 +43,7 @@ import OrderDetails from "./pages/Orders/OrderDetails";
 
 // import Checkout from "./pages/Payment/Checkout";
 import NotificationBanner from "./component/layout/NotificationBanner";
+import AllBanners from "./pages/Admin/AllBanners";
 import AllBrands from "./pages/Admin/AllBrands";
 import AllCharges from "./pages/Admin/AllCharges";
 import AllCustomLogoCharges from "./pages/Admin/AllCustomLogoCharges";
@@ -239,6 +240,14 @@ const App = () => {
           element={
             <ProtectedRoute isAdmin={true}>
               <AllLogos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/banners"
+          element={
+            <ProtectedRoute isAdmin={true}>
+              <AllBanners />
             </ProtectedRoute>
           }
         />

@@ -8,6 +8,7 @@ import RateReviewIcon from "@mui/icons-material/RateReview";
 import {
   FaBell,
   FaBoxOpen,
+  FaRegFlag,
   FaRegImage,
   FaRegMoneyBillAlt,
   FaShippingFast,
@@ -162,6 +163,15 @@ const Sidebar = () => {
       >
         <FaRegImage className="mr-4 text-[1.2rem]" />
         <span>Logos</span>
+      </Link>
+      <Link
+        to="/admin/banners"
+        className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
+          "/admin/banners"
+        )}`}
+      >
+        <FaRegFlag className="mr-4 text-[1.2rem]" />
+        <span>Banners</span>
       </Link>
 
       {/* Financial */}
