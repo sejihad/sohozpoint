@@ -12,22 +12,25 @@ const Footer = () => {
             </h2>
 
             <p className="text-gray-600">
-              Your ultimate destination for quality books and reading
-              experiences.
+              Your trusted destination for quality products, unbeatable prices,
+              and hassle-free shopping.
             </p>
 
+            {/* App Download Buttons */}
             {/* App Download Buttons */}
             <div className="space-y-3 pt-2">
               <h4 className="text-sm font-semibold text-gray-700">
                 Download Our App
               </h4>
-              <div className="flex flex-col sm:flex-row gap-3">
+
+              {/* Flex layout for responsive */}
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
                 {/* Play Store Button */}
                 <a
                   href="https://play.google.com/store/apps/details?id=com.facebook.katana"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-6 h-6 mr-2"
@@ -47,7 +50,7 @@ const Footer = () => {
                   href="https://apps.apple.com/app/sohoj-point/id"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-6 h-6 mr-2"
@@ -68,7 +71,7 @@ const Footer = () => {
             <div className="flex space-x-4 pt-2">
               <a
                 href="#"
-                className="text-gray-500 hover:text-indigo-600 transition"
+                className="text-gray-500 hover:text-green-600 transition"
               >
                 <svg
                   className="w-5 h-5"
@@ -80,7 +83,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="text-gray-500 hover:text-indigo-600 transition"
+                className="text-gray-500 hover:text-green-600 transition"
               >
                 <svg
                   className="w-5 h-5"
@@ -92,7 +95,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="text-gray-500 hover:text-indigo-600 transition"
+                className="text-gray-500 hover:text-green-600 transition"
               >
                 <svg
                   className="w-5 h-5"
@@ -112,7 +115,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Home
                 </Link>
@@ -120,7 +123,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/shop"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Shop
                 </Link>
@@ -128,7 +131,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/blogs"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Blog
                 </Link>
@@ -143,7 +146,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/privacy"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Privacy Policy
                 </Link>
@@ -151,7 +154,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="terms"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Terms & Conditions
                 </Link>
@@ -160,7 +163,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/shipping"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Shipping Policy
                 </Link>
@@ -175,7 +178,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/about"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   About Us
                 </Link>
@@ -183,7 +186,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/contact"
-                  className="text-gray-600 hover:text-indigo-600 transition"
+                  className="text-gray-600 hover:text-green-600 transition"
                 >
                   Contact Us
                 </Link>
@@ -203,13 +206,13 @@ const Footer = () => {
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link
               to="/terms"
-              className="text-gray-500 hover:text-indigo-600 text-sm transition"
+              className="text-gray-500 hover:text-green-600 text-sm transition"
             >
               Terms of Service
             </Link>
             <Link
               to="/privacy"
-              className="text-gray-500 hover:text-indigo-600 text-sm transition"
+              className="text-gray-500 hover:text-green-600 text-sm transition"
             >
               Privacy Policy
             </Link>
@@ -224,7 +227,7 @@ const Footer = () => {
               href="https://digitalnexgen.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline"
+              className="text-green-600 hover:underline"
             >
               Digital NexGen
             </a>

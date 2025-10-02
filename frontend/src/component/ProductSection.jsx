@@ -73,7 +73,7 @@ const Product = ({
           />
         </Link>
         {product.oldPrice > product.salePrice && (
-          <span className="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+          <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
             -
             {Math.round(
               ((product.oldPrice - product.salePrice) / product.oldPrice) * 100
@@ -89,7 +89,7 @@ const Product = ({
             lower: true,
             strict: true,
           })}`}
-          className="block hover:text-indigo-600"
+          className="block hover:text-green-600"
         >
           <h3 className="text-md font-semibold text-gray-800 line-clamp-2 h-12">
             {product.name}
@@ -106,11 +106,11 @@ const Product = ({
 
         {showCategory && (
           <div className="flex flex-wrap justify-center gap-1 my-2">
-            <span className="inline-block text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+            <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
               {product.category}
             </span>
             {showProductType && productType && (
-              <span className="inline-block text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+              <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                 {productType}
               </span>
             )}
@@ -118,7 +118,7 @@ const Product = ({
         )}
 
         <div className="flex items-center justify-center gap-2 mt-2 text-sm">
-          <span className="text-indigo-600 font-semibold">
+          <span className="text-green-600 font-semibold">
             ${product.salePrice || product.price}
           </span>
           {product.oldPrice > (product.salePrice || product.price) && (
@@ -140,13 +140,13 @@ const Product = ({
                 quantity: 1,
               })
             }
-            className="w-full bg-gradient-to-r from-indigo-500 to-indigo-500 text-white font-semibold py-2 hover:from-indigo-600 hover:to-indigo-600 transition-all duration-300 cursor-pointer mb-2"
+            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer mb-2"
           >
             Buy Now
           </button>
           <button
             onClick={() => addToCartHandler(productType, product._id, 1)}
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-2 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 cursor-pointer"
+            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer"
           >
             Add to Cart
           </button>
@@ -186,13 +186,13 @@ const ProductSection = ({
               <h2 className="text-2xl font-bold text-gray-800">
                 {title}{" "}
                 {productType && (
-                  <span className="text-indigo-600">{productType}s</span>
+                  <span className="text-green-600">{productType}s</span>
                 )}
               </h2>
               {showViewAll && (
                 <Link
                   to="/shop"
-                  className="text-blue-600 hover:underline text-sm font-medium"
+                  className="text-green-600 hover:underline text-sm font-medium"
                 >
                   Show All →
                 </Link>

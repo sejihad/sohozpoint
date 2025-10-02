@@ -42,6 +42,7 @@ import MyOrders from "./pages/Orders/MyOrders";
 import OrderDetails from "./pages/Orders/OrderDetails";
 
 // import Checkout from "./pages/Payment/Checkout";
+import NotificationBanner from "./component/layout/NotificationBanner";
 import AllBrands from "./pages/Admin/AllBrands";
 import AllCharges from "./pages/Admin/AllCharges";
 import AllCustomLogoCharges from "./pages/Admin/AllCustomLogoCharges";
@@ -68,7 +69,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Header />
-
+      <NotificationBanner />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/blogs" element={<Blogs />} />

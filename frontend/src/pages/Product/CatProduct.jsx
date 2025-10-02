@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import slugify from "slugify";
 import { getProduct } from "../../actions/productAction";
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
@@ -18,7 +19,9 @@ const CatProduct = () => {
   }, [dispatch]);
 
   const filteredProducts = products.filter(
-    (product) => product.category.toLowerCase() === category?.toLowerCase()
+    (product) =>
+      slugify(product.category, { lower: true, strict: true }) ===
+      slugify(category, { lower: true, strict: true })
   );
 
   const indexOfLastProduct = currentPage * productsPerPage;

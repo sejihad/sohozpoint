@@ -88,7 +88,7 @@ const Blogs = () => {
                           lower: true,
                           strict: true,
                         })}`}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
+                        className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
                       >
                         Read More
                         <svg

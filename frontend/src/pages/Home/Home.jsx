@@ -5,7 +5,6 @@ import { getProduct } from "../../actions/productAction";
 import Categories from "../../component/Categories";
 import Hero from "../../component/Hero";
 import ProductSection from "../../component/ProductSection";
-import NotificationBanner from "../../component/layout/NotificationBanner";
 const Home = () => {
   const { loading, products } = useSelector((state) => state.products);
   const dispatch = useDispatch();
@@ -18,7 +17,6 @@ const Home = () => {
 
   return (
     <>
-      <NotificationBanner />
       <Hero />
       <Categories />
 

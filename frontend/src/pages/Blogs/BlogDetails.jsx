@@ -29,7 +29,7 @@ const BlogDetails = () => {
             <div className="mb-8">
               <Link
                 to="/blogs"
-                className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
+                className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
               >
                 <FaArrowLeft className="mr-2" />
                 Back to all articles

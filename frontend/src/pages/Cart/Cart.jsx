@@ -48,7 +48,7 @@ const Cart = () => {
       {CartItems.length === 0 ? (
         <div className="text-center text-gray-600">
           Your cart is empty. <br />
-          <Link to="/shop" className="text-blue-600 hover:underline">
+          <Link to="/shop" className="text-green-600 hover:underline">
             Shopping
           </Link>
         </div>
@@ -77,7 +77,7 @@ const Cart = () => {
                       {""}
                       {item.title}
                     </h3>
-                    <p className="text-indigo-600 font-medium">
+                    <p className="text-green-600 font-medium">
                       Price: ${price.toFixed(2)}
                     </p>
                     <p className="text-green-600 font-medium">
@@ -87,7 +87,7 @@ const Cart = () => {
                   item.type === "ebook"
                     ? "bg-purple-100 text-purple-800"
                     : item.type === "book"
-                    ? "bg-blue-100 text-blue-800"
+                    ? "bg-green-100 text-green-800"
                     : "bg-orange-100 text-orange-800"
                 }`}
                       >
@@ -154,7 +154,7 @@ const Cart = () => {
               </div>
               <button
                 onClick={goToCheckout}
-                className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded shadow"
+                className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded shadow"
               >
                 Proceed to Checkout
               </button>

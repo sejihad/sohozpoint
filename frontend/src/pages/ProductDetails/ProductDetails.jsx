@@ -356,7 +356,7 @@ const ProductDetails = () => {
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-16 h-16 rounded border ${
                         selectedImage === index
-                          ? "border-indigo-500 ring-2 ring-indigo-200"
+                          ? "border-green-500 ring-2 ring-green-200"
                           : "border-gray-300"
                       }`}
                     >
@@ -466,7 +466,7 @@ const ProductDetails = () => {
                 )}
 
                 <div className="flex items-center mt-2">
-                  <span className="text-3xl font-bold text-indigo-600">
+                  <span className="text-3xl font-bold text-green-600">
                     ${product.salePrice || 0}
                   </span>
                   {product.oldPrice > product.salePrice && (
@@ -504,8 +504,8 @@ const ProductDetails = () => {
                         onClick={() => setSelectedSize(size)}
                         className={`px-4 py-2 border rounded-md text-sm ${
                           selectedSize === size
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                            : "border-gray-300 hover:border-indigo-300"
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-gray-300 hover:border-green-300"
                         }`}
                       >
                         {size}
@@ -544,7 +544,7 @@ const ProductDetails = () => {
               <div className="space-y-3">
                 <button
                   onClick={addToCartHandler}
-                  className="w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white bg-green-600 hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <FaShoppingCart className="mr-2" />
                   Add to Cart
@@ -635,7 +635,7 @@ const ProductDetails = () => {
                 <button
                   onClick={submitReview}
                   disabled={review.rating === 0 || !review.comment.trim()}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
                 >
                   Submit Review
                 </button>

@@ -261,7 +261,7 @@ const LogoSelector = ({
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mt-6">
       <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-        <FaPalette className="mr-2 text-indigo-600" />
+        <FaPalette className="mr-2 text-green-600" />
         Add Custom Logo
       </h3>
 
@@ -280,8 +280,8 @@ const LogoSelector = ({
                   onClick={() => onLogoSelect(logo)}
                   className={`p-2 border-2 rounded-lg transition-all duration-200 group ${
                     selectedLogo?._id === logo._id
-                      ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200"
-                      : "border-gray-200 hover:border-indigo-300 hover:shadow-md"
+                      ? "border-green-500 bg-green-50 ring-2 ring-green-200"
+                      : "border-gray-200 hover:border-green-300 hover:shadow-md"
                   }`}
                   type="button"
                 >
@@ -319,11 +319,11 @@ const LogoSelector = ({
         </h4>
         <button
           onClick={handleCustomLogoClick}
-          className="w-full py-4 px-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200 flex flex-col items-center justify-center group"
+          className="w-full py-4 px-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all duration-200 flex flex-col items-center justify-center group"
           type="button"
         >
-          <FaUpload className="text-2xl text-gray-400 mb-2 group-hover:text-indigo-500" />
-          <span className="text-sm text-gray-600 group-hover:text-indigo-600">
+          <FaUpload className="text-2xl text-gray-400 mb-2 group-hover:text-green-500" />
+          <span className="text-sm text-gray-600 group-hover:text-green-600">
             Click to upload custom logo
           </span>
 
@@ -748,8 +748,8 @@ const CustomProductDetails = () => {
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-16 h-16 rounded border-2 transition-all ${
                         selectedImage === index
-                          ? "border-indigo-500 ring-2 ring-indigo-200"
-                          : "border-gray-300 hover:border-indigo-300"
+                          ? "border-green-500 ring-2 ring-green-200"
+                          : "border-gray-300 hover:border-green-300"
                       }`}
                       type="button"
                     >
@@ -892,7 +892,7 @@ const CustomProductDetails = () => {
 
                   <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2">
                     <span>Total Price:</span>
-                    <span className="text-indigo-600">
+                    <span className="text-green-600">
                       ৳{totalPrice.toFixed(2)}
                     </span>
                   </div>
@@ -926,8 +926,8 @@ const CustomProductDetails = () => {
                         onClick={() => setSelectedSize(size)}
                         className={`px-4 py-2 border rounded-md text-sm transition-all ${
                           selectedSize === size
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200"
-                            : "border-gray-300 hover:border-indigo-300 hover:shadow-md"
+                            ? "border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200"
+                            : "border-gray-300 hover:border-green-300 hover:shadow-md"
                         }`}
                         type="button"
                       >
@@ -969,7 +969,7 @@ const CustomProductDetails = () => {
               <div className="space-y-3">
                 <button
                   onClick={addToCartHandler}
-                  className="w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white bg-green-600 hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <FaShoppingCart className="mr-2" />
@@ -1056,7 +1056,7 @@ const CustomProductDetails = () => {
                 <button
                   onClick={submitReview}
                   disabled={review.rating === 0 || !review.comment.trim()}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
                   type="button"
                 >
                   Submit Review

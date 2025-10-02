@@ -75,24 +75,24 @@ const UpdatePassword = () => {
     <>
       <MetaData title="Change Password" />
       {user?.provider === "local" ? (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
             {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4"
+              className="flex items-center text-green-600 hover:text-green-800 mb-4"
             >
               <FiArrowLeft className="mr-1" /> Back to Profile
             </button>
 
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               {/* Header with animated gradient */}
-              <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 text-center relative overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white opacity-10"></div>
                 <h2 className="text-2xl font-bold text-white relative z-10">
                   Update Your Password
                 </h2>
-                <p className="text-indigo-100 mt-1 relative z-10">
+                <p className="text-green-100 mt-1 relative z-10">
                   Secure your account with a new password
                 </p>
               </div>
@@ -111,7 +111,7 @@ const UpdatePassword = () => {
                       value={passwords.oldPassword}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                       placeholder="Enter current password"
                     />
                     <FiKey className="absolute left-3 top-3.5 text-gray-400" />
@@ -131,7 +131,7 @@ const UpdatePassword = () => {
                       onChange={handleChange}
                       required
                       minLength="6"
-                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                       placeholder="Enter new password"
                     />
                     <FiUnlock className="absolute left-3 top-3.5 text-gray-400" />
@@ -150,7 +150,7 @@ const UpdatePassword = () => {
                       value={passwords.confirmPassword}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                       placeholder="Confirm new password"
                     />
                     <FiLock className="absolute left-3 top-3.5 text-gray-400" />
@@ -162,7 +162,7 @@ const UpdatePassword = () => {
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
-                    className="text-indigo-600 hover:text-indigo-800 text-sm flex items-center"
+                    className="text-green-600 hover:text-green-800 text-sm flex items-center"
                   >
                     {passwords.showPassword ? (
                       <>
@@ -179,7 +179,7 @@ const UpdatePassword = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 cursor-pointer to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 mt-4"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-green-600 cursor-pointer to-green-600 hover:from-green-700 hover:to-green-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 mt-4"
                 >
                   Update Password
                 </button>

@@ -154,23 +154,23 @@ const UpdateProfile = () => {
       ) : (
         <>
           <MetaData title="Update Profile" />
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4"
+                className="flex items-center text-green-600 hover:text-green-800 mb-4"
               >
                 <FiArrowLeft className="mr-1" /> Back to Profile
               </button>
 
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 text-center">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-center">
                   <h2 className="text-2xl font-bold text-white">
                     Update Your Profile
                   </h2>
-                  <p className="text-indigo-100 mt-1">
+                  <p className="text-green-100 mt-1">
                     Keep your information up to date
                   </p>
                 </div>
@@ -192,7 +192,7 @@ const UpdateProfile = () => {
                           className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg transition-all duration-300 group-hover:scale-105"
                         />
                         {/* Pencil Icon */}
-                        <div className="absolute bottom-0 right-0 bg-indigo-600 p-2 rounded-full shadow-md transition-all duration-300 group-hover:bg-indigo-700">
+                        <div className="absolute bottom-0 right-0 bg-green-600 p-2 rounded-full shadow-md transition-all duration-300 group-hover:bg-green-700">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5 text-white"
@@ -229,7 +229,7 @@ const UpdateProfile = () => {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -241,7 +241,7 @@ const UpdateProfile = () => {
                     </label>
                     <div className="relative">
                       <div
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition flex items-center justify-between cursor-pointer"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition flex items-center justify-between cursor-pointer"
                         onClick={() =>
                           setShowCountryDropdown(!showCountryDropdown)
                         }
@@ -261,7 +261,7 @@ const UpdateProfile = () => {
                               type="text"
                               value={countrySearch}
                               onChange={(e) => setCountrySearch(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-200"
                               placeholder="Search country..."
                               autoFocus
                             />
@@ -298,7 +298,7 @@ const UpdateProfile = () => {
                       type="text"
                       value={number}
                       onChange={(e) => setNumber(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                       placeholder="Enter your phone number"
                     />
                   </div>
@@ -307,7 +307,7 @@ const UpdateProfile = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 cursor-pointer hover:from-indigo-700 hover:to-blue-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 ${
+                    className={`w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-600 cursor-pointer hover:from-green-700 hover:to-green-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 ${
                       loading ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                   >

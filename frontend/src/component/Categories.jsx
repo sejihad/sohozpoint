@@ -25,8 +25,8 @@ const Categories = () => {
       {loading ? (
         <Loader />
       ) : (
-        <section className="py-10 bg-gradient-to-br from-indigo-50 to-white">
-          <div className="container mx-auto px-4">
+        <section className="container py-10 bg-gradient-to-br from-green-50 to-white">
+          <div className=" mx-auto px-4">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
               Browse by Category
             </h2>

@@ -3,11 +3,11 @@ const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
 const {
   createSubsubcategory,
   getAllSubsubcategories,
-  getSubsubcategoriesBySubcategory,
+
   getSubsubcategoryDetails,
   updateSubsubcategory,
   deleteSubsubcategory,
-} = require("../controllers/subsubcategoryController");
+} = require("../controllers/subsubCategoryController");
 
 const router = express.Router();
 
