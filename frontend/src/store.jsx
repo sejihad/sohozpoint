@@ -57,6 +57,13 @@ import {
   newChargeReducer,
 } from "./reducers/chargeReducer";
 import {
+  applyCouponReducer,
+  couponDetailsReducer,
+  couponReducer,
+  couponsReducer,
+  newCouponReducer,
+} from "./reducers/couponReducer";
+import {
   customLogoChargeDetailsReducer,
   customLogoChargeReducer,
   customLogochargesReducer,
@@ -100,7 +107,6 @@ import {
   userEmailRequestReducer,
   userReducer,
 } from "./reducers/userReducer";
-
 // Persist Config
 const persistConfig = {
   key: "root",
@@ -137,6 +143,12 @@ const rootReducer = combineReducers({
   banners: bannersReducer,
   banner: bannerReducer,
   bannerDetails: bannerDetailsReducer,
+  // -------------------- Coupon Reducers --------------------
+  newCoupon: newCouponReducer, // Admin: create coupon
+  coupons: couponsReducer, // Admin: get all coupons
+  coupon: couponReducer, // Admin: update/delete
+  couponDetails: couponDetailsReducer, // Admin: get coupon details
+  applyCoupon: applyCouponReducer, // User: apply coupon
   // Charge reducers
   newCharge: newChargeReducer,
   charge: chargesReducer,

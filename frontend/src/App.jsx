@@ -46,6 +46,7 @@ import NotificationBanner from "./component/layout/NotificationBanner";
 import AllBanners from "./pages/Admin/AllBanners";
 import AllBrands from "./pages/Admin/AllBrands";
 import AllCharges from "./pages/Admin/AllCharges";
+import AllCoupons from "./pages/Admin/AllCoupons";
 import AllCustomLogoCharges from "./pages/Admin/AllCustomLogoCharges";
 import AllLogos from "./pages/Admin/AllLogos";
 import AllSubcategories from "./pages/Admin/AllSubcategories";
@@ -248,6 +249,14 @@ const App = () => {
           element={
             <ProtectedRoute isAdmin={true}>
               <AllBanners />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/coupons"
+          element={
+            <ProtectedRoute isAdmin={true}>
+              <AllCoupons />
             </ProtectedRoute>
           }
         />

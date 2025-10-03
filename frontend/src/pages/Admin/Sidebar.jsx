@@ -13,6 +13,7 @@ import {
   FaRegMoneyBillAlt,
   FaShippingFast,
   FaTags,
+  FaTicketAlt,
 } from "react-icons/fa";
 import { FiLayers } from "react-icons/fi";
 import { Link, useLocation } from "react-router-dom";
@@ -227,6 +228,15 @@ const Sidebar = () => {
         <span>Reviews</span>
       </Link>
 
+      <Link
+        to="/admin/coupons"
+        className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
+          "/admin/coupons"
+        )}`}
+      >
+        <FaTicketAlt className="mr-4 text-[1.2rem]" />
+        <span>Coupons</span>
+      </Link>
       <Link
         to="/admin/notification"
         className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
