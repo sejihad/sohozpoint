@@ -30,7 +30,7 @@ export const couponsReducer = (state = { coupons: [] }, action) => {
     case ALL_COUPON_REQUEST:
       return { loading: true, coupons: [] };
     case ALL_COUPON_SUCCESS:
-      return { loading: false, coupons: action.payload };
+      return { loading: false, coupons: action.payload.coupons };
     case ALL_COUPON_FAIL:
       return { loading: false, error: action.payload };
     case CLEAR_ERRORS:
@@ -69,9 +69,9 @@ export const couponReducer = (state = {}, action) => {
     case DELETE_COUPON_REQUEST:
       return { ...state, loading: true };
     case UPDATE_COUPON_SUCCESS:
-      return { ...state, loading: false, isUpdated: action.payload };
+      return { ...state, loading: false, isUpdated: action.payload.success };
     case DELETE_COUPON_SUCCESS:
-      return { ...state, loading: false, isDeleted: action.payload };
+      return { ...state, loading: false, isDeleted: action.payload.success };
     case UPDATE_COUPON_FAIL:
     case DELETE_COUPON_FAIL:
       return { ...state, loading: false, error: action.payload };
@@ -92,7 +92,7 @@ export const couponDetailsReducer = (state = { coupon: {} }, action) => {
     case COUPON_DETAILS_REQUEST:
       return { loading: true, ...state };
     case COUPON_DETAILS_SUCCESS:
-      return { loading: false, coupon: action.payload };
+      return { loading: false, coupon: action.payload.coupon };
     case COUPON_DETAILS_FAIL:
       return { loading: false, error: action.payload };
     case CLEAR_ERRORS:
@@ -108,7 +108,7 @@ export const applyCouponReducer = (state = {}, action) => {
     case APPLY_COUPON_REQUEST:
       return { loading: true };
     case APPLY_COUPON_SUCCESS:
-      return { loading: false, success: true, ...action.payload };
+      return { loading: false, success: true, ...action.payload.success };
     case APPLY_COUPON_FAIL:
       return { loading: false, error: action.payload };
     case APPLY_COUPON_RESET:

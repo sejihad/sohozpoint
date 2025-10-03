@@ -37,7 +37,7 @@ export const getAdminCoupons = () => async (dispatch) => {
 
     dispatch({
       type: ALL_COUPON_SUCCESS,
-      payload: data.coupons,
+      payload: data,
     });
   } catch (error) {
     dispatch({
@@ -62,7 +62,7 @@ export const getCouponDetails = (id) => async (dispatch) => {
 
     dispatch({
       type: COUPON_DETAILS_SUCCESS,
-      payload: data.coupon,
+      payload: data,
     });
   } catch (error) {
     dispatch({
@@ -93,7 +93,7 @@ export const createCoupon = (couponData) => async (dispatch) => {
 
     dispatch({
       type: NEW_COUPON_SUCCESS,
-      payload: data.coupon,
+      payload: data,
     });
   } catch (error) {
     dispatch({
@@ -124,7 +124,7 @@ export const updateCoupon = (id, couponData) => async (dispatch) => {
 
     dispatch({
       type: UPDATE_COUPON_SUCCESS,
-      payload: data.coupon,
+      payload: data,
     });
   } catch (error) {
     dispatch({
@@ -149,7 +149,7 @@ export const deleteCoupon = (id) => async (dispatch) => {
 
     dispatch({
       type: DELETE_COUPON_SUCCESS,
-      payload: data.success,
+      payload: data,
     });
   } catch (error) {
     dispatch({
