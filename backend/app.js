@@ -43,8 +43,8 @@ app.use(
   cors({
     origin: [
       process.env.FRONTEND_URL,
-      "http://sohozpoint.com",
-      "http://www.sohozpoint.com",
+      "https://sohozpoint.com",
+      "https://www.sohozpoint.com",
     ],
     credentials: true,
   })
