@@ -41,7 +41,11 @@ app.use(fileUpload());
 // ✅ CORS Middleware Fix
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: [
+      process.env.FRONTEND_URL,
+      "http://sohozpoint.com",
+      "http://www.sohozpoint.com",
+    ],
     credentials: true,
   })
 );
