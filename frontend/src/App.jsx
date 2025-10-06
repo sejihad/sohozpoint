@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Footer from "./component/layout/Footer";
 import Header from "./component/layout/Header";
+import ScrollToTop from "./component/layout/ScrollToTop";
 import ProtectedRoute from "./component/Route/ProtectedRoute";
 import AdminOrderDetails from "./pages/Admin/AdminOrderDetails";
 import AllBlogs from "./pages/Admin/AllBlogs";
@@ -71,6 +72,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Header />
+      <ScrollToTop />
       <NotificationBanner />
       <Routes>
         <Route path="/" element={<Home />} />
