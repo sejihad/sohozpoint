@@ -14,7 +14,7 @@ const coupon = require("./routes/couponRoute");
 const notification = require("./routes/notificationRoute");
 const logoCharge = require("./routes/customLogoChargeRoute");
 const charge = require("./routes/chargeRoute");
-
+const email = require("./routes/emailRoute");
 const category = require("./routes/categoryRoute");
 const brand = require("./routes/brandRoute");
 const type = require("./routes/typeRoute");
@@ -64,6 +64,7 @@ app.use("/api/v1", type);
 app.use("/api/v1", logo);
 app.use("/api/v1", banner);
 app.use("/api/v1", charge);
+app.use("/api/v1", email);
 app.use("/api/v1", logoCharge);
 app.use("/api/v1", order);
 app.use("/api/v1", notification);

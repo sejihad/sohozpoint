@@ -5,6 +5,7 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import PeopleIcon from "@mui/icons-material/People";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 import RateReviewIcon from "@mui/icons-material/RateReview";
+import { Mail } from "lucide-react";
 import {
   FaBell,
   FaBoxOpen,
@@ -245,6 +246,15 @@ const Sidebar = () => {
       >
         <FaBell className="mr-4 text-[1.2rem]" />
         <span>Notification</span>
+      </Link>
+      <Link
+        to="/admin/emails"
+        className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
+          "/admin/emails"
+        )}`}
+      >
+        <Mail className="mr-4 text-[1.2rem]" />
+        <span>Emails</span>
       </Link>
     </div>
   );

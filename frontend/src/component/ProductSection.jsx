@@ -119,11 +119,11 @@ const Product = ({
 
         <div className="flex items-center justify-center gap-2 mt-2 text-sm">
           <span className="text-green-600 font-semibold">
-            ${product.salePrice || product.price}
+            ৳{product.salePrice || product.price}
           </span>
           {product.oldPrice > (product.salePrice || product.price) && (
             <span className="line-through text-gray-400">
-              ${product.oldPrice}
+              ৳{product.oldPrice}
             </span>
           )}
         </div>

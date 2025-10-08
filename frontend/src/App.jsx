@@ -11,6 +11,7 @@ import AllBlogs from "./pages/Admin/AllBlogs";
 import AllCategories from "./pages/Admin/AllCategories";
 import AllOrders from "./pages/Admin/AllOrders";
 import AllProducts from "./pages/Admin/AllProducts";
+import UserEmails from "./pages/Admin/UserEmails";
 import CatProduct from "./pages/Product/CatProduct";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
@@ -380,6 +381,14 @@ const App = () => {
           element={
             <ProtectedRoute isAdmin={true}>
               <NotificationManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/emails"
+          element={
+            <ProtectedRoute isAdmin={true}>
+              <UserEmails />
             </ProtectedRoute>
           }
         />

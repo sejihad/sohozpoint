@@ -8,7 +8,7 @@ const Footer = () => {
           {/* Brand Info */}
           <div className="space-y-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center flex-wrap">
-              <span className="text-gray-800">Sohoj Point</span>
+              <span className="text-gray-800">Sohoz Point</span>
             </h2>
 
             <p className="text-gray-600">
@@ -204,7 +204,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} Sohoj Point. All rights reserved.
+            © {new Date().getFullYear()} Sohoz Point. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link
