@@ -7,31 +7,82 @@ const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const cloudinary = require("cloudinary");
+//cloudflare verify
+const verifyTurnstile = async (token, ip) => {
+  if (!token) return false;
 
+  const verifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+  const params = new URLSearchParams();
+  params.append("secret", process.env.TURNSTILE_SECRET_KEY);
+  params.append("response", token);
+  if (ip) params.append("remoteip", ip);
+
+  const res = await fetch(verifyUrl, {
+    method: "POST",
+    body: params,
+  });
+
+  const data = await res.json();
+  return data.success;
+};
 // ✅ Register User
 const registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password } = req.body;
 
+  // Validation
   if (!name || !email || !password) {
     return next(
       new ErrorHandler("Please provide name, email, and password", 400)
     );
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-  });
+  // Create user
+  const user = await User.create({ name, email, password });
 
+  // Send welcome email
+  const message = `
+    Hi ${name},
+
+    🎉 Welcome to Sohoz Point!
+
+    Your account has been created successfully.
+    You can now log in using your email: ${email}
+
+    If you have any questions, feel free to reply to this email.
+
+    Regards,
+    Sohoz Point Team
+  `;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Welcome to Sohoz Point 🎉",
+      message,
+    });
+  } catch (error) {
+    console.error("Welcome email failed:", error);
+    // no need to throw error, registration should still succeed
+  }
+
+  // Response
   res.status(201).json({
     success: true,
     message: "User registered successfully",
   });
 });
 
+// ✅ Login User
 const loginUser = catchAsyncErrors(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, cfToken } = req.body;
+
+  // Check Turnstile token first
+  const tokenValid = await verifyTurnstile(cfToken, req.ip);
+  if (!tokenValid) {
+    return next(
+      new ErrorHandler("Human verification failed. Please try again.", 400)
+    );
+  }
 
   if (!email || !password) {
     return next(new ErrorHandler("Please enter both email and password", 400));
@@ -53,9 +104,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
 
   // If 2FA is enabled, send OTP instead of logging in directly
   if (user.isTwoFactorEnabled) {
-    // ✅ Check if OTP already exists and not expired
     if (user.twoFactorCode && user.twoFactorExpire > Date.now()) {
-      // আগের OTP এখনো valid, নতুন না পাঠিয়ে আগেরটাই use করো
       return res.status(200).json({
         success: true,
         message: "OTP already sent to your email. Please check your inbox.",
@@ -64,9 +113,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    // ❌ আগের OTP নাই বা expire হয়ে গেছে, নতুনটা generate করো
     const otp = crypto.randomInt(100000, 999999).toString();
-
     user.twoFactorCode = otp;
     user.twoFactorExpire = Date.now() + 5 * 60 * 1000; // 5 minutes
     await user.save();

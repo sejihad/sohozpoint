@@ -105,6 +105,12 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
       .map((size) => size.trim())
       .filter((size) => size);
   }
+  if (req.body.colors && typeof req.body.colors === "string") {
+    productData.colors = req.body.colors
+      .split(",")
+      .map((color) => color.trim())
+      .filter((color) => color);
+  }
 
   const product = await Product.create(productData);
 
@@ -190,6 +196,19 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
       }
     } catch (error) {
       console.error("Error parsing sizes:", error);
+    }
+  }
+  if (req.body.colors !== undefined) {
+    try {
+      if (typeof req.body.colors === "string") {
+        updateData.colors = req.body.colors
+          .split(",")
+          .map((color) => color.trim());
+      } else if (Array.isArray(req.body.colors)) {
+        updateData.colors = req.body.colors;
+      }
+    } catch (error) {
+      console.error("Error parsing colors:", error);
     }
   }
 

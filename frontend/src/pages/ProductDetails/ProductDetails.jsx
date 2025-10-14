@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
+  FaExclamationTriangle,
   FaMinus,
-  FaPalette,
   FaPlus,
   FaRegStar,
   FaRulerCombined,
@@ -22,23 +22,30 @@ import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
 import { NEW_REVIEW_RESET } from "../../constants/productContants";
 
-// Image Zoom Component
+// Simple Image Zoom Component without hover effect
 const ImageZoom = ({ imageUrl, alt, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      onClick={onClose} // Close when clicking outside
+    >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-white text-2xl bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-700 transition"
+        className="absolute top-6 text-white text-2xl bg-red-500 rounded-full w-12 h-12 flex items-center justify-center hover:bg-red-600 transition z-10 shadow-lg"
       >
         <FaTimes />
       </button>
-      <div className="max-w-4xl max-h-full">
+
+      <div
+        className="max-w-4xl max-h-full relative"
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on image
+      >
         <img
           src={imageUrl}
           alt={alt}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain max-h-[90vh]"
           onError={(e) => {
             e.target.src = "/placeholder-image.jpg";
           }}
@@ -48,51 +55,24 @@ const ImageZoom = ({ imageUrl, alt, isOpen, onClose }) => {
   );
 };
 
-// Zoomable Image Component
-const ZoomableImage = ({ src, alt, className, onClick }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setMousePosition({ x, y });
-  };
-
+// Simple Image Component without hover zoom
+const ProductImage = ({ src, alt, className, onClick }) => {
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative">
       <img
         src={src}
         alt={alt}
-        className={`cursor-zoom-in ${className} ${
-          isHovered ? "scale-110" : "scale-100"
-        } transition-transform duration-200`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseMove={handleMouseMove}
+        className={`cursor-zoom-in ${className}`}
         onClick={onClick}
-        style={{
-          transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
-        }}
         onError={(e) => {
           e.target.src = "/placeholder-image.jpg";
         }}
-      />
-
-      {/* Zoom overlay for desktop */}
-      <div
-        className={`absolute inset-0 bg-white bg-opacity-10 pointer-events-none transition-opacity ${
-          isHovered ? "opacity-100" : "opacity-0"
-        } md:block hidden`}
       />
     </div>
   );
 };
 
 const StarRating = ({ rating, interactive = false, onChange }) => {
-  // ... existing StarRating code (same as before)
   const [hoverRating, setHoverRating] = useState(0);
   const displayRating = hoverRating || rating;
 
@@ -174,8 +154,9 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [review, setReview] = useState({ rating: 0, comment: "" });
-  const [zoomImage, setZoomImage] = useState(null); // For image zoom
+  const [zoomImage, setZoomImage] = useState(null);
 
   useEffect(() => {
     if (slug) {
@@ -198,11 +179,54 @@ const ProductDetails = () => {
     }
   }, [dispatch, reviewSuccess, reviewError, slug]);
 
+  // Calculate maximum available quantity
+  const maxQuantity = product?.quantity || 0;
+
+  // Check product status
+  const isProductInStock = product?.availability === "inStock";
+  const isProductOutOfStock = product?.availability === "outOfStock";
+  const isProductUnavailable = product?.availability === "unavailable";
+
+  // Handle quantity changes with maximum limit
+  const incrementQuantity = () => {
+    if (quantity < maxQuantity) {
+      setQuantity(quantity + 1);
+    }
+  };
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
+    }
+  };
+
   const addToCartHandler = () => {
     if (!product) return;
 
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+    // Check if product is unavailable
+    if (isProductUnavailable) {
+      toast.error("This product is currently unavailable");
+      return;
+    }
+
+    // Check if product is out of stock
+    if (isProductOutOfStock) {
+      // For out of stock products, navigate to pre-order
+      handlePreOrder();
+      return;
+    }
+
+    // For in stock products, check size/color selection
+    const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const productColors = Array.isArray(product.colors) ? product.colors : [];
+
+    if (productSizes.length > 0 && !selectedSize) {
       toast.error("Please select a size");
+      return;
+    }
+
+    if (productColors.length > 0 && !selectedColor) {
+      toast.error("Please select a color");
       return;
     }
 
@@ -211,12 +235,13 @@ const ProductDetails = () => {
       name: product.name,
       price: product.salePrice,
       image: product.images[0]?.url,
-      type: "product",
+
       quantity: quantity,
       size: selectedSize,
+      color: selectedColor,
     };
 
-    dispatch(addItemsToCart("product", product._id, quantity, selectedSize));
+    dispatch(addItemsToCart(cartItem));
     toast.success("Item Added To Cart");
   };
 
@@ -225,11 +250,34 @@ const ProductDetails = () => {
   const handleBuyNow = () => {
     if (!product) return;
 
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+    // Check if product is unavailable
+    if (isProductUnavailable) {
+      toast.error("This product is currently unavailable");
+      return;
+    }
+
+    // Check if product is out of stock
+    if (isProductOutOfStock) {
+      // For out of stock products, navigate to pre-order
+      handlePreOrder();
+      return;
+    }
+
+    // For in stock products, check size/color selection
+    const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const productColors = Array.isArray(product.colors) ? product.colors : [];
+
+    if (productSizes.length > 0 && !selectedSize) {
       toast.error("Please select a size");
       return;
     }
 
+    if (productColors.length > 0 && !selectedColor) {
+      toast.error("Please select a color");
+      return;
+    }
+
+    // Navigate to checkout with all details
     navigate("/checkout", {
       state: {
         cartItems: [
@@ -241,18 +289,65 @@ const ProductDetails = () => {
             type: "product",
             quantity: quantity,
             size: selectedSize,
+            color: selectedColor,
+            productDetails: {
+              brand: product.brand,
+              category: product.category,
+              deliveryCharge: product.deliveryCharge,
+              weight: product.weight,
+            },
           },
         ],
         type: "product",
+        directCheckout: true,
       },
     });
   };
 
-  const incrementQuantity = () => {
-    setQuantity(quantity + 1);
-  };
+  const handlePreOrder = () => {
+    if (!product) return;
 
-  const decrementQuantity = () => quantity > 1 && setQuantity(quantity - 1);
+    const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const productColors = Array.isArray(product.colors) ? product.colors : [];
+
+    if (productSizes.length > 0 && !selectedSize) {
+      toast.error("Please select a size");
+      return;
+    }
+
+    if (productColors.length > 0 && !selectedColor) {
+      toast.error("Please select a color");
+      return;
+    }
+
+    // Navigate to checkout for pre-order with 50% payment
+    navigate("/checkout", {
+      state: {
+        cartItems: [
+          {
+            id: product._id,
+            name: product.name,
+            price: product.salePrice,
+            image: product.images[0]?.url,
+            type: "product",
+            quantity: quantity,
+            size: selectedSize,
+            color: selectedColor,
+            productDetails: {
+              brand: product.brand,
+              category: product.category,
+              deliveryCharge: product.deliveryCharge,
+              weight: product.weight,
+              isPreOrder: true, // Mark as pre-order
+            },
+          },
+        ],
+        type: "product",
+        directCheckout: true,
+        isPreOrder: true, // Flag for pre-order
+      },
+    });
+  };
 
   const submitReview = () => {
     if (!user) {
@@ -282,11 +377,14 @@ const ProductDetails = () => {
     return <Loader />;
   }
 
-  // Safely access nested properties
+  // Safely access nested properties with proper defaults
   const productImages = product.images || [];
-  const productSizes = product.sizes || [];
+  const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
   const productReviews = product.reviews || [];
-  const productListItems = product.listItems || [];
+  const productListItems = Array.isArray(product.listItems)
+    ? product.listItems
+    : [];
+  const productColors = Array.isArray(product.colors) ? product.colors : [];
 
   // Get related products safely
   const relatedProducts = (products || [])
@@ -335,14 +433,14 @@ const ProductDetails = () => {
           <div className="md:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
               {/* Main Image */}
-              <div className="flex justify-center mb-4 h-80 cursor-zoom-in">
-                <ZoomableImage
+              <div className="flex justify-center mb-4 h-80">
+                <ProductImage
                   src={
                     productImages[selectedImage]?.url ||
                     "/placeholder-image.jpg"
                   }
                   alt={product.name}
-                  className="h-full object-contain"
+                  className="h-full object-contain cursor-zoom-in"
                   onClick={() => openImageZoom(selectedImage)}
                 />
               </div>
@@ -379,13 +477,6 @@ const ProductDetails = () => {
                   <div className="flex items-center text-sm text-gray-600">
                     <FaWeight className="mr-2" />
                     <span>Weight: {product.weight} kg</span>
-                  </div>
-                )}
-
-                {product.color && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FaPalette className="mr-2" />
-                    <span>Color: {product.color}</span>
                   </div>
                 )}
 
@@ -440,6 +531,7 @@ const ProductDetails = () => {
                   {product.description || "No description available."}
                 </p>
               </div>
+
               {/* Key Features */}
               {productListItems.length > 0 && (
                 <div className="mb-6">
@@ -467,11 +559,11 @@ const ProductDetails = () => {
 
                 <div className="flex items-center mt-2">
                   <span className="text-3xl font-bold text-green-600">
-                    ${product.salePrice || 0}
+                    ৳{product.salePrice || 0}
                   </span>
                   {product.oldPrice > product.salePrice && (
                     <span className="text-lg text-gray-400 line-through ml-3">
-                      ${product.oldPrice}
+                      ৳{product.oldPrice}
                     </span>
                   )}
                 </div>
@@ -493,19 +585,21 @@ const ProductDetails = () => {
                 </div>
               </div>
 
-              {/* Size Selection */}
+              {/* Size Selection - Only show if sizes exist */}
               {productSizes.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-medium mb-2">Select Size:</h4>
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">
+                    Select Size: <span className="text-red-500">*</span>
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {productSizes.map((size, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 border rounded-md text-sm ${
+                        className={`px-4 py-2 border rounded-md text-sm transition ${
                           selectedSize === size
-                            ? "border-green-500 bg-green-50 text-green-700"
-                            : "border-gray-300 hover:border-green-300"
+                            ? "border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200"
+                            : "border-gray-300 hover:border-green-300 bg-white"
                         }`}
                       >
                         {size}
@@ -515,65 +609,132 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Quantity Selection */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-700">Quantity:</span>
-                  <div className="flex items-center border rounded-md overflow-hidden">
-                    <button
-                      onClick={decrementQuantity}
-                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
-                      disabled={quantity <= 1}
-                    >
-                      <FaMinus className="text-gray-600" />
-                    </button>
-                    <span className="px-4 py-2 bg-white w-12 text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={incrementQuantity}
-                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
-                    >
-                      <FaPlus className="text-gray-600" />
-                    </button>
+              {/* Color Selection - Only show if colors exist */}
+              {productColors.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">
+                    Select Color: <span className="text-red-500">*</span>
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {productColors.map((color, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedColor(color)}
+                        className={`px-4 py-2 border rounded-md text-sm transition ${
+                          selectedColor === color
+                            ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-200"
+                            : "border-gray-300 hover:border-blue-300 bg-white"
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Quantity Selection - Only show for in-stock products */}
+              {isProductInStock && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-700">Quantity:</span>
+                    <div className="flex items-center border rounded-md overflow-hidden">
+                      <button
+                        onClick={decrementQuantity}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
+                        disabled={quantity <= 1}
+                      >
+                        <FaMinus className="text-gray-600" />
+                      </button>
+                      <span className="px-4 py-2 bg-white w-12 text-center">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={incrementQuantity}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
+                        disabled={quantity >= maxQuantity}
+                      >
+                        <FaPlus className="text-gray-600" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {/* Add to Cart Button */}
                 <button
                   onClick={addToCartHandler}
-                  className="w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white bg-green-600 hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={isProductUnavailable}
+                  className={`w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white transition ${
+                    isProductUnavailable
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : isProductOutOfStock
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
                   <FaShoppingCart className="mr-2" />
-                  Add to Cart
+                  {isProductUnavailable
+                    ? "Unavailable"
+                    : isProductOutOfStock
+                    ? "Pre Order"
+                    : "Add to Cart"}
                 </button>
-                {product.availability === "available" ? (
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full py-3 px-4 rounded-md font-medium text-white bg-red-500 hover:bg-red-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    Buy Now
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full py-3 px-4 rounded-md font-medium text-white bg-red-500 hover:bg-red-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    Pre Order
-                  </button>
-                )}
+
+                {/* Buy Now Button */}
+                <button
+                  onClick={handleBuyNow}
+                  disabled={isProductUnavailable}
+                  className={`w-full py-3 px-4 rounded-md font-medium text-white transition ${
+                    isProductUnavailable
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : isProductOutOfStock
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                >
+                  {isProductUnavailable
+                    ? "Unavailable"
+                    : isProductOutOfStock
+                    ? "Pre Order Now"
+                    : "Buy Now"}
+                </button>
               </div>
 
-              {/* Stock Status */}
-              {product.availability !== "available" && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-yellow-800 text-sm">
-                    {product.availability === "outofstock"
-                      ? "This product is currently out of stock."
-                      : "This product is currently unavailable."}
-                  </p>
+              {/* Stock Status Messages */}
+              {isProductOutOfStock && (
+                <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <div className="flex items-start">
+                    <FaExclamationTriangle className="text-orange-500 mt-1 mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="text-orange-800 font-medium text-sm">
+                        Pre-order Available
+                      </p>
+                      <p className="text-orange-700 text-xs mt-1">
+                        This product is out of stock. You can pre-order by
+                        paying 50% now and 50% upon delivery.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isProductUnavailable && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-start">
+                    <FaExclamationTriangle className="text-red-500 mt-1 mr-2 flex-shrink-0" />
+                    <div>
+                      <p className="text-red-800 font-medium text-sm">
+                        Currently Unavailable
+                      </p>
+                      <p className="text-red-700 text-xs mt-1">
+                        This product is not available for purchase at the
+                        moment.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -657,7 +818,9 @@ const ProductDetails = () => {
                         {review.name}
                       </h4>
                       <p className="text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                        {review.createdAt
+                          ? new Date(review.createdAt).toLocaleDateString()
+                          : "Unknown date"}
                       </p>
                     </div>
                     <StarRating rating={review.rating} />
@@ -677,6 +840,12 @@ const ProductDetails = () => {
         {relatedProducts.length > 0 && (
           <div className="mt-8">
             <ProductSection
+              productsPerRow={{
+                mobile: 1,
+                tablet: 2,
+                laptop: 3,
+                desktop: 5,
+              }}
               title="Related Products"
               products={relatedProducts}
               showViewAll={false}

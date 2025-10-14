@@ -1,3 +1,4 @@
+import { X } from "lucide-react"; // Optional: for a clean cross icon (if using lucide-react)
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getNotification } from "../../actions/notificationAction";
@@ -32,7 +33,7 @@ const NotificationBanner = () => {
             onMouseLeave={() => setIsHovered(false)}
           >
             {loading ? (
-              "loading"
+              "Loading..."
             ) : (
               <div className="text-wrapper">
                 <div
@@ -45,6 +46,11 @@ const NotificationBanner = () => {
               </div>
             )}
           </div>
+
+          {/* Cross icon to close the banner */}
+          <button className="close-btn" onClick={handleDismiss}>
+            <X size={20} />
+          </button>
         </div>
       </div>
     )

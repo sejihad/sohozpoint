@@ -1,4 +1,4 @@
-import { Bell, Home, Menu, Search, X } from "lucide-react";
+import { Bell, Home, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   FaAngleDown,
@@ -7,6 +7,7 @@ import {
   FaSignOutAlt,
   FaTachometerAlt,
   FaUser,
+  FaWhatsapp,
 } from "react-icons/fa";
 import { FiShoppingCart, FiUser } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,15 +22,17 @@ const Header = () => {
 
   const [cartItemCount, setCartItemCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDesktopUserMenu, setShowDesktopUserMenu] = useState(false);
+  const [showMobileUserMenu, setShowMobileUserMenu] = useState(false);
+
   const [showCategories, setShowCategories] = useState(false);
-  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
-  const userMenuRef = useRef();
+  const desktopUserMenuRef = useRef();
+  const mobileUserMenuRef = useRef();
   const dropdownTimeoutRef = useRef();
   const categoriesRef = useRef();
   const notificationsRef = useRef();
@@ -110,8 +113,17 @@ const Header = () => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
+      if (
+        desktopUserMenuRef.current &&
+        !desktopUserMenuRef.current.contains(event.target)
+      ) {
+        setShowDesktopUserMenu(false);
+      }
+      if (
+        mobileUserMenuRef.current &&
+        !mobileUserMenuRef.current.contains(event.target)
+      ) {
+        setShowMobileUserMenu(false);
       }
       if (
         categoriesRef.current &&
@@ -156,7 +168,8 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    setShowUserMenu(false);
+    setShowDesktopUserMenu(false);
+    setShowMobileUserMenu(false);
     navigate("/login");
   };
 
@@ -197,6 +210,13 @@ const Header = () => {
     }
   };
 
+  const handleWhatsAppClick = () => {
+    // Replace with your actual WhatsApp number
+    const phoneNumber = "01234567";
+    const whatsappUrl = `https://wa.me/${phoneNumber}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <>
       <nav className="w-full shadow-md bg-white sticky top-0 z-50">
@@ -205,15 +225,6 @@ const Header = () => {
           <div className="flex items-center justify-between gap-4">
             {/* Logo and Mobile Menu Button */}
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Toggle menu"
-              >
-                {menuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-
               {/* Logo */}
               <Link
                 to="/"
@@ -281,14 +292,6 @@ const Header = () => {
               >
                 SHOP
               </Link>
-              <Link
-                to="/blogs"
-                className={`hover:text-green-600 transition-colors duration-200 py-2 ${
-                  isActive("/blogs") ? "text-green-600" : ""
-                }`}
-              >
-                BLOGS
-              </Link>
             </div>
 
             {/* Search Bar - Desktop */}
@@ -314,19 +317,10 @@ const Header = () => {
               </form>
             </div>
 
-            {/* Right Side Icons */}
-            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-gray-700 flex-shrink-0">
-              {/* Mobile Search Button */}
-              <button
-                onClick={toggleMobileSearch}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Search"
-              >
-                <Search size={20} />
-              </button>
-
+            {/* Right Side Icons - DESKTOP */}
+            <div className="hidden lg:flex items-center gap-2 sm:gap-3 lg:gap-4 text-gray-700 flex-shrink-0">
               {/* Notification Icon - Desktop */}
-              <div className="relative hidden lg:block" ref={notificationsRef}>
+              <div className="relative" ref={notificationsRef}>
                 <button
                   onClick={toggleNotifications}
                   className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -415,7 +409,7 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Cart Icon */}
+              {/* Cart Icon - Desktop */}
               <div className="relative">
                 <Link
                   to="/cart"
@@ -435,11 +429,144 @@ const Header = () => {
                 </Link>
               </div>
 
-              {/* User Menu */}
-              <div ref={userMenuRef} className="relative">
+              {/* Desktop User Menu */}
+              <div ref={desktopUserMenuRef} className="relative">
                 {isAuthenticated ? (
                   <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    onClick={() => setShowDesktopUserMenu(!showDesktopUserMenu)}
+                    className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <img
+                      src={user?.avatar?.url || "/default-avatar.png"}
+                      alt="User Avatar"
+                      className="w-8 h-8 rounded-full border-2 border-transparent"
+                      onError={(e) => (e.target.src = "/Profile.png")}
+                    />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/login")}
+                    className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${
+                      isActive("/login") ? "text-green-600" : ""
+                    }`}
+                    aria-label="Login"
+                  >
+                    <FiUser size={20} />
+                  </button>
+                )}
+
+                {isAuthenticated && showDesktopUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
+                    <div className="flex flex-col p-2">
+                      {user?.role === "admin" && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setShowDesktopUserMenu(false)}
+                          className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
+                            isActive("/admin/dashboard")
+                              ? "text-green-600 bg-green-50"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <FaTachometerAlt className="text-base" />
+                          Dashboard
+                        </Link>
+                      )}
+
+                      <Link
+                        to="/profile"
+                        onClick={() => setShowDesktopUserMenu(false)}
+                        className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
+                          isActive("/profile")
+                            ? "text-green-600 bg-green-50"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <FaUser className="text-base" />
+                        Profile
+                      </Link>
+
+                      {user?.provider === "local" && (
+                        <Link
+                          to="/profile/setting"
+                          onClick={() => setShowDesktopUserMenu(false)}
+                          className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
+                            isActive("/profile/setting")
+                              ? "text-green-600 bg-green-50"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <FaCog className="text-base" />
+                          Settings
+                        </Link>
+                      )}
+
+                      <Link
+                        to="/orders"
+                        onClick={() => setShowDesktopUserMenu(false)}
+                        className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
+                          isActive("/orders")
+                            ? "text-green-600 bg-green-50"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <FaShoppingBag className="text-base" />
+                        Orders
+                      </Link>
+
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button
+                        onClick={() => {
+                          setShowDesktopUserMenu(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200 rounded-md"
+                      >
+                        <FaSignOutAlt className="text-base" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Side Icons - MOBILE (Top Menu) */}
+            <div className="flex lg:hidden items-center gap-2 sm:gap-3 text-gray-700 flex-shrink-0">
+              {/* Mobile Search Button */}
+              <button
+                onClick={toggleMobileSearch}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Search"
+              >
+                <Search size={20} />
+              </button>
+
+              {/* Cart Icon - Mobile (Top Menu) */}
+              <div className="relative">
+                <Link
+                  to="/cart"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors block"
+                >
+                  <FiShoppingCart
+                    size={20}
+                    className={`${
+                      isActive("/cart") ? "text-green-600" : "text-gray-700"
+                    }`}
+                  />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
+                      {cartItemCount > 9 ? "9+" : cartItemCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+
+              {/* User Menu - MOBILE (Top Menu) */}
+              <div ref={mobileUserMenuRef} className="relative">
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => setShowMobileUserMenu(!showMobileUserMenu)}
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label="User menu"
                   >
@@ -470,13 +597,13 @@ const Header = () => {
                   </button>
                 )}
 
-                {isAuthenticated && showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
+                {isAuthenticated && showMobileUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
                     <div className="flex flex-col p-2">
                       {user?.role === "admin" && (
                         <Link
                           to="/admin/dashboard"
-                          onClick={() => setShowUserMenu(false)}
+                          onClick={() => setShowMobileUserMenu(false)}
                           className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
                             isActive("/admin/dashboard")
                               ? "text-green-600 bg-green-50"
@@ -490,7 +617,7 @@ const Header = () => {
 
                       <Link
                         to="/profile"
-                        onClick={() => setShowUserMenu(false)}
+                        onClick={() => setShowMobileUserMenu(false)}
                         className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
                           isActive("/profile")
                             ? "text-green-600 bg-green-50"
@@ -504,7 +631,7 @@ const Header = () => {
                       {user?.provider === "local" && (
                         <Link
                           to="/profile/setting"
-                          onClick={() => setShowUserMenu(false)}
+                          onClick={() => setShowMobileUserMenu(false)}
                           className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
                             isActive("/profile/setting")
                               ? "text-green-600 bg-green-50"
@@ -518,7 +645,7 @@ const Header = () => {
 
                       <Link
                         to="/orders"
-                        onClick={() => setShowUserMenu(false)}
+                        onClick={() => setShowMobileUserMenu(false)}
                         className={`flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-green-50 transition-colors duration-200 rounded-md ${
                           isActive("/orders")
                             ? "text-green-600 bg-green-50"
@@ -532,7 +659,7 @@ const Header = () => {
                       <div className="border-t border-gray-100 my-1"></div>
                       <button
                         onClick={() => {
-                          setShowUserMenu(false);
+                          setShowMobileUserMenu(false);
                           handleLogout();
                         }}
                         className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200 rounded-md"
@@ -573,132 +700,6 @@ const Header = () => {
             </div>
           )}
         </div>
-
-        {/* Mobile Menu Overlay */}
-        {menuOpen && (
-          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 top-[73px] sm:top-[89px]">
-            <div className="bg-white h-full overflow-y-auto animate-slideInLeft">
-              <div className="p-4 space-y-1">
-                {/* Mobile Navigation Links */}
-                <Link
-                  to="/"
-                  className={`block px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
-                    isActive("/")
-                      ? "text-green-600 bg-green-50"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  HOME
-                </Link>
-
-                <div className="border-b border-gray-200 pb-2">
-                  <button
-                    className={`flex justify-between items-center w-full px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
-                      location.pathname.startsWith("/category/")
-                        ? "text-green-600 bg-green-50"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-                  >
-                    <span>CATEGORY</span>
-                    <FaAngleDown
-                      className={`transition-transform duration-200 ${
-                        mobileDropdownOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {mobileDropdownOpen && (
-                    <div className="pl-6 mt-2 space-y-1">
-                      {categoriesLoading ? (
-                        <div className="px-4 py-2 text-gray-400 text-sm">
-                          Loading categories...
-                        </div>
-                      ) : categories && categories.length > 0 ? (
-                        categories.map((cat) => (
-                          <Link
-                            key={cat._id}
-                            to={`/category/${cat.slug}`}
-                            className={`block px-4 py-2 text-base rounded-lg transition-colors ${
-                              isActive(`/category/${cat.slug}`)
-                                ? "text-green-600 bg-green-50 font-medium"
-                                : "text-gray-600 hover:bg-gray-100"
-                            }`}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            {cat.name}
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="px-4 py-2 text-gray-400 text-sm">
-                          No categories available
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  to="/shop"
-                  className={`block px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
-                    isActive("/shop")
-                      ? "text-green-600 bg-green-50"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  SHOP
-                </Link>
-
-                <Link
-                  to="/blogs"
-                  className={`block px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
-                    isActive("/blogs")
-                      ? "text-green-600 bg-green-50"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  BLOGS
-                </Link>
-
-                {/* Mobile User Section */}
-                <div className="pt-4 mt-4 border-t border-gray-200">
-                  {isAuthenticated ? (
-                    <>
-                      <div className="px-4 py-2 text-sm text-gray-500">
-                        Logged in as <strong>{user?.name}</strong>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full text-left px-4 py-3 text-lg font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        navigate("/login");
-                      }}
-                      className={`w-full text-left px-4 py-3 text-lg font-medium rounded-lg transition-colors ${
-                        isActive("/login")
-                          ? "text-green-600 bg-green-50"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      Login
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </nav>
 
       {/* Mobile Bottom Navigation */}
@@ -752,44 +753,60 @@ const Header = () => {
           )}
         </div>
 
-        {/* Notifications */}
-        <div className="relative flex-1 max-w-[20%]">
-          <button
-            className={`flex flex-col items-center w-full p-2 rounded-xl transition-colors relative ${
-              showNotifications ? "text-green-600 bg-green-50" : "text-gray-600"
-            }`}
-            onClick={toggleNotifications}
-          >
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-            <span className="text-xs mt-1 font-medium">ALERTS</span>
-          </button>
-        </div>
-
-        {/* Cart */}
+        {/* Shop */}
         <Link
-          to="/cart"
-          className={`flex flex-col items-center p-2 rounded-xl transition-colors flex-1 max-w-[20%] relative ${
-            isActive("/cart") ? "text-green-600 bg-green-50" : "text-gray-600"
+          to="/shop"
+          className={`flex flex-col items-center p-2 rounded-xl transition-colors flex-1 max-w-[20%] ${
+            isActive("/shop") ? "text-green-600 bg-green-50" : "text-gray-600"
           }`}
           onClick={() => {
             setMobileCategoriesOpen(false);
             setMenuOpen(false);
           }}
         >
-          <FiShoppingCart size={20} />
-          {cartItemCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
-              {cartItemCount > 99 ? "99+" : cartItemCount}
-            </span>
-          )}
-          <span className="text-xs mt-1 font-medium">CART</span>
+          <FiShoppingCart size={18} />
+          <span className="text-xs mt-1 font-medium">SHOP</span>
         </Link>
+
+        {/* WhatsApp Icon - Mobile Bottom Menu */}
+        <button
+          onClick={handleWhatsAppClick}
+          className={`flex flex-col items-center p-2 rounded-xl transition-colors flex-1 max-w-[20%] ${
+            false ? "text-green-600 bg-green-50" : "text-gray-600"
+          }`}
+        >
+          <FaWhatsapp size={18} />
+          <span className="text-xs mt-1 font-medium">CHAT</span>
+        </button>
+
+        {/* Notifications - MOBILE BOTTOM MENU */}
+        <div className="relative flex-1 max-w-[20%]">
+          <button
+            onClick={toggleNotifications}
+            className={`flex flex-col items-center w-full p-2 rounded-xl transition-colors relative ${
+              showNotifications ? "text-green-600 bg-green-50" : "text-gray-600"
+            }`}
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+            <span className="text-xs mt-1 font-medium">ALERTS</span>
+          </button>
+        </div>
       </div>
+
+      {/* WhatsApp Floating Button - DESKTOP ONLY */}
+      <button
+        onClick={handleWhatsAppClick}
+        className="hidden lg:fixed lg:bottom-8 lg:right-8 lg:w-16 lg:h-16 lg:bg-green-500 lg:hover:bg-green-600 lg:text-white lg:rounded-full lg:shadow-2xl lg:flex lg:items-center lg:justify-center lg:transition-all lg:duration-300 lg:hover:scale-110 lg:hover:shadow-3xl lg:z-50"
+        style={{ right: "max(8px, calc((100vw - 1400px) / 2 + 8px))" }}
+        aria-label="Contact us on WhatsApp"
+      >
+        <FaWhatsapp className="text-3xl" />
+      </button>
 
       {/* Mobile Notifications Modal */}
       {showNotifications && (

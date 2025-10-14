@@ -56,10 +56,10 @@ const UpdateProduct = () => {
     salePrice: "",
     buyPrice: "",
     sizes: [],
-    availability: "available",
+    availability: "inStock",
     quantity: "",
     weight: "",
-    color: "",
+    colors: [],
     category: "",
     subCategory: "",
     subsubCategory: "",
@@ -74,6 +74,8 @@ const UpdateProduct = () => {
   const [selectedStandardSize, setSelectedStandardSize] = useState("");
   const [listItems, setListItems] = useState([""]);
   const [listItemInput, setListItemInput] = useState("");
+  const [colorInput, setColorInput] = useState("");
+
   // Standard size options
   const standardSizeOptions = [
     { value: "XS", label: "XS" },
@@ -117,18 +119,22 @@ const UpdateProduct = () => {
         salePrice: product.salePrice || "",
         buyPrice: product.buyPrice || "",
         sizes: product.sizes || [],
-        availability: product.availability || "available",
+        availability: product.availability || "inStock",
         quantity: product.quantity || "",
         weight: product.weight || "",
-        color: product.color || "",
+        colors: product.colors || [],
         category: product.category || "",
         subCategory: product.subCategory || "",
         subsubCategory: product.subsubCategory || "",
         videoLink: product.videoLink || "",
       });
+
       if (product.listItems && product.listItems.length > 0) {
         setListItems(product.listItems);
+      } else {
+        setListItems([""]);
       }
+
       setExistingImages(product.images || []);
     }
 
@@ -154,9 +160,17 @@ const UpdateProduct = () => {
     const { name, value } = e.target;
 
     if (name === "availability") {
+      // FIXED: Use correct enum values
+      const availabilityValue =
+        value === "available"
+          ? "inStock"
+          : value === "outofstock"
+          ? "outOfStock"
+          : "unavailable";
+
       setFormData({
         ...formData,
-        [name]: value,
+        [name]: availabilityValue,
         quantity: value === "outofstock" ? "0" : formData.quantity,
       });
     } else if (name === "weight") {
@@ -210,6 +224,27 @@ const UpdateProduct = () => {
       sizes: formData.sizes.filter((size) => size !== sizeToRemove),
     });
   };
+
+  // Add a color to the colors array
+  const addColor = () => {
+    if (colorInput.trim() && !formData.colors.includes(colorInput.trim())) {
+      setFormData({
+        ...formData,
+        colors: [...formData.colors, colorInput.trim()],
+      });
+      setColorInput("");
+    }
+  };
+
+  // Remove a color from the colors array
+  const removeColor = (colorToRemove) => {
+    setFormData({
+      ...formData,
+      colors: formData.colors.filter((color) => color !== colorToRemove),
+    });
+  };
+
+  // Add a new list item
   const addListItem = () => {
     if (listItemInput.trim()) {
       setListItems([...listItems, listItemInput.trim()]);
@@ -235,41 +270,43 @@ const UpdateProduct = () => {
     e.preventDefault();
     const data = new FormData();
 
-    // Only add fields that have been changed
-    if (formData.name !== product.name) data.set("name", formData.name);
-    if (formData.title !== product.title) data.set("title", formData.title);
-    if (formData.description !== product.description)
-      data.set("description", formData.description);
-    if (formData.type !== product.type) data.set("type", formData.type);
-    if (formData.brand !== product.brand) data.set("brand", formData.brand);
-    if (formData.deliveryCharge !== product.deliveryCharge)
-      data.set("deliveryCharge", formData.deliveryCharge);
-    if (formData.oldPrice !== product.oldPrice)
-      data.set("oldPrice", formData.oldPrice);
-    if (formData.videoLink) data.set("videoLink", formData.videoLink);
-    if (formData.salePrice !== product.salePrice)
-      data.set("salePrice", formData.salePrice);
-    if (formData.buyPrice !== product.buyPrice)
-      data.set("buyPrice", formData.buyPrice);
-    const validListItems = listItems.filter((item) => item.trim());
-    data.set("listItems", validListItems.join(", "));
-    // Check if sizes changed
-    const sizesChanged =
-      JSON.stringify(formData.sizes) !== JSON.stringify(product.sizes || []);
-    if (sizesChanged) data.set("sizes", formData.sizes.join(","));
+    // Always send all required fields
+    data.set("name", formData.name);
+    data.set("title", formData.title);
+    data.set("description", formData.description);
+    data.set("type", formData.type);
+    data.set("brand", formData.brand);
+    data.set("deliveryCharge", formData.deliveryCharge);
+    data.set("oldPrice", formData.oldPrice);
+    data.set("salePrice", formData.salePrice);
+    data.set("buyPrice", formData.buyPrice);
 
-    if (formData.availability !== product.availability)
-      data.set("availability", formData.availability);
-    if (formData.quantity !== product.quantity)
-      data.set("quantity", formData.quantity);
-    if (formData.weight !== product.weight) data.set("weight", formData.weight);
-    if (formData.color !== product.color) data.set("color", formData.color);
-    if (formData.category !== product.category)
-      data.set("category", formData.category);
-    if (formData.subCategory !== product.subCategory)
-      data.set("subCategory", formData.subCategory);
-    if (formData.subsubCategory !== product.subsubCategory)
-      data.set("subsubCategory", formData.subsubCategory);
+    // FIXED: Send listItems as array properly
+    const validListItems = listItems.filter((item) => item.trim());
+    validListItems.forEach((item) => {
+      data.append("listItems", item);
+    });
+
+    // FIXED: Send sizes as array properly
+    formData.sizes.forEach((size) => {
+      data.append("sizes", size);
+    });
+
+    // FIXED: Send colors as array properly
+    formData.colors.forEach((color) => {
+      data.append("colors", color);
+    });
+
+    data.set("availability", formData.availability);
+    data.set("quantity", formData.quantity);
+    data.set("weight", formData.weight);
+    data.set("category", formData.category);
+    data.set("subCategory", formData.subCategory);
+    data.set("subsubCategory", formData.subsubCategory);
+
+    if (formData.videoLink) {
+      data.set("videoLink", formData.videoLink);
+    }
 
     // Add images to delete if any
     if (imagesToDelete.length > 0) {
@@ -325,6 +362,15 @@ const UpdateProduct = () => {
     const imagesToDeleteCopy = [...imagesToDelete];
     imagesToDeleteCopy.splice(index, 1);
     setImagesToDelete(imagesToDeleteCopy);
+  };
+
+  // FIXED: Convert availability for display
+  const getDisplayAvailability = () => {
+    return formData.availability === "inStock"
+      ? "available"
+      : formData.availability === "outOfStock"
+      ? "outofstock"
+      : "unavailable";
   };
 
   if (loading) {
@@ -471,6 +517,7 @@ const UpdateProduct = () => {
                       ))}
                   </select>
                 </div>
+
                 {/* Product Brand */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -537,6 +584,7 @@ const UpdateProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Delivery Charge <span className="text-red-500">*</span>
@@ -547,11 +595,12 @@ const UpdateProduct = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="">-- Select Product Brand --</option>
+                    <option value="">-- Select Delivery Option --</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>
                 </div>
+
                 {/* Availability */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -559,11 +608,11 @@ const UpdateProduct = () => {
                   </label>
                   <select
                     name="availability"
-                    value={formData.availability}
+                    value={getDisplayAvailability()}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="available">Available</option>
+                    <option value="available">In Stock</option>
                     <option value="outofstock">Out of Stock</option>
                     <option value="unavailable">Unavailable</option>
                   </select>
@@ -574,7 +623,7 @@ const UpdateProduct = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Quantity{" "}
-                      {formData.availability === "outofstock"
+                      {formData.availability === "outOfStock"
                         ? "(Auto set to 0)"
                         : ""}
                     </label>
@@ -584,7 +633,7 @@ const UpdateProduct = () => {
                       placeholder="Enter quantity"
                       value={formData.quantity}
                       onChange={handleInputChange}
-                      disabled={formData.availability === "outofstock"}
+                      disabled={formData.availability === "outOfStock"}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100"
                     />
                   </div>
@@ -608,20 +657,7 @@ const UpdateProduct = () => {
                   </p>
                 </div>
 
-                {/* Color */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Color
-                  </label>
-                  <input
-                    type="text"
-                    name="color"
-                    placeholder="e.g. red, white, multi"
-                    value={formData.color}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                {/* Video Link */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Video Link (Optional)
@@ -733,6 +769,59 @@ const UpdateProduct = () => {
                 )}
               </div>
 
+              {/* Colors Section */}
+              <div className="border-t pt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Colors
+                </label>
+
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter color (e.g., red, white, multi)"
+                      value={colorInput}
+                      onChange={(e) => setColorInput(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addColor}
+                      disabled={!colorInput.trim()}
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <FiPlus size={16} /> Add Color
+                    </button>
+                  </div>
+
+                  {/* Selected Colors Display */}
+                  {formData.colors.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-gray-800 mb-3">
+                        Selected Colors:
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.colors.map((color, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs sm:text-sm"
+                          >
+                            {color}
+                            <button
+                              type="button"
+                              onClick={() => removeColor(color)}
+                              className="text-purple-600 hover:text-purple-800 cursor-pointer ml-1"
+                            >
+                              <FiTrash2 size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -748,6 +837,8 @@ const UpdateProduct = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
+
+              {/* Key Features */}
               <div className="border-t pt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-4">
                   Key Features (Optional)
@@ -795,6 +886,7 @@ const UpdateProduct = () => {
                   </div>
                 </div>
               </div>
+
               {/* Product Images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

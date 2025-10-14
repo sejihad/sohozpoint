@@ -17,25 +17,22 @@ const userSchema = new mongoose.Schema({
     sparse: true,
     validate: [validator.isEmail, "Please enter a valid email"],
   },
-
-  number: {
-    type: String,
-  },
-  country: {
-    type: String,
-  },
+  number: String,
+  country: String,
 
   password: {
     type: String,
     minLength: [6, "Password should be greater than 6 characters"],
     select: false,
   },
+
   isTwoFactorEnabled: {
     type: Boolean,
     default: true,
   },
   twoFactorCode: String,
   twoFactorExpire: Date,
+
   avatar: {
     public_id: {
       type: String,
@@ -46,33 +43,97 @@ const userSchema = new mongoose.Schema({
       default: "/Profile.png",
     },
   },
+  notifications: [
+    {
+      title: {
+        type: String,
+      },
+      desc: {
+        type: String,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+
+  cartItems: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      size: {
+        type: String,
+        default: null,
+      },
+      color: {
+        type: String,
+        default: null,
+      },
+
+      image: {
+        type: String,
+        default: null,
+      },
+      price: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: [1, "Quantity must be at least 1"],
+        default: 1,
+      },
+      subtotal: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      availability: {
+        type: String,
+        enum: ["inStock", "outOfStock", "unavailable"],
+        default: "inStock",
+      },
+      addedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+  // ✅ Role System (user / admin / reseller / affiliate)
   role: {
     type: String,
-    enum: ["user", "admin"],
+    enum: ["user", "admin", "reseller", "affiliate"],
     default: "user",
   },
+
   provider: {
     type: String,
     enum: ["local", "google", "facebook"],
     default: "local",
   },
-  googleId: {
-    type: String,
-    default: null,
-  },
-  facebookId: {
-    type: String,
-    default: null,
-  },
+  googleId: String,
+  facebookId: String,
+
   createdAt: {
     type: Date,
     default: Date.now,
   },
+
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 });
 
-// Password Hash Middleware
+// ✅ Password Hash Middleware
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   if (this.password) {
@@ -81,19 +142,19 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// JWT Token
+// ✅ JWT Token Generator
 userSchema.methods.getJWTToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
-// Compare Password
+// ✅ Compare Passwords
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// Generate Reset Token
+// ✅ Generate Password Reset Token
 userSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
   this.resetPasswordToken = crypto

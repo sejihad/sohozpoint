@@ -3,6 +3,7 @@ import { FaFacebookF, FaGoogle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Turnstile from "react-turnstile"; // ✅ added
 import {
   clearErrors,
   login,
@@ -25,12 +26,12 @@ const Login = () => {
     otpPending,
     otpUserId,
     otpMessage,
-   
   } = useSelector((state) => state.user);
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
@@ -38,6 +39,9 @@ const Login = () => {
   const [registerPasswordVisible, setRegisterPasswordVisible] = useState(false);
 
   const [otp, setOtp] = useState("");
+
+  // ✅ Turnstile token states
+  const [cfTokenLogin, setCfTokenLogin] = useState("");
 
   useEffect(() => {
     if (isAuthenticated && !otpPending) {
@@ -48,13 +52,9 @@ const Login = () => {
     const registerBtn = document.querySelector(".register-btn");
     const loginBtn = document.querySelector(".login-btn");
 
-    const handleRegisterClick = () => {
-      container.classList.add("active");
-    };
+    const handleRegisterClick = () => container.classList.add("active");
+    const handleLoginClick = () => container.classList.remove("active");
 
-    const handleLoginClick = () => {
-      container.classList.remove("active");
-    };
     if (otpMessage) {
       toast.success(otpMessage);
       dispatch(resetOtpMessage());
@@ -75,27 +75,36 @@ const Login = () => {
 
   useEffect(() => {
     if (performance.navigation.type === 1) {
-      // Page was reloaded
       dispatch(resetOtpState());
     }
     if (error) {
       toast.error(error);
       dispatch(clearErrors());
     }
- 
   }, [dispatch, error]);
 
   const loginSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(loginEmail, loginPassword));
+    if (!cfTokenLogin) {
+      toast.error("Please complete the human verification.");
+      return;
+    }
+    dispatch(login(loginEmail, loginPassword, cfTokenLogin)); // ✅ send token
   };
 
   const registerSubmit = (e) => {
     e.preventDefault();
+    if (!agreeTerms) {
+      toast.error(
+        "Please agree to the Terms and Conditions before registering."
+      );
+      return;
+    }
     const formData = new FormData();
     formData.set("name", registerName);
     formData.set("email", registerEmail);
     formData.set("password", registerPassword);
+
     dispatch(register(formData));
   };
 
@@ -109,7 +118,6 @@ const Login = () => {
     <div className="login-div">
       <div className="form-container">
         {/* OTP Verification Form */}
-
         <div className="form-box otp-verify">
           {otpPending ? (
             <form onSubmit={otpSubmit}>
@@ -154,6 +162,15 @@ const Login = () => {
                   {loginPasswordVisible ? "Hide" : "Show"}
                 </span>
               </div>
+
+              {/* ✅ Cloudflare Turnstile Widget */}
+              <div style={{ margin: "10px 0" }}>
+                <Turnstile
+                  sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                  onVerify={(token) => setCfTokenLogin(token)}
+                />
+              </div>
+
               <div className="forgot-link">
                 <Link to="/password/forgot">Forgot Password?</Link>
               </div>
@@ -178,8 +195,6 @@ const Login = () => {
             </form>
           )}
         </div>
-
-        {/* Login Form */}
 
         {/* Register Form */}
         <div className="form-box register">
@@ -219,6 +234,19 @@ const Login = () => {
               >
                 {registerPasswordVisible ? "Hide" : "Show"}
               </span>
+            </div>
+            <div className="checkbox-box" style={{ margin: "10px 0" }}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />{" "}
+                I agree to the{" "}
+                <Link to="/terms" className="text-green-600" target="_blank">
+                  Terms and Conditions
+                </Link>
+              </label>
             </div>
             <button type="submit" className="btn" disabled={loading}>
               {loading ? "Loading..." : "Register"}

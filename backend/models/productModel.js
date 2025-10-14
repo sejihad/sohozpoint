@@ -51,8 +51,8 @@ const productSchema = new mongoose.Schema({
   },
   availability: {
     type: String,
-    enum: ["available", "unavailable"],
-    default: "available",
+    enum: ["inStock", "outOfStock", "unavailable"],
+    default: "inStock",
   },
   quantity: {
     type: Number,
@@ -61,8 +61,8 @@ const productSchema = new mongoose.Schema({
   weight: {
     type: Number,
   },
-  color: {
-    type: String,
+  colors: {
+    type: [],
   },
 
   images: [
@@ -116,6 +116,16 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
+      images: [
+        {
+          public_id: {
+            type: String,
+          },
+          url: {
+            type: String,
+          },
+        },
+      ],
       comment: {
         type: String,
         required: true,

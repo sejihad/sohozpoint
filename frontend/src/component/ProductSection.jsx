@@ -48,7 +48,17 @@ const Product = ({
   };
 
   if (!product) return null;
+  const availabilityColors = {
+    inStock: "bg-green-100 text-green-700 border border-green-300",
+    outOfStock: "bg-yellow-100 text-yellow-700 border border-yellow-300",
+    unavailable: "bg-red-100 text-red-700 border border-red-300",
+  };
 
+  const availabilityLabels = {
+    inStock: "In Stock",
+    outOfStock: "Out of Stock",
+    unavailable: "Unavailable",
+  };
   return (
     <div className="bg-white shadow hover:shadow-lg transition duration-300 border-amber-50 flex flex-col h-full">
       <div className="relative group overflow-hidden border border-gray-200 p-2 bg-white">
@@ -72,7 +82,7 @@ const Product = ({
             loading="lazy"
           />
         </Link>
-        {product.oldPrice > product.salePrice && (
+        {product.oldPrice && (
           <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
             -
             {Math.round(
@@ -109,19 +119,23 @@ const Product = ({
             <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
               {product.category}
             </span>
-            {showProductType && productType && (
-              <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                {productType}
-              </span>
-            )}
           </div>
         )}
-
+        <div className="">
+          <span
+            className={`inline-block text-xs font-medium px-3 py-1 rounded-full ${
+              availabilityColors[product.availability] ||
+              "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {availabilityLabels[product.availability]}
+          </span>
+        </div>
         <div className="flex items-center justify-center gap-2 mt-2 text-sm">
           <span className="text-green-600 font-semibold">
-            ৳{product.salePrice || product.price}
+            ৳{product.salePrice}
           </span>
-          {product.oldPrice > (product.salePrice || product.price) && (
+          {product.oldPrice && (
             <span className="line-through text-gray-400">
               ৳{product.oldPrice}
             </span>
@@ -129,6 +143,12 @@ const Product = ({
         </div>
 
         <div className="mt-auto pt-3">
+          <button
+            onClick={() => addToCartHandler(productType, product._id, 1)}
+            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer mb-2"
+          >
+            Add to Cart
+          </button>
           <button
             onClick={() =>
               handleBuyNow(productType, {
@@ -140,15 +160,9 @@ const Product = ({
                 quantity: 1,
               })
             }
-            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer mb-2"
+            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer "
           >
             Buy Now
-          </button>
-          <button
-            onClick={() => addToCartHandler(productType, product._id, 1)}
-            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer"
-          >
-            Add to Cart
           </button>
         </div>
       </div>
@@ -162,25 +176,23 @@ const ProductSection = ({
   loading,
   productType = "product",
   showViewAll = true,
-  columns = 5,
+  productsPerRow,
   showCategory = true,
   showProductType = false,
 }) => {
-  const gridClasses = {
+  const cols = {
     1: "grid-cols-1",
-    2: "grid-cols-1 sm:grid-cols-2",
-    3: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
-    4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
-    6: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+    5: "grid-cols-5",
   };
-
   return (
     <>
       {loading ? (
         <Loader />
       ) : (
-        <section className="container mx-auto px-4 py-8">
+        <section className="container bg-gradient-to-br from-green-50 to-white mx-auto px-4 py-8">
           {title && (
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
@@ -206,8 +218,21 @@ const ProductSection = ({
             </div>
           ) : (
             <div
-              className={`grid ${gridClasses[columns] || gridClasses[5]} gap-6`}
+              className={`grid gap-6
+              ${cols[productsPerRow.mobile]}
+              sm:${cols[productsPerRow.tablet]}
+              md:${cols[productsPerRow.laptop]}
+              lg:${cols[productsPerRow.desktop]}
+            `}
             >
+              {/* <div
+              className={`grid gap-6
+              grid-cols-1
+              sm:grid-cols-2
+              md:grid-cols-3
+              lg:grid-cols-5
+            `}
+            > */}
               {products.map((product) => (
                 <Product
                   key={product._id}

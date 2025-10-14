@@ -52,7 +52,7 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const login = (email, password) => async (dispatch) => {
+export const login = (email, password, cfToken) => async (dispatch) => {
   try {
     dispatch({ type: LOGIN_REQUEST });
 
@@ -60,7 +60,7 @@ export const login = (email, password) => async (dispatch) => {
 
     const { data } = await axios.post(
       `${API_URL}/api/v1/login`,
-      { email, password },
+      { email, password, cfToken },
       config
     );
 

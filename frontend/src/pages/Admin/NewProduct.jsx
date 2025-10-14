@@ -34,10 +34,10 @@ const NewProduct = () => {
     salePrice: "",
     buyPrice: "",
     sizes: [],
-    availability: "available",
+    availability: "inStock", // Fixed: Changed from "available" to "inStock"
     quantity: "",
     weight: "",
-    color: "",
+    colors: [], // Fixed: Changed from "color" to "colors" array
     category: "",
     subCategory: "",
     subsubCategory: "",
@@ -49,8 +49,9 @@ const NewProduct = () => {
   const [customSizeInput, setCustomSizeInput] = useState("");
   const [selectedStandardSize, setSelectedStandardSize] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [listItems, setListItems] = useState([""]); // Array for list items
-  const [listItemInput, setListItemInput] = useState(""); // Input for new list item
+  const [listItems, setListItems] = useState([""]);
+  const [listItemInput, setListItemInput] = useState("");
+  const [colorInput, setColorInput] = useState(""); // Added for colors input
 
   // Standard size options
   const standardSizeOptions = [
@@ -114,10 +115,10 @@ const NewProduct = () => {
       salePrice: "",
       buyPrice: "",
       sizes: [],
-      availability: "available",
+      availability: "inStock", // Fixed
       quantity: "",
       weight: "",
-      color: "",
+      colors: [], // Fixed
       category: "",
       subCategory: "",
       subsubCategory: "",
@@ -127,23 +128,22 @@ const NewProduct = () => {
     setImagesPreview([]);
     setCustomSizeInput("");
     setSelectedStandardSize("");
-    setListItems([""]); // Reset list items
-    setListItemInput(""); // Reset list item input
+    setListItems([""]);
+    setListItemInput("");
+    setColorInput(""); // Reset color input
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "availability") {
+      // Fixed quantity logic based on availability
+      const newQuantity = value === "inStock" ? formData.quantity : "0";
+
       setFormData({
         ...formData,
         [name]: value,
-        quantity:
-          value === "outofstock"
-            ? "0"
-            : value === "unavailable"
-            ? ""
-            : formData.quantity,
+        quantity: newQuantity,
       });
     } else if (name === "weight") {
       // Allow only numbers and decimal point for weight
@@ -197,6 +197,25 @@ const NewProduct = () => {
     });
   };
 
+  // Add a color to the colors array
+  const addColor = () => {
+    if (colorInput.trim() && !formData.colors.includes(colorInput.trim())) {
+      setFormData({
+        ...formData,
+        colors: [...formData.colors, colorInput.trim()],
+      });
+      setColorInput("");
+    }
+  };
+
+  // Remove a color from the colors array
+  const removeColor = (colorToRemove) => {
+    setFormData({
+      ...formData,
+      colors: formData.colors.filter((color) => color !== colorToRemove),
+    });
+  };
+
   // Add a new list item
   const addListItem = () => {
     if (listItemInput.trim()) {
@@ -226,12 +245,13 @@ const NewProduct = () => {
     data.set("name", formData.name);
     data.set("title", formData.title);
     data.set("description", formData.description);
-    // Combine description with list items
-    const listItemsText =
-      listItems.filter((item) => item.trim()).length > 0
-        ? listItems.filter((item) => item.trim()).map((item) => ` ${item}`)
-        : "";
-    data.set("listItems", listItemsText);
+
+    // Fixed: Send listItems as array properly
+    listItems
+      .filter((item) => item.trim())
+      .forEach((item) => {
+        data.append("listItems", item);
+      });
 
     data.set("type", formData.type);
     data.set("brand", formData.brand);
@@ -241,18 +261,26 @@ const NewProduct = () => {
     data.set("salePrice", formData.salePrice);
     data.set("buyPrice", formData.buyPrice);
 
-    // Fix: Send sizes as a comma-separated string instead of JSON
-    data.set("sizes", formData.sizes.join(","));
+    // Fixed: Send sizes as array properly
+    formData.sizes.forEach((size) => {
+      data.append("sizes", size);
+    });
+
+    // Fixed: Send colors as array properly
+    formData.colors.forEach((color) => {
+      data.append("colors", color);
+    });
 
     data.set("availability", formData.availability);
-    data.set(
-      "quantity",
-      formData.availability === "unavailable" ? "0" : formData.quantity
-    );
-    data.set("weight", formData.weight);
-    data.set("color", formData.color);
 
-    // Fix: Get category names instead of IDs
+    // Fixed quantity logic
+    const finalQuantity =
+      formData.availability === "inStock" ? formData.quantity : 0;
+    data.set("quantity", finalQuantity);
+
+    data.set("weight", formData.weight);
+
+    // Get category names
     const selectedCategory = categories.find(
       (cat) => cat._id === formData.category
     );
@@ -260,7 +288,7 @@ const NewProduct = () => {
       data.set("category", selectedCategory.name);
     }
 
-    // Fix: Get subcategory name instead of ID
+    // Get subcategory name
     if (formData.subCategory) {
       const selectedSubCategory = subcategories.find(
         (sub) => sub._id === formData.subCategory
@@ -270,7 +298,7 @@ const NewProduct = () => {
       }
     }
 
-    // Fix: Get subsubcategory name instead of ID
+    // Get subsubcategory name
     if (formData.subsubCategory) {
       const selectedSubsubCategory = subsubcategories.find(
         (subsub) => subsub._id === formData.subsubCategory
@@ -441,7 +469,8 @@ const NewProduct = () => {
                       ))}
                   </select>
                 </div>
-                {/* product brand */}
+
+                {/* Product Brand */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Product Brand
@@ -507,6 +536,7 @@ const NewProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Delivery Charge <span className="text-red-500">*</span>
@@ -517,11 +547,12 @@ const NewProduct = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="">-- Select Product Brand --</option>
+                    <option value="">-- Select Delivery Option --</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>
                 </div>
+
                 {/* Availability */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -533,29 +564,26 @@ const NewProduct = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="available">Available</option>
-                    <option value="outofstock">Out of Stock</option>
+                    <option value="inStock">In Stock</option>
+                    <option value="outOfStock">Out of Stock</option>
                     <option value="unavailable">Unavailable</option>
                   </select>
                 </div>
 
                 {/* Quantity */}
-                {formData.availability !== "unavailable" && (
+                {formData.availability === "inStock" && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quantity{" "}
-                      {formData.availability === "outofstock"
-                        ? "(Auto set to 0)"
-                        : ""}
+                      Quantity <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
                       name="quantity"
                       placeholder="Enter quantity"
+                      required
                       value={formData.quantity}
                       onChange={handleInputChange}
-                      disabled={formData.availability === "outofstock"}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
                 )}
@@ -578,20 +606,7 @@ const NewProduct = () => {
                   </p>
                 </div>
 
-                {/* Color */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Color
-                  </label>
-                  <input
-                    type="text"
-                    name="color"
-                    placeholder="e.g. red, white, multi"
-                    value={formData.color}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                {/* Video Link */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Video Link (Optional)
@@ -701,6 +716,59 @@ const NewProduct = () => {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Colors Section - Similar to Sizes */}
+              <div className="border-t pt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Colors
+                </label>
+
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter color (e.g., red, white, multi)"
+                      value={colorInput}
+                      onChange={(e) => setColorInput(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addColor}
+                      disabled={!colorInput.trim()}
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <FiPlus size={16} /> Add Color
+                    </button>
+                  </div>
+
+                  {/* Selected Colors Display */}
+                  {formData.colors.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-gray-800 mb-3">
+                        Selected Colors:
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.colors.map((color, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs sm:text-sm"
+                          >
+                            {color}
+                            <button
+                              type="button"
+                              onClick={() => removeColor(color)}
+                              className="text-purple-600 hover:text-purple-800 cursor-pointer ml-1"
+                            >
+                              <FiTrash2 size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Description */}

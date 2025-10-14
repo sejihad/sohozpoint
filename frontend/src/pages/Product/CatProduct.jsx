@@ -46,6 +46,7 @@ const CatProduct = () => {
       ) : (
         <>
           <ProductSection
+            productsPerRow={{ mobile: 1, tablet: 2, laptop: 3, desktop: 5 }}
             title={`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
             products={currentProducts}
             loading={loading}
