@@ -13,6 +13,7 @@ const banner = require("./routes/bannerRoute");
 const coupon = require("./routes/couponRoute");
 const notification = require("./routes/notificationRoute");
 const logoCharge = require("./routes/customLogoChargeRoute");
+const cart = require("./routes/cartRoute");
 const charge = require("./routes/chargeRoute");
 const email = require("./routes/emailRoute");
 const category = require("./routes/categoryRoute");
@@ -69,6 +70,7 @@ app.use("/api/v1", logoCharge);
 app.use("/api/v1", order);
 app.use("/api/v1", notification);
 app.use("/api/v1", coupon);
+app.use("/api/v1", cart);
 // Error Middleware
 app.use(errorMiddleware);
 

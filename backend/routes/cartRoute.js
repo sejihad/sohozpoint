@@ -1,5 +1,5 @@
 const express = require("express");
-const { isAuthenticatedUser } = require("../middleware/auth");
+const { isAuthenticator } = require("../middleware/auth");
 const {
   addToCart,
   getCart,
@@ -8,8 +8,13 @@ const {
 
 const router = express.Router();
 
-router.route("/cart").get(isAuthenticatedUser, getCart);
-router.route("/cart").post(isAuthenticatedUser, addToCart);
-router.route("/cart/remove").post(isAuthenticatedUser, removeFromCart);
+// 🛒 Get user's cart
+router.get("/cart", isAuthenticator, getCart);
+
+// ➕ Add item to cart
+router.post("/cart/add", isAuthenticator, addToCart);
+
+// 🗑️ Remove item from cart
+router.post("/cart/remove", isAuthenticator, removeFromCart);
 
 module.exports = router;

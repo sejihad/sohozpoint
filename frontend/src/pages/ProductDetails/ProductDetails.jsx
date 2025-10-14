@@ -201,6 +201,11 @@ const ProductDetails = () => {
   };
 
   const addToCartHandler = () => {
+    if (!user) {
+      toast.error("Please First  Login and Complete Your Profile");
+      navigate("/login");
+      return;
+    }
     if (!product) return;
 
     // Check if product is unavailable
@@ -211,7 +216,6 @@ const ProductDetails = () => {
 
     // Check if product is out of stock
     if (isProductOutOfStock) {
-      // For out of stock products, navigate to pre-order
       handlePreOrder();
       return;
     }
@@ -230,19 +234,10 @@ const ProductDetails = () => {
       return;
     }
 
-    const cartItem = {
-      id: product._id,
-      name: product.name,
-      price: product.salePrice,
-      image: product.images[0]?.url,
-
-      quantity: quantity,
-      size: selectedSize,
-      color: selectedColor,
-    };
-
-    dispatch(addItemsToCart(cartItem));
-    toast.success("Item Added To Cart");
+    // ✅ Dispatch correct parameters to backend
+    dispatch(
+      addItemsToCart(product._id, quantity, selectedSize, selectedColor)
+    );
   };
 
   const hasReviewed = product?.reviews?.some((r) => r.user === user?._id);

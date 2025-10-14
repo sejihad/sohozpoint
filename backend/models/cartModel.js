@@ -1,46 +1,36 @@
 const mongoose = require("mongoose");
 
-const cartItemSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Product",
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  image: {
-    type: String,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    default: 1,
-  },
-  size: {
-    type: String,
-    default: null,
-  },
-  color: {
-    type: String,
-    default: null,
-  },
-});
-
 const cartSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    required: true, // logged-in user-এর জন্য
   },
-  items: [cartItemSchema],
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  items: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      name: { type: String, required: true },
+      size: { type: String, default: null },
+      color: { type: String, default: null },
+      image: { type: String, default: null },
+      price: { type: Number, required: true, min: 0 },
+      quantity: { type: Number, required: true, min: 1, default: 1 },
+      subtotal: { type: Number, required: true, min: 0 },
+      availability: {
+        type: String,
+        enum: ["inStock", "outOfStock", "unavailable"],
+        default: "inStock",
+      },
+      addedAt: { type: Date, default: Date.now },
+    },
+  ],
+  totalAmount: {
+    type: Number,
+    default: 0,
   },
   updatedAt: {
     type: Date,
@@ -49,6 +39,10 @@ const cartSchema = new mongoose.Schema({
 });
 
 cartSchema.pre("save", function (next) {
+  this.items.forEach((item) => {
+    item.subtotal = item.price * item.quantity;
+  });
+  this.totalAmount = this.items.reduce((acc, item) => acc + item.subtotal, 0);
   this.updatedAt = Date.now();
   next();
 });

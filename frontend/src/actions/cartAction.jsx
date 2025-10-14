@@ -7,11 +7,28 @@ const API_URL = import.meta.env.VITE_API_URL;
 // 🛒 Add item to cart (backend-synced)
 export const addItemsToCart =
   (id, quantity = 1, selectedSize = null, selectedColor = null) =>
-  async (dispatch, getState) => {
+  async (dispatch) => {
     try {
+      const token = localStorage.getItem("token");
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
       // 1️⃣ Get product details
-      const { data } = await axios.get(`${API_URL}/api/v1/products/${id}`);
+      const { data } = await axios.get(
+        `${API_URL}/api/v1/products/${id}`,
+        config
+      );
       const item = data.product;
+
+      if (!item) {
+        toast.error("Product not found");
+        return;
+      }
 
       // 🔒 Check availability
       if (item.availability === "unavailable") {
@@ -19,22 +36,22 @@ export const addItemsToCart =
         return;
       }
 
-      // 2️⃣ Send one item to backend to add or increase quantity
+      // 2️⃣ Add item to backend cart
       const response = await axios.post(
-        `${API_URL}/api/v1/cart`,
+        `${API_URL}/api/v1/cart/add`,
         {
           productId: item._id,
           quantity,
           size: selectedSize,
           color: selectedColor,
         },
-        { withCredentials: true }
+        config
       );
 
       // 3️⃣ Get updated cart from backend
-      const updatedCart = response.data.cart.items;
+      const updatedCart = response.data.cart;
 
-      // 4️⃣ Update Redux
+      // 4️⃣ Update Redux store
       dispatch({
         type: ADD_TO_CART,
         payload: updatedCart,
@@ -54,7 +71,16 @@ export const removeItemsFromCart =
   (id, selectedSize = null, selectedColor = null) =>
   async (dispatch) => {
     try {
-      // 1️⃣ Send item info to backend for removal
+      const token = localStorage.getItem("token");
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      // 1️⃣ Send remove request to backend
       const response = await axios.post(
         `${API_URL}/api/v1/cart/remove`,
         {
@@ -62,13 +88,13 @@ export const removeItemsFromCart =
           size: selectedSize,
           color: selectedColor,
         },
-        { withCredentials: true }
+        config
       );
 
-      // 2️⃣ Get updated cart from backend
-      const updatedCart = response.data.cart.items;
+      // 2️⃣ Get updated cart
+      const updatedCart = response.data.cart;
 
-      // 3️⃣ Update Redux
+      // 3️⃣ Update Redux store
       dispatch({
         type: REMOVE_CART_ITEM,
         payload: updatedCart,
@@ -82,3 +108,26 @@ export const removeItemsFromCart =
       );
     }
   };
+
+export const getCart = () => async (dispatch) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(`${API_URL}/api/v1/cart`, config);
+
+    dispatch({
+      type: ADD_TO_CART,
+      payload: data.cart, // backend থেকে আসা cart
+    });
+  } catch (error) {
+    console.error("Get cart error:", error);
+    toast.error(error.response?.data?.message || "Failed to fetch cart");
+  }
+};

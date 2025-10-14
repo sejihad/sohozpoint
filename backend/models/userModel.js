@@ -58,57 +58,10 @@ const userSchema = new mongoose.Schema({
     },
   ],
 
-  cartItems: [
-    {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        required: true,
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      size: {
-        type: String,
-        default: null,
-      },
-      color: {
-        type: String,
-        default: null,
-      },
-
-      image: {
-        type: String,
-        default: null,
-      },
-      price: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-      quantity: {
-        type: Number,
-        required: true,
-        min: [1, "Quantity must be at least 1"],
-        default: 1,
-      },
-      subtotal: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-      availability: {
-        type: String,
-        enum: ["inStock", "outOfStock", "unavailable"],
-        default: "inStock",
-      },
-      addedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
+  cart: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cart",
+  },
   // ✅ Role System (user / admin / reseller / affiliate)
   role: {
     type: String,

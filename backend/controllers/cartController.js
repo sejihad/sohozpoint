@@ -5,9 +5,10 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
 // 🛒 Add to Cart
 const addToCart = catchAsyncErrors(async (req, res, next) => {
-  const { productId, quantity, size, color } = req.body;
+  const { productId, quantity = 1, size, color } = req.body;
 
   const product = await Product.findById(productId);
+  console.log(product);
   if (!product) return next(new ErrorHandler("Product not found", 404));
 
   // 🔒 Check availability
@@ -15,10 +16,11 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Product is currently unavailable", 400));
   }
 
-  // 🧾 Find or create cart for user
   let cart = await Cart.findOne({ user: req.user._id });
   if (!cart) {
     cart = await Cart.create({ user: req.user._id, items: [] });
+    req.user.cart = cart._id; // Update user's cart field
+    await req.user.save();
   }
 
   // 🔍 Check if this variant exists already
@@ -32,6 +34,8 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
   if (existingIndex >= 0) {
     // ✅ If already in cart, just increase quantity
     cart.items[existingIndex].quantity += quantity;
+    cart.items[existingIndex].subtotal =
+      cart.items[existingIndex].quantity * product.salePrice;
   } else {
     // ✅ Add new item
     cart.items.push({
@@ -40,11 +44,14 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
       image: product.images?.[0]?.url || "",
       price: product.salePrice,
       quantity,
+      subtotal: quantity * product.salePrice,
       size: size || null,
       color: color || null,
-      type: "product",
     });
   }
+
+  // 🔢 Calculate totalAmount
+  cart.totalAmount = cart.items.reduce((sum, i) => sum + i.subtotal, 0);
 
   await cart.save();
 
@@ -68,6 +75,9 @@ const removeFromCart = catchAsyncErrors(async (req, res, next) => {
     return !(sameId && sameSize && sameColor);
   });
 
+  // 🔢 Recalculate totalAmount
+  cart.totalAmount = cart.items.reduce((sum, i) => sum + i.subtotal, 0);
+
   await cart.save();
 
   res.status(200).json({
@@ -81,9 +91,10 @@ const getCart = catchAsyncErrors(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user._id }).populate(
     "items.product"
   );
+
   res.status(200).json({
     success: true,
-    cart: cart || { items: [] },
+    cart: cart || { items: [], totalAmount: 0 },
   });
 });
 

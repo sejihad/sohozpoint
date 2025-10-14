@@ -84,8 +84,6 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/terms" element={<TermsConditions />} />
 
-        <Route path="/cart" element={<Cart />} />
-
         <Route path="/products/:category" element={<ProductPage />} />
         <Route path="/category/:category" element={<CatProduct />} />
         <Route path="/custom-design/:slug" element={<CustomProductDetails />} />
@@ -141,6 +139,14 @@ const App = () => {
           }
         />
 
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
         {/* <Route
           path="/checkout"
           element={
