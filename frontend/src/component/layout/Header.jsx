@@ -211,8 +211,8 @@ const Header = () => {
   };
 
   const handleWhatsAppClick = () => {
-    // Replace with your actual WhatsApp number
-    const phoneNumber = "01234567";
+    // Replace with your actual WhatsApp number (without + or spaces)
+    const phoneNumber = "8801577344846"; // ✅ Correct format
     const whatsappUrl = `https://wa.me/${phoneNumber}`;
     window.open(whatsappUrl, "_blank");
   };
