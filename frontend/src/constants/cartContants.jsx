@@ -1,5 +1,10 @@
-export const ADD_TO_CART = "ADD_TO_CART";
+export const ADD_TO_CART_FAIL = "ADD_TO_CART_FAIL";
 
+export const ADD_TO_CART_REQUEST = "ADD_TO_CART_REQUEST";
+
+export const ADD_TO_CART_SUCCESS = "ADD_TO_CART_SUCCESS";
+
+export const GET_CART_FAIL = "GET_CART_FAIL";
+export const GET_CART_REQUEST = "GET_CART_REQUEST";
+export const GET_CART_SUCCESS = "GET_CART_SUCCESS";
 export const REMOVE_CART_ITEM = "REMOVE_CART_ITEM";
-
-export const GET_CART = "GET_CART";

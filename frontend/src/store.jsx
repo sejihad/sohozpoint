@@ -10,7 +10,7 @@ import {
   blogsReducer,
   newBlogReducer,
 } from "./reducers/blogReducer";
-import { CartReducer } from "./reducers/cartReducer";
+import { cartReducer } from "./reducers/cartReducer";
 import {
   categoriesReducer,
   categoryDetailsReducer,
@@ -209,19 +209,13 @@ const rootReducer = combineReducers({
   notificationUpdate: notificationUpdateReducer,
   notificationDelete: notificationUpdateReducer,
   // cart
-  Cart: CartReducer,
+  cart: cartReducer,
 });
 
 // Create persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-let initialState = {
-  Cart: {
-    CartItems: localStorage.getItem("CartItems")
-      ? JSON.parse(localStorage.getItem("CartItems"))
-      : [],
-  },
-};
+let initialState = {};
 
 // Middleware setup
 const middleware = [thunk];

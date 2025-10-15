@@ -1,89 +1,50 @@
 import {
-  ADD_TO_CART,
-  GET_CART,
+  ADD_TO_CART_FAIL,
+  ADD_TO_CART_REQUEST,
+  ADD_TO_CART_SUCCESS,
+  GET_CART_FAIL,
+  GET_CART_REQUEST,
+  GET_CART_SUCCESS,
   REMOVE_CART_ITEM,
 } from "../constants/cartContants";
 
 const initialState = {
-  CartItems: [],
-  totalAmount: 0, // optional, backend sends totalAmount
+  cartItems: [],
+  loading: false,
+  error: null,
 };
 
-export const CartReducer = (state = initialState, action) => {
+export const cartReducer = (state = initialState, action) => {
   switch (action.type) {
-    case ADD_TO_CART: {
-      const item = action.payload; // expects single item from frontend
+    case ADD_TO_CART_REQUEST:
+    case GET_CART_REQUEST:
+      return { ...state, loading: true };
 
-      // ✅ Find existing variant
-      const isItemExist = state.CartItems.find((i) => {
-        const sameId = i.id === item.id;
-        const sameSize = item.size ? i.size === item.size : true;
-        const sameColor = item.color ? i.color === item.color : true;
-        return sameId && sameSize && sameColor;
-      });
-
-      if (isItemExist) {
-        // ✅ Update quantity for existing variant
-        return {
-          ...state,
-          CartItems: state.CartItems.map((i) => {
-            const sameId = i.id === item.id;
-            const sameSize = item.size ? i.size === item.size : true;
-            const sameColor = item.color ? i.color === item.color : true;
-
-            if (sameId && sameSize && sameColor) {
-              return {
-                ...i,
-                quantity: i.quantity + item.quantity,
-                subtotal: (i.quantity + item.quantity) * i.price, // update subtotal
-              };
-            }
-            return i;
-          }),
-          totalAmount: state.CartItems.reduce(
-            (sum, i) =>
-              i.id === item.id &&
-              ((item.size && i.size === item.size) || !item.size) &&
-              ((item.color && i.color === item.color) || !item.color)
-                ? sum + (i.quantity + item.quantity) * i.price
-                : sum + i.subtotal,
-            0
-          ),
-        };
-      } else {
-        // ✅ New variant → add
-        return {
-          ...state,
-          CartItems: [...state.CartItems, item],
-          totalAmount:
-            state.CartItems.reduce((sum, i) => sum + i.subtotal, 0) +
-            item.subtotal,
-        };
-      }
-    }
-
-    case REMOVE_CART_ITEM: {
-      const { id, size, color } = action.payload;
-
-      const updatedCart = state.CartItems.filter((i) => {
-        const sameId = i.id === id;
-        const sameSize = size ? i.size === size : true;
-        const sameColor = color ? i.color === color : true;
-        return !(sameId && sameSize && sameColor);
-      });
-
+    case ADD_TO_CART_SUCCESS:
+    case GET_CART_SUCCESS:
       return {
         ...state,
-        CartItems: updatedCart,
-        totalAmount: updatedCart.reduce((sum, i) => sum + i.subtotal, 0),
+        loading: false,
+        cartItems: action.payload.items || [],
       };
-    }
-    case GET_CART:
+
+    case ADD_TO_CART_FAIL:
+    case GET_CART_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    case REMOVE_CART_ITEM:
       return {
         ...state,
-        CartItems: action.payload.items,
-        totalAmount: action.payload.totalAmount,
+        cartItems: state.cartItems.filter(
+          (x) =>
+            !(
+              x.product === action.payload.productId &&
+              x.size === action.payload.size &&
+              x.color === action.payload.color
+            )
+        ),
       };
+
     default:
       return state;
   }
