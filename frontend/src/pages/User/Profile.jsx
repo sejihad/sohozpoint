@@ -189,7 +189,7 @@ const Profile = () => {
                         Account Type
                       </label>
                       <p className="text-lg font-medium text-gray-800 bg-gray-50 p-3 rounded-lg capitalize">
-                        {user?.provider || "N/A"}
+                        {user?.provider}
                       </p>
                     </div>
                     <div>
@@ -198,7 +198,7 @@ const Profile = () => {
                       </label>
                       <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
                         <p className="text-sm md:text-base font-mono text-gray-800 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-                          {user?._id || "N/A"}
+                          {user?.userCode}
                         </p>
                       </div>
                     </div>

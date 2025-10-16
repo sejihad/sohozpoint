@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   FaAngleDown,
   FaCog,
+  FaLock,
   FaShoppingBag,
   FaSignOutAlt,
   FaTachometerAlt,
@@ -12,6 +13,7 @@ import {
 import { FiShoppingCart, FiUser } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getCart } from "../../actions/cartAction";
 import { getCategory } from "../../actions/categoryAction";
 import { logout } from "../../actions/userAction";
 import logo from "../../assets/logo.jpg";
@@ -41,6 +43,8 @@ const Header = () => {
   const dispatch = useDispatch();
 
   const { isAuthenticated, user } = useSelector((state) => state.user);
+
+  const { cartItems = [] } = useSelector((state) => state.cart);
   const { categories, loading: categoriesLoading } = useSelector(
     (state) => state.categories
   );
@@ -49,30 +53,6 @@ const Header = () => {
   const [notifications] = useState([
     {
       id: 1,
-      title: "Order Confirmation",
-      message: "Your order #12345 has been successfully placed",
-      time: "5 minutes ago",
-      read: false,
-      type: "order",
-    },
-    {
-      id: 2,
-      title: "Promo Code",
-      message: "Special offer for you: Use code WELCOME10 to get 10% off",
-      time: "1 hour ago",
-      read: false,
-      type: "promo",
-    },
-    {
-      id: 3,
-      title: "Delivery Update",
-      message: "Your product is ready for delivery",
-      time: "2 hours ago",
-      read: true,
-      type: "shipping",
-    },
-    {
-      id: 4,
       title: "Account Verification",
       message: "Your email has been successfully verified",
       time: "1 day ago",
@@ -84,31 +64,17 @@ const Header = () => {
   const unreadCount = notifications.filter(
     (notification) => !notification.read
   ).length;
-
-  // Update cart count from localStorage
   useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("CartItems")) || [];
-      const cartCount = cart.reduce(
-        (total, item) => total + (item.quantity || 1),
-        0
-      );
-      setCartItemCount(cartCount);
-    };
+    dispatch(getCart());
+  }, [dispatch]);
 
-    updateCartCount();
-
-    // Listen for storage events to update cart count across tabs
-    window.addEventListener("storage", updateCartCount);
-
-    // Custom event listener for cart updates within same tab
-    window.addEventListener("cartUpdated", updateCartCount);
-
-    return () => {
-      window.removeEventListener("storage", updateCartCount);
-      window.removeEventListener("cartUpdated", updateCartCount);
-    };
-  }, []);
+  useEffect(() => {
+    const cartCount = cartItems.reduce(
+      (total, item) => total + (item.quantity || 1),
+      0
+    );
+    setCartItemCount(cartCount);
+  }, [cartItems]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -496,8 +462,8 @@ const Header = () => {
                               : "text-gray-700"
                           }`}
                         >
-                          <FaCog className="text-base" />
-                          Settings
+                          <FaLock className="text-base" />
+                          Security
                         </Link>
                       )}
 
@@ -639,7 +605,7 @@ const Header = () => {
                           }`}
                         >
                           <FaCog className="text-base" />
-                          Settings
+                          Security
                         </Link>
                       )}
 

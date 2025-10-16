@@ -10,29 +10,27 @@ import {
   REMOVE_CART_ITEM,
 } from "../constants/cartContants";
 
-// Add or Update Cart Item
+const API_URL = import.meta.env.VITE_API_URL;
+
+// ➕ Add or replace item in cart
 export const addItemsToCart =
-  (productId, quantity, size, color) => async (dispatch, getState) => {
+  (productId, quantity, size, color) => async (dispatch) => {
     try {
       dispatch({ type: ADD_TO_CART_REQUEST });
 
+      const token = localStorage.getItem("token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
       const { data } = await axios.post(
-        "/api/v1/cart/add",
-        {
-          productId,
-          quantity,
-          size,
-          color,
-        },
-        { withCredentials: true }
+        `${API_URL}/api/v1/cart/add`,
+        { productId, quantity, size, color },
+        config
       );
 
       dispatch({
         type: ADD_TO_CART_SUCCESS,
         payload: data.cart,
       });
-
-      localStorage.setItem("cartItems", JSON.stringify(data.cart.items));
     } catch (error) {
       dispatch({
         type: ADD_TO_CART_FAIL,
@@ -42,35 +40,14 @@ export const addItemsToCart =
     }
   };
 
-// Get Logged-in User Cart
-export const getCart = () => async (dispatch) => {
-  try {
-    dispatch({ type: GET_CART_REQUEST });
-
-    const { data } = await axios.get("/api/v1/cart", { withCredentials: true });
-
-    dispatch({
-      type: GET_CART_SUCCESS,
-      payload: data.cart,
-    });
-
-    localStorage.setItem("cartItems", JSON.stringify(data.cart.items));
-  } catch (error) {
-    dispatch({
-      type: GET_CART_FAIL,
-      payload: error.response?.data?.message || error.message,
-    });
-    toast.error("Failed to load cart");
-  }
-};
-
-// Remove item from cart
+// 🗑️ Remove item from cart
 export const removeItemsFromCart =
-  (productId, size, color) => async (dispatch, getState) => {
+  (productId, size, color) => async (dispatch) => {
     try {
-      await axios.delete(`/api/v1/cart/remove`, {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/api/v1/cart/remove`, {
         data: { productId, size, color },
-        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       dispatch({
@@ -78,9 +55,32 @@ export const removeItemsFromCart =
         payload: { productId, size, color },
       });
 
-      const { cart } = getState();
-      localStorage.setItem("cartItems", JSON.stringify(cart.cartItems));
+      toast.success("Item removed from cart");
     } catch (error) {
-      toast.error("Failed to remove item");
+      toast.error(error.response?.data?.message || "Failed to remove item");
     }
   };
+
+// 🧾 Get user cart
+export const getCart = () => async (dispatch) => {
+  try {
+    dispatch({ type: GET_CART_REQUEST });
+
+    const token = localStorage.getItem("token");
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    const { data } = await axios.get(`${API_URL}/api/v1/cart`, config);
+    console.log(data);
+    dispatch({
+      type: GET_CART_SUCCESS,
+      payload: data.cart,
+    });
+  } catch (error) {
+    console.log(error);
+    dispatch({
+      type: GET_CART_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+    toast.error("Failed to load cart");
+  }
+};

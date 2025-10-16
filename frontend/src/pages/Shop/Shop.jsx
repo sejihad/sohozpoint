@@ -817,9 +817,7 @@ const Shop = () => {
                 <div className="mb-8">
                   <ProductSection
                     title={
-                      searchTerm
-                        ? `Search Results for "${searchTerm}"`
-                        : "All Products"
+                      searchTerm ? `Search Results for "${searchTerm}"` : "All"
                     }
                     productsPerRow={{
                       mobile: 1,

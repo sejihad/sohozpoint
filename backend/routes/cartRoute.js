@@ -1,20 +1,20 @@
 const express = require("express");
-const { isAuthenticator } = require("../middleware/auth");
+const router = express.Router();
 const {
   addToCart,
-  getCart,
+
   removeFromCart,
+  getCart,
 } = require("../controllers/cartController");
+const { isAuthenticator } = require("../middleware/auth");
 
-const router = express.Router();
-
-// 🛒 Get user's cart
-router.get("/cart", isAuthenticator, getCart);
-
-// ➕ Add item to cart
+// 🛒 Add to Cart (replace quantity if exists)
 router.post("/cart/add", isAuthenticator, addToCart);
 
 // 🗑️ Remove item from cart
-router.post("/cart/remove", isAuthenticator, removeFromCart);
+router.delete("/cart/remove", isAuthenticator, removeFromCart);
+
+// 📦 Get cart
+router.get("/cart", isAuthenticator, getCart);
 
 module.exports = router;

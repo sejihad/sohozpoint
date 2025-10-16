@@ -31,12 +31,12 @@ const Home = () => {
 
       <ProductSection
         productsPerRow={{
-          mobile: 1,
+          mobile: 2,
           tablet: 2,
           laptop: 3,
           desktop: 5,
         }}
-        title=""
+        title="Latest"
         products={randomProducts}
         loading={loading}
       />

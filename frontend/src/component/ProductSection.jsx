@@ -1,9 +1,7 @@
 import { FaRegStar, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import slugify from "slugify";
-import { addItemsToCart } from "../actions/cartAction";
 import Loader from "./layout/Loader/Loader";
 
 const StarRating = ({ rating }) => {
@@ -32,20 +30,6 @@ const Product = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const handleBuyNow = (type, item) => {
-    navigate("/checkout", {
-      state: {
-        cartItems: [item],
-        type: type,
-      },
-    });
-  };
-
-  const addToCartHandler = (type, id, q) => {
-    dispatch(addItemsToCart(type, id, q));
-    toast.success("Item Added To Cart");
-  };
 
   if (!product) return null;
   const availabilityColors = {
@@ -95,33 +79,36 @@ const Product = ({
 
       <div className="p-4 text-center flex-grow flex flex-col">
         <Link
-          to={`/${product.category}/${slugify(product.name, {
+          to={`/${slugify(product.category, {
+            lower: true,
+            strict: true,
+          })}/${slugify(product.name, {
             lower: true,
             strict: true,
           })}`}
           className="block hover:text-green-600"
         >
-          <h3 className="text-md font-semibold text-gray-800 line-clamp-2 h-12">
+          <h3 className="text-md font-semibold text-gray-800 line-clamp-1 ">
             {product.name}
           </h3>
         </Link>
 
-        {product.title && (
+        {/* {product.title && (
           <p className="text-sm text-gray-500 line-clamp-1 h-5 mt-1">
             {product.title}
           </p>
-        )}
+        )} */}
 
         <StarRating rating={product.ratings || 0} />
 
-        {showCategory && (
+        {/* {showCategory && (
           <div className="flex flex-wrap justify-center gap-1 my-2">
             <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
               {product.category}
             </span>
           </div>
-        )}
-        <div className="">
+        )} */}
+        {/* <div className="">
           <span
             className={`inline-block text-xs font-medium px-3 py-1 rounded-full ${
               availabilityColors[product.availability] ||
@@ -130,7 +117,7 @@ const Product = ({
           >
             {availabilityLabels[product.availability]}
           </span>
-        </div>
+        </div> */}
         <div className="flex items-center justify-center gap-2 mt-2 text-sm">
           <span className="text-green-600 font-semibold">
             ৳{product.salePrice}
@@ -140,30 +127,6 @@ const Product = ({
               ৳{product.oldPrice}
             </span>
           )}
-        </div>
-
-        <div className="mt-auto pt-3">
-          <button
-            onClick={() => addToCartHandler(productType, product._id, 1)}
-            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer mb-2"
-          >
-            Add to Cart
-          </button>
-          <button
-            onClick={() =>
-              handleBuyNow(productType, {
-                id: product._id,
-                name: product.name,
-                price: product.salePrice || product.price,
-                image: product.images?.[0]?.url || product.image?.url,
-                type: productType,
-                quantity: 1,
-              })
-            }
-            className="w-full bg-gradient-to-r from-green-500 to-green-500 text-white font-semibold py-2 hover:from-green-600 hover:to-green-600 transition-all duration-300 cursor-pointer "
-          >
-            Buy Now
-          </button>
         </div>
       </div>
     </div>

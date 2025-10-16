@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import {
+  FaChevronLeft,
+  FaChevronRight,
   FaExclamationTriangle,
   FaMinus,
   FaPlus,
@@ -22,30 +24,78 @@ import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
 import { NEW_REVIEW_RESET } from "../../constants/productContants";
 
-// Simple Image Zoom Component without hover effect
-const ImageZoom = ({ imageUrl, alt, isOpen, onClose }) => {
+// Updated Image Zoom Component with navigation arrows
+const ImageZoom = ({
+  imageUrl,
+  alt,
+  isOpen,
+  onClose,
+  onNext,
+  onPrev,
+  hasNext,
+  hasPrev,
+}) => {
   if (!isOpen) return null;
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight" && hasNext) onNext();
+      if (e.key === "ArrowLeft" && hasPrev) onPrev();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, onNext, onPrev, hasNext, hasPrev]);
 
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-      onClick={onClose} // Close when clicking outside
+      onClick={onClose}
     >
-      <button
-        onClick={onClose}
-        className="absolute top-6 text-white text-2xl bg-red-500 rounded-full w-12 h-12 flex items-center justify-center hover:bg-red-600 transition z-10 shadow-lg"
-      >
-        <FaTimes />
-      </button>
-
       <div
         className="max-w-4xl max-h-full relative"
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on image
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button - Image-এর ভিতরে top-right corner-এ */}
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 text-white text-xl bg-red-500 rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transition z-10 shadow-lg border-2 border-white"
+        >
+          <FaTimes />
+        </button>
+
+        {/* Previous Arrow - Image-এর বাম পাশে একদম লাগানো */}
+        {hasPrev && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrev();
+            }}
+            className="absolute -left-4 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-80 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-100 transition z-10 border-2 border-white"
+          >
+            <FaChevronLeft />
+          </button>
+        )}
+
+        {/* Next Arrow - Image-এর ডান পাশে একদম লাগানো */}
+        {hasNext && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="absolute -right-4 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-80 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-100 transition z-10 border-2 border-white"
+          >
+            <FaChevronRight />
+          </button>
+        )}
+
         <img
           src={imageUrl}
           alt={alt}
-          className="w-full h-full object-contain max-h-[90vh]"
+          className="w-full h-full object-contain max-h-[85vh] rounded-lg border-2 border-gray-300"
           onError={(e) => {
             e.target.src = "/placeholder-image.jpg";
           }}
@@ -238,6 +288,7 @@ const ProductDetails = () => {
     dispatch(
       addItemsToCart(product._id, quantity, selectedSize, selectedColor)
     );
+    toast.success("Prouduct added to cart");
   };
 
   const hasReviewed = product?.reviews?.some((r) => r.user === user?._id);
@@ -358,13 +409,28 @@ const ProductDetails = () => {
     dispatch(newReview({ ...review, productId: product._id }));
   };
 
-  // Image zoom handlers
+  // Image zoom handlers with navigation
   const openImageZoom = (imageIndex) => {
     setZoomImage(imageIndex);
   };
 
   const closeImageZoom = () => {
     setZoomImage(null);
+  };
+
+  const goToNextImage = () => {
+    const productImages = product?.images || [];
+    if (zoomImage < productImages.length - 1) {
+      setZoomImage(zoomImage + 1);
+      setSelectedImage(zoomImage + 1);
+    }
+  };
+
+  const goToPrevImage = () => {
+    if (zoomImage > 0) {
+      setZoomImage(zoomImage - 1);
+      setSelectedImage(zoomImage - 1);
+    }
   };
 
   // Early return for loading state
@@ -401,17 +467,24 @@ const ProductDetails = () => {
         )
       : 0;
 
+  // Calculate total price based on quantity
+  const totalPrice = (product.salePrice || 0) * quantity;
+
   return (
     <>
       <MetaData title={`${product.name}`} />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Image Zoom Modal */}
+        {/* Image Zoom Modal with Navigation */}
         {zoomImage !== null && productImages[zoomImage] && (
           <ImageZoom
             imageUrl={productImages[zoomImage].url}
             alt={product.name}
             isOpen={zoomImage !== null}
             onClose={closeImageZoom}
+            onNext={goToNextImage}
+            onPrev={goToPrevImage}
+            hasNext={zoomImage < productImages.length - 1}
+            hasPrev={zoomImage > 0}
           />
         )}
 
@@ -563,21 +636,19 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-                {/* Delivery Charge in Price Section */}
-                <div className="text-sm mt-2">
-                  <span className="text-gray-600">Delivery: </span>
-                  <span
-                    className={
-                      product.deliveryCharge === "yes"
-                        ? "text-orange-600 font-semibold"
-                        : "text-green-600 font-semibold"
-                    }
-                  >
-                    {product.deliveryCharge === "yes"
-                      ? "Charge Applicable"
-                      : "Free Delivery"}
-                  </span>
-                </div>
+                {/* Total Price based on Quantity */}
+                {isProductInStock && (
+                  <div className="mt-2 p-2 bg-green-50 rounded-md border border-green-200">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">Total Price:</span>
+                      <span className="font-bold text-green-700 text-lg">
+                        ৳{totalPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Delivery Charge - Moved below quantity */}
               </div>
 
               {/* Size Selection - Only show if sizes exist */}
@@ -630,7 +701,7 @@ const ProductDetails = () => {
 
               {/* Quantity Selection - Only show for in-stock products */}
               {isProductInStock && (
-                <div className="mb-6">
+                <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-700">Quantity:</span>
                     <div className="flex items-center border rounded-md overflow-hidden">
@@ -656,46 +727,61 @@ const ProductDetails = () => {
                 </div>
               )}
 
+              {/* Delivery Charge - Now below quantity */}
+              <div className="mb-6 text-sm border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Delivery Charge:</span>
+                  <span
+                    className={
+                      product.deliveryCharge === "yes"
+                        ? "text-orange-600 font-semibold"
+                        : "text-green-600 font-semibold"
+                    }
+                  >
+                    {product.deliveryCharge === "yes"
+                      ? "Charge Applicable"
+                      : "Free Delivery"}
+                  </span>
+                </div>
+              </div>
+
               {/* Action Buttons */}
               <div className="space-y-3">
-                {/* Add to Cart Button */}
-                <button
-                  onClick={addToCartHandler}
-                  disabled={isProductUnavailable}
-                  className={`w-full flex items-center justify-center py-3 px-4 rounded-md font-medium text-white transition ${
-                    isProductUnavailable
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : isProductOutOfStock
-                      ? "bg-orange-500 hover:bg-orange-600"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
-                >
-                  <FaShoppingCart className="mr-2" />
-                  {isProductUnavailable
-                    ? "Unavailable"
-                    : isProductOutOfStock
-                    ? "Pre Order"
-                    : "Add to Cart"}
-                </button>
+                {/* Show only Pre Order button for out of stock */}
+                {isProductOutOfStock ? (
+                  <button
+                    onClick={handlePreOrder}
+                    className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium transition"
+                  >
+                    Pre Order Now
+                  </button>
+                ) : !isProductUnavailable ? (
+                  <>
+                    {/* Add to Cart Button - Only for in stock */}
+                    <button
+                      onClick={addToCartHandler}
+                      className="w-full flex items-center justify-center py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition"
+                    >
+                      <FaShoppingCart className="mr-2" />
+                      Add to Cart
+                    </button>
 
-                {/* Buy Now Button */}
-                <button
-                  onClick={handleBuyNow}
-                  disabled={isProductUnavailable}
-                  className={`w-full py-3 px-4 rounded-md font-medium text-white transition ${
-                    isProductUnavailable
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : isProductOutOfStock
-                      ? "bg-orange-500 hover:bg-orange-600"
-                      : "bg-red-500 hover:bg-red-600"
-                  }`}
-                >
-                  {isProductUnavailable
-                    ? "Unavailable"
-                    : isProductOutOfStock
-                    ? "Pre Order Now"
-                    : "Buy Now"}
-                </button>
+                    {/* Buy Now Button - Only for in stock */}
+                    <button
+                      onClick={handleBuyNow}
+                      className="w-full py-3 px-4 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition"
+                    >
+                      Buy Now
+                    </button>
+                  </>
+                ) : (
+                  /* Show unavailable message */
+                  <div className="text-center p-4 bg-gray-100 rounded-md">
+                    <p className="text-gray-600 font-medium">
+                      Product Unavailable
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Stock Status Messages */}
@@ -736,6 +822,7 @@ const ProductDetails = () => {
           </div>
         </div>
 
+        {/* Rest of the component remains the same */}
         {/* Video Section */}
         {product.videoLink && (
           <div className="mt-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">

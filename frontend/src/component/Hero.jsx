@@ -59,14 +59,14 @@ const Hero = () => {
 
   if (slides.length === 0) {
     return (
-      <section className="relative container h-[50vh] sm:h-[60vh] flex items-center justify-center bg-gray-200">
+      <section className="relative container h-[45vh] sm:h-[50vh] flex items-center justify-center bg-gray-200">
         <p className="text-gray-700 text-lg">No banners available</p>
       </section>
     );
   }
 
   return (
-    <section className="relative container h-[50vh] sm:h-[60vh] overflow-hidden">
+    <section className="relative container h-[45vh] sm:h-[50vh] overflow-hidden">
       {/* Image Slider */}
       <div className="relative h-full w-full">
         {slides.map((slide, index) => (

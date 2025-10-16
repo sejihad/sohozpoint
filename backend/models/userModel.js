@@ -43,14 +43,11 @@ const userSchema = new mongoose.Schema({
       default: "/Profile.png",
     },
   },
+
   notifications: [
     {
-      title: {
-        type: String,
-      },
-      desc: {
-        type: String,
-      },
+      title: String,
+      desc: String,
       date: {
         type: Date,
         default: Date.now,
@@ -62,7 +59,7 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",
   },
-  // ✅ Role System (user / admin / reseller / affiliate)
+
   role: {
     type: String,
     enum: ["user", "admin", "reseller", "affiliate"],
@@ -77,6 +74,12 @@ const userSchema = new mongoose.Schema({
   googleId: String,
   facebookId: String,
 
+  // ✅ Unique random code
+  userCode: {
+    type: String,
+    unique: true,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -86,14 +89,46 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire: Date,
 });
 
-// ✅ Password Hash Middleware
+// ✅ Generate unique userCode before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  if (this.password) {
+  if (this.isNew) {
+    let code;
+    let isUnique = false;
+
+    while (!isUnique) {
+      code = generateUniqueCode();
+      const existing = await mongoose.models.User.findOne({ userCode: code });
+      if (!existing) isUnique = true;
+    }
+
+    this.userCode = code;
+  }
+
+  // Hash password if modified
+  if (this.isModified("password") && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
+
   next();
 });
+
+// ✅ Random unique code generator function
+function generateUniqueCode() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const firstTwo =
+    letters[Math.floor(Math.random() * 26)] +
+    letters[Math.floor(Math.random() * 26)];
+
+  // Random length between 2–8 (so total 4–10)
+  const len = Math.floor(Math.random() * 7) + 2;
+  const randomPart = crypto
+    .randomBytes(len)
+    .toString("hex")
+    .slice(0, len)
+    .toUpperCase();
+
+  return firstTwo + randomPart;
+}
 
 // ✅ JWT Token Generator
 userSchema.methods.getJWTToken = function () {
@@ -110,11 +145,14 @@ userSchema.methods.comparePassword = async function (password) {
 // ✅ Generate Password Reset Token
 userSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
+
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
+
   this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
   return resetToken;
 };
 
