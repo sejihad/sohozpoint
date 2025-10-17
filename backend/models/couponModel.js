@@ -21,6 +21,18 @@ const couponSchema = new mongoose.Schema({
     type: Date,
     required: [true, "Please provide an expiry date"],
   },
+  minimumPurchase: {
+    type: Number,
+    default: 0, // 0 means no minimum purchase requirement
+  },
+  usageLimit: {
+    type: Number,
+    default: 0, // 0 = unlimited usage
+  },
+  usedCount: {
+    type: Number,
+    default: 0, // tracks how many times coupon has been used
+  },
   isActive: {
     type: Boolean,
     default: true,
@@ -30,5 +42,16 @@ const couponSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+// Optional: helper method to check if coupon can still be used
+couponSchema.methods.canBeUsed = function (cartTotal) {
+  const notExpired = this.expiryDate > new Date();
+  const withinUsageLimit =
+    this.usageLimit === 0 || this.usedCount < this.usageLimit;
+  const meetsMinimumPurchase = cartTotal >= this.minimumPurchase;
+  return (
+    this.isActive && notExpired && withinUsageLimit && meetsMinimumPurchase
+  );
+};
 
 module.exports = mongoose.model("Coupon", couponSchema);

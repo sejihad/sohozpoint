@@ -16,7 +16,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getCart } from "../../actions/cartAction";
 import { getCategory } from "../../actions/categoryAction";
 import { logout } from "../../actions/userAction";
-import logo from "../../assets/logo.jpg";
+import logo from "../../assets/logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -65,8 +65,10 @@ const Header = () => {
     (notification) => !notification.read
   ).length;
   useEffect(() => {
-    dispatch(getCart());
-  }, [dispatch]);
+    if (user) {
+      dispatch(getCart());
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
     const cartCount = cartItems.reduce(

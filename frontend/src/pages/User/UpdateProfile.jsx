@@ -297,10 +297,22 @@ const UpdateProfile = () => {
                     <input
                       type="text"
                       value={number}
-                      onChange={(e) => setNumber(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow only digits and max 11 characters
+                        if (/^\d{0,11}$/.test(value)) {
+                          setNumber(value);
+                        }
+                      }}
+                      maxLength={11}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
-                      placeholder="Enter your phone number"
+                      placeholder="Enter your 11-digit phone number"
                     />
+                    {number.length > 0 && number.length !== 11 && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Phone number must be exactly 11 digits.
+                      </p>
+                    )}
                   </div>
 
                   {/* Submit Button */}

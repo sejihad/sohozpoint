@@ -70,17 +70,15 @@ export const getCart = () => async (dispatch) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     const { data } = await axios.get(`${API_URL}/api/v1/cart`, config);
-    console.log(data);
+
     dispatch({
       type: GET_CART_SUCCESS,
       payload: data.cart,
     });
   } catch (error) {
-    console.log(error);
     dispatch({
       type: GET_CART_FAIL,
       payload: error.response?.data?.message || error.message,
     });
-    toast.error("Failed to load cart");
   }
 };

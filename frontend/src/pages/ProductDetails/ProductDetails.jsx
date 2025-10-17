@@ -375,21 +375,12 @@ const ProductDetails = () => {
             name: product.name,
             price: product.salePrice,
             image: product.images[0]?.url,
-            type: "product",
             quantity: quantity,
             size: selectedSize,
             color: selectedColor,
-            productDetails: {
-              brand: product.brand,
-              category: product.category,
-              deliveryCharge: product.deliveryCharge,
-              weight: product.weight,
-              isPreOrder: true, // Mark as pre-order
-            },
           },
         ],
-        type: "product",
-        directCheckout: true,
+
         isPreOrder: true, // Flag for pre-order
       },
     });
@@ -923,12 +914,12 @@ const ProductDetails = () => {
           <div className="mt-8">
             <ProductSection
               productsPerRow={{
-                mobile: 1,
+                mobile: 2,
                 tablet: 2,
                 laptop: 3,
                 desktop: 5,
               }}
-              title="Related Products"
+              title="Related"
               products={relatedProducts}
               showViewAll={false}
               columns={4}
