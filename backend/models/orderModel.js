@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // ✅ Auto-generate unique 10-digit order ID
 const generateOrderId = async function () {
@@ -100,4 +100,4 @@ orderSchema.pre("save", async function (next) {
   next();
 });
 
-export default mongoose.model("Order", orderSchema);
+module.exports = mongoose.model("Order", orderSchema);
