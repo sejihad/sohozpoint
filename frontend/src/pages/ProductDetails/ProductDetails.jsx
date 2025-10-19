@@ -295,7 +295,15 @@ const ProductDetails = () => {
 
   const handleBuyNow = () => {
     if (!product) return;
-
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (!user?.country || !user?.number) {
+      toast.info("First Complete Your Profile");
+      navigate("/profile/update");
+      return;
+    }
     // Check if product is unavailable
     if (isProductUnavailable) {
       toast.error("This product is currently unavailable");
@@ -332,19 +340,14 @@ const ProductDetails = () => {
             name: product.name,
             price: product.salePrice,
             image: product.images[0]?.url,
-            type: "product",
+            weight: product.weight,
             quantity: quantity,
             size: selectedSize,
             color: selectedColor,
-            productDetails: {
-              brand: product.brand,
-              category: product.category,
-              deliveryCharge: product.deliveryCharge,
-              weight: product.weight,
-            },
+            deliveryCharge: product.deliveryCharge,
           },
         ],
-        type: "product",
+
         directCheckout: true,
       },
     });
@@ -352,7 +355,15 @@ const ProductDetails = () => {
 
   const handlePreOrder = () => {
     if (!product) return;
-
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (!user?.country || !user?.number) {
+      toast.info("First Complete Your Profile");
+      navigate("/profile/update");
+      return;
+    }
     const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
     const productColors = Array.isArray(product.colors) ? product.colors : [];
 
@@ -373,15 +384,17 @@ const ProductDetails = () => {
           {
             id: product._id,
             name: product.name,
+            weight: product.weight,
             price: product.salePrice,
             image: product.images[0]?.url,
             quantity: quantity,
             size: selectedSize,
             color: selectedColor,
+            deliveryCharge: product.deliveryCharge,
           },
         ],
 
-        isPreOrder: true, // Flag for pre-order
+        isPreOrder: true,
       },
     });
   };
@@ -447,7 +460,7 @@ const ProductDetails = () => {
 
   const hasCompletedOrder = orders?.some((order) => {
     return order.orderItems?.some((item) => {
-      return item.id === product._id && order.order_status === "completed";
+      return item.id === product._id && order.order_status === "delivered";
     });
   });
 

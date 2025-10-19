@@ -19,6 +19,44 @@ import {
 
 import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
+// ✅ Create New Order
+export const createOrder = (orderData) => async (dispatch) => {
+  try {
+    dispatch({ type: CREATE_ORDER_REQUEST });
+
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    // ১️⃣ EPS Initialize API কল
+    const { data } = await axios.post(
+      `${API_URL}/api/v1/payment/initialize`,
+      orderData,
+      config
+    );
+
+    // ২️⃣ EPS থেকে RedirectURL পাবে
+    if (data?.RedirectURL) {
+      window.location.href = data.RedirectURL; // EPS payment page এ পাঠিয়ে দাও
+    } else {
+      throw new Error("Failed to get payment link");
+    }
+
+    dispatch({
+      type: CREATE_ORDER_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: CREATE_ORDER_FAIL,
+      payload: error.response?.data?.message || "Payment initialization failed",
+    });
+  }
+};
 
 // My Orders
 export const myOrders = () => async (dispatch) => {

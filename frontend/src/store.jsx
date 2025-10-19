@@ -25,6 +25,7 @@ import {
 import {
   allOrdersReducer,
   myOrdersReducer,
+  newOrderReducer,
   orderDetailsReducer,
   orderReducer,
 } from "./reducers/orderReducer";
@@ -75,6 +76,7 @@ import {
   logosReducer,
   newLogoReducer,
 } from "./reducers/logoReducer";
+import { paymentInitializeReducer } from "./reducers/paymentReducer";
 import {
   newShipReducer,
   shipDetailsReducer,
@@ -197,6 +199,7 @@ const rootReducer = combineReducers({
   productReviews: productReviewsReducer,
 
   //order
+  newOrder: newOrderReducer,
   myOrders: myOrdersReducer,
   allOrders: allOrdersReducer,
   order: orderReducer,
@@ -210,6 +213,7 @@ const rootReducer = combineReducers({
   notificationDelete: notificationUpdateReducer,
   // cart
   cart: cartReducer,
+  payment: paymentInitializeReducer,
 });
 
 // Create persisted reducer

@@ -6,6 +6,8 @@ import {
   APPLY_COUPON_REQUEST,
   APPLY_COUPON_RESET,
   APPLY_COUPON_SUCCESS,
+  CLEAR_COUPON_RESET,
+  CLEAR_COUPON_SUCCESS,
   CLEAR_ERRORS,
   COUPON_DETAILS_FAIL,
   COUPON_DETAILS_REQUEST,
@@ -103,15 +105,61 @@ export const couponDetailsReducer = (state = { coupon: {} }, action) => {
 };
 
 // -------------------- User: Apply Coupon --------------------
+// -------------------- User: Apply Coupon --------------------
 export const applyCouponReducer = (state = {}, action) => {
   switch (action.type) {
     case APPLY_COUPON_REQUEST:
-      return { loading: true };
+      return { ...state, loading: true, error: null };
     case APPLY_COUPON_SUCCESS:
-      return { loading: false, success: true, ...action.payload.success };
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        coupon: action.payload.coupon,
+        discountAmount: action.payload.discountAmount,
+        amount: action.payload.amount,
+        error: null, // Clear any previous errors
+      };
     case APPLY_COUPON_FAIL:
-      return { loading: false, error: action.payload };
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+        coupon: null,
+        discountAmount: 0,
+      };
     case APPLY_COUPON_RESET:
+    case CLEAR_COUPON_SUCCESS:
+      return {
+        loading: false,
+        success: false,
+        coupon: null,
+        discountAmount: 0,
+        amount: 0,
+        error: null,
+      };
+    case CLEAR_ERRORS:
+      return { ...state, error: null };
+    default:
+      return state;
+  }
+};
+
+// -------------------- User: Clear Coupon --------------------
+export const clearCouponReducer = (state = {}, action) => {
+  switch (action.type) {
+    case CLEAR_COUPON_REQUEST:
+      return { loading: true };
+    case CLEAR_COUPON_SUCCESS:
+      return {
+        loading: false,
+        success: true,
+        message: action.payload.message,
+        coupon: null,
+      };
+    case CLEAR_COUPON_FAIL:
+      return { loading: false, error: action.payload };
+    case CLEAR_COUPON_RESET:
       return { success: false };
     case CLEAR_ERRORS:
       return { ...state, error: null };

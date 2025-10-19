@@ -54,6 +54,7 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
       deliveryCharge,
       quantity: quantityToAdd,
       subtotal: quantityToAdd * product.salePrice,
+      weight: product.weight,
       size: size || null,
       color: color || null,
     });
@@ -152,7 +153,6 @@ const getCart = catchAsyncErrors(async (req, res, next) => {
 
 module.exports = {
   addToCart,
-
   removeFromCart,
   getCart,
 };

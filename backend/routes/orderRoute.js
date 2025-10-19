@@ -6,10 +6,12 @@ const {
   deleteOrder,
   getAllOrders,
   getSingleAdminOrder,
+  createOrder,
 } = require("../controllers/orderController");
 const router = express.Router();
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
 
+router.get("/order/new", isAuthenticator, createOrder);
 router.get("/order/:id", isAuthenticator, getSingleOrder);
 router.get("/orders/me", isAuthenticator, myOrders);
 

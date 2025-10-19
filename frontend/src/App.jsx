@@ -55,6 +55,7 @@ import AllSubcategories from "./pages/Admin/AllSubcategories";
 import AllSubsubcategories from "./pages/Admin/AllSubsubcategories";
 import AllTypes from "./pages/Admin/AllTypes";
 import NotificationManager from "./pages/Admin/NotificationManager";
+import Checkout from "./pages/Payment/Checkout";
 import PaymentCancel from "./pages/Payment/PaymentCancel";
 import PaymentSuccess from "./pages/Payment/PaymentSuccess";
 import PrivacyPolicy from "./pages/Privacy/PrivacyPolicy";
@@ -147,14 +148,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        {/* <Route
+        <Route
           path="/checkout"
           element={
             <ProtectedRoute>
               <Checkout />
             </ProtectedRoute>
           }
-        /> */}
+        />
         <Route
           path="/orders"
           element={

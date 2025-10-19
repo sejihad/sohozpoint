@@ -6,6 +6,9 @@ import {
   APPLY_COUPON_FAIL,
   APPLY_COUPON_REQUEST,
   APPLY_COUPON_SUCCESS,
+  CLEAR_COUPON_FAIL,
+  CLEAR_COUPON_REQUEST,
+  CLEAR_COUPON_SUCCESS,
   CLEAR_ERRORS,
   COUPON_DETAILS_FAIL,
   COUPON_DETAILS_REQUEST,
@@ -162,7 +165,7 @@ export const deleteCoupon = (id) => async (dispatch) => {
 // -------------------- User Action --------------------
 
 // ✅ Apply Coupon (User)
-export const applyCoupon = (code) => async (dispatch) => {
+export const applyCoupon = (code, amount) => async (dispatch) => {
   try {
     dispatch({ type: APPLY_COUPON_REQUEST });
 
@@ -176,7 +179,7 @@ export const applyCoupon = (code) => async (dispatch) => {
 
     const { data } = await axios.post(
       `${API_URL}/api/v1/coupon/apply`,
-      { code },
+      { code, amount },
       config
     );
 
@@ -185,13 +188,44 @@ export const applyCoupon = (code) => async (dispatch) => {
       payload: data,
     });
   } catch (error) {
+    console.log(error);
     dispatch({
       type: APPLY_COUPON_FAIL,
       payload: error.response?.data?.message || "Something went wrong",
     });
   }
 };
+// ✅ Clear Coupon (User)
+export const clearCoupon = () => async (dispatch) => {
+  try {
+    dispatch({ type: CLEAR_COUPON_REQUEST });
 
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    // Call backend to clear applied coupon
+    const { data } = await axios.post(
+      `${API_URL}/api/v1/coupon/clear`,
+      {},
+      config
+    );
+
+    dispatch({
+      type: CLEAR_COUPON_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: CLEAR_COUPON_FAIL,
+      payload: error.response?.data?.message || "Something went wrong",
+    });
+  }
+};
 // ✅ Clear Errors
 export const clearErrors = () => (dispatch) => {
   dispatch({ type: CLEAR_ERRORS });

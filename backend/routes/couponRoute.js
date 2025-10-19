@@ -7,7 +7,8 @@ const {
   updateCoupon, // admin update
   deleteCoupon, // admin delete
   getCouponDetails, // admin details
-  applyCoupon, // user
+  applyCoupon,
+  clearCoupon, // user
 } = require("../controllers/couponController");
 
 const router = express.Router();
@@ -42,5 +43,6 @@ router.get(
 // -------------------- User route --------------------
 
 router.post("/coupon/apply", isAuthenticator, applyCoupon);
+router.post("/coupon/clear", isAuthenticator, clearCoupon);
 
 module.exports = router;

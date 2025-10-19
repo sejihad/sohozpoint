@@ -23,6 +23,7 @@ const subcategory = require("./routes/subcategoryRoute");
 const subsubcategory = require("./routes/subsubcategoryRoute");
 const product = require("./routes/productRoute");
 const ship = require("./routes/shipRoute");
+const payment = require("./routes/paymentRoute");
 
 const order = require("./routes/orderRoute");
 
@@ -66,6 +67,7 @@ app.use("/api/v1", logo);
 app.use("/api/v1", banner);
 app.use("/api/v1", charge);
 app.use("/api/v1", email);
+app.use("/api/v1", payment);
 app.use("/api/v1", logoCharge);
 app.use("/api/v1", order);
 app.use("/api/v1", notification);

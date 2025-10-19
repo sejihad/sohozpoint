@@ -3,6 +3,10 @@ import {
   ALL_ORDERS_REQUEST,
   ALL_ORDERS_SUCCESS,
   CLEAR_ERRORS,
+  CREATE_ORDER_FAIL,
+  CREATE_ORDER_REQUEST,
+  CREATE_ORDER_RESET,
+  CREATE_ORDER_SUCCESS,
   DELETE_ORDER_FAIL,
   DELETE_ORDER_REQUEST,
   DELETE_ORDER_RESET,
@@ -18,6 +22,49 @@ import {
   UPDATE_ORDER_RESET,
   UPDATE_ORDER_SUCCESS,
 } from "../constants/orderContants";
+// Create Order Reducer
+
+export const newOrderReducer = (state = {}, action) => {
+  switch (action.type) {
+    case CREATE_ORDER_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: false,
+      };
+
+    case CREATE_ORDER_SUCCESS:
+      return {
+        loading: false,
+        success: true,
+        // EPS initialize এর সময় order নয়, বরং Redirect URL থাকবে
+        paymentData: action.payload,
+        message: action.payload?.message || "Payment initialized successfully",
+      };
+
+    case CREATE_ORDER_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    case CREATE_ORDER_RESET:
+      return {
+        ...state,
+        success: false,
+      };
+
+    case CLEAR_ERRORS:
+      return {
+        ...state,
+        error: null,
+      };
+
+    default:
+      return state;
+  }
+};
 
 export const myOrdersReducer = (state = { orders: [] }, action) => {
   switch (action.type) {

@@ -1,7 +1,42 @@
 const Order = require("../models/orderModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const createOrder = catchAsyncErrors(async (req, res, next) => {
+  const {
+    orderItems,
+    shippingInfo,
+    paymentInfo,
+    itemsPrice,
+    deliveryPrice,
+    discount,
+    totalPrice,
+    isPreOrder,
+    coupon,
+  } = req.body;
 
+  const order = await Order.create({
+    orderItems,
+    shippingInfo,
+    paymentInfo: {
+      ...paymentInfo,
+      paidAt: paymentInfo.method !== "cod" ? Date.now() : undefined,
+    },
+    itemsPrice,
+    deliveryPrice,
+    discount,
+    totalPrice,
+    isPreOrder,
+    coupon: coupon || null,
+    user: req.user._id,
+    orderStatus: isPreOrder ? "preorder" : "processing",
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Order created successfully",
+    order,
+  });
+});
 // get Single Order
 const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
@@ -98,4 +133,5 @@ module.exports = {
   updateOrder,
   deleteOrder,
   getSingleAdminOrder,
+  createOrder,
 };

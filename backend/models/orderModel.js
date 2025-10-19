@@ -1,93 +1,103 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema({
-  shippingInfo: {
-    address: String,
-    city: String,
-    state: String,
-    country: String,
-    pinCode: Number,
-    phone: String, // Add this
-  },
-  orderItems: [
-    {
-      name: {
-        type: String,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
-      quantity: {
-        type: Number,
-        required: true,
-      },
-      image: {
-        type: String,
-        required: true,
-      },
-      id: {
-        type: String,
-        required: true,
-      },
-      type: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
-  user: {
-    id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    name: String,
-    email: String,
-    number: String,
-    country: String,
-  },
+// ✅ Auto-generate unique 10-digit order ID
+const generateOrderId = async function () {
+  const randomId = Math.floor(
+    100000000 + Math.random() * 9000000000
+  ).toString(); // 9–10 digits
+  const existing = await mongoose.models.Order.findOne({ orderId: randomId });
+  if (existing) return generateOrderId(); // ensure uniqueness
+  return randomId;
+};
 
-  itemsPrice: {
-    type: Number,
-
-    default: 0,
-  },
-
-  shippingPrice: {
-    type: Number,
-
-    default: 0,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-
-  order_status: {
-    type: String,
-    enum: ["pending", "in progress", "completed", "cancelled"],
-    default: "pending",
-  },
-  order_type: {
-    type: String,
-    enum: ["book", "ebook", "package", "mixed"],
-  },
-  payment: {
-    method: {
+const orderSchema = new mongoose.Schema(
+  {
+    orderId: {
       type: String,
-      enum: ["stripe", "paypal"],
-      required: true,
+      unique: true,
+      index: true,
     },
-    transactionId: { type: String, required: true },
-    status: {
+
+    userData: {
+      name: { type: String, required: true },
+      email: { type: String },
+      number: { type: String },
+      userCode: { type: String },
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      country: { type: String, default: "Bangladesh" },
+    },
+
+    orderItems: [],
+
+    shippingInfo: {
+      address: { type: String, required: true },
+      district: { type: String, required: true },
+      city: { type: String },
+      country: { type: String, default: "Bangladesh" },
+      shippingMethod: { type: String },
+    },
+
+    paymentInfo: {
+      method: { type: String, required: true }, // cod / full / eps etc.
+      type: { type: String }, // full / preorder / delivery_only
+      amount: { type: Number, required: true },
+      status: {
+        type: String,
+        default: "paid",
+      },
+      transactionId: { type: String }, // for EPS / gateway reference
+    },
+
+    // 🧾 Price breakdown
+    itemsPrice: { type: Number, required: true },
+    deliveryPrice: { type: Number, required: true },
+    productDiscount: { type: Number, default: 0 },
+    deliveryDiscount: { type: Number, default: 0 },
+    couponDiscount: { type: Number, default: 0 },
+    totalPrice: { type: Number, required: true },
+    cashOnDelivery: { type: Number, required: true },
+    coupon: {
+      code: { type: String },
+      discountType: { type: String },
+      discountValue: { type: Number },
+      discountAmount: { type: Number },
+    },
+
+    isPreOrder: { type: Boolean, default: false },
+    refund_request: { type: Boolean, default: false },
+    // 🏷️ Order status lifecycle
+    orderStatus: {
       type: String,
-      enum: ["pending", "cancel", "paid"],
+      enum: [
+        "pending",
+        "confirm",
+        "processing",
+        "delivering",
+        "delivered",
+        "cancel",
+        "return",
+        "refund",
+      ],
       default: "pending",
     },
+
+    deliveredAt: { type: Date },
+    canceledAt: { type: Date },
+    returnedAt: { type: Date },
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  { timestamps: true }
+);
+
+// 🪄 Before saving, auto generate orderId if not exists
+orderSchema.pre("save", async function (next) {
+  if (!this.orderId) {
+    this.orderId = await generateOrderId();
+  }
+  next();
 });
 
-module.exports = mongoose.model("Order", orderSchema);
+export default mongoose.model("Order", orderSchema);

@@ -12,7 +12,6 @@ import {
   FaRegFlag,
   FaRegImage,
   FaRegMoneyBillAlt,
-  FaShippingFast,
   FaTags,
   FaTicketAlt,
 } from "react-icons/fa";
@@ -126,7 +125,7 @@ const Sidebar = () => {
         <span>Types</span>
       </Link>
 
-      <Link
+      {/* <Link
         to="/admin/ships"
         className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
           "/admin/ships"
@@ -134,7 +133,7 @@ const Sidebar = () => {
       >
         <FaShippingFast className="mr-4 text-[1.2rem]" />
         <span>Shipping</span>
-      </Link>
+      </Link> */}
 
       <Link
         to="/admin/product/new"
