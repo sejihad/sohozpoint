@@ -45,7 +45,7 @@ const UserDetails = () => {
               </div>
               <div>
                 <p>
-                  <span className="font-medium">ID:</span> {user._id}
+                  <span className="font-medium">ID CODE:</span> {user.userCode}
                 </p>
                 <p>
                   <span className="font-medium">Role:</span>{" "}
