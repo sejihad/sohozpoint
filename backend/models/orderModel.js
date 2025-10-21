@@ -59,6 +59,8 @@ const orderSchema = new mongoose.Schema(
     // 🕐 TTL: 60 মিনিটে পেমেন্ট না হলে অর্ডার ডিলিট
     expiresAt: {
       type: Date,
+      default: () => Date.now() + 60 * 60 * 1000, // 1 hour from creation
+      index: { expireAfterSeconds: 0 }, // TTL index
     },
 
     // 🧾 Price breakdown
@@ -112,7 +114,7 @@ const orderSchema = new mongoose.Schema(
 
 // 🪄 Before saving, auto generate orderId if not exists
 orderSchema.pre("save", async function (next) {
-  if (!this.orderId) {
+  if (this.isNew && !this.orderId) {
     this.orderId = await generateOrderId();
   }
   next();
@@ -123,7 +125,7 @@ orderSchema.methods.markAsPaid = async function (transactionId) {
   this.paymentInfo.status = "paid";
   this.paymentInfo.transactionId = transactionId;
 
-  this.expiresAt = undefined; // ✅ TTL মুছে দিলাম → আর ডিলিট হবে না
+  this.expiresAt = null; // ✅ TTL মুছে দিলাম → আর ডিলিট হবে না
   await this.save();
 };
 

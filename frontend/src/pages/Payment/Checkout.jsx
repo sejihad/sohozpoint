@@ -1,5 +1,4 @@
 // ✅ Checkout.jsx (Final Fixed Version - All Issues Resolved)
-import { City } from "country-state-city";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -213,9 +212,74 @@ const Checkout = () => {
 
     const loadDistricts = () => {
       try {
-        const cities = City.getCitiesOfCountry("BD");
-        const uniqueDistricts = [...new Set(cities.map((city) => city.name))];
-        setDistricts(uniqueDistricts.sort());
+        const manualDistricts = [
+          "Bagerhat",
+          "Bandarban",
+          "Barguna",
+          "Barishal",
+          "Bhola",
+          "Bogura",
+          "Brahmanbaria",
+          "Chandpur",
+          "Chattogram",
+          "Chuadanga",
+          "Cox's Bazar",
+          "Cumilla",
+          "Dhaka",
+          "Dinajpur",
+          "Faridpur",
+          "Feni",
+          "Gaibandha",
+          "Gazipur",
+          "Gopalganj",
+          "Habiganj",
+          "Jamalpur",
+          "Jashore",
+          "Jhalokathi",
+          "Jhenaidah",
+          "Joypurhat",
+          "Khagrachhari",
+          "Khulna",
+          "Kishoreganj",
+          "Kurigram",
+          "Kushtia",
+          "Lakshmipur",
+          "Lalmonirhat",
+          "Madaripur",
+          "Magura",
+          "Manikganj",
+          "Meherpur",
+          "Moulvibazar",
+          "Munshiganj",
+          "Mymensingh",
+          "Naogaon",
+          "Narail",
+          "Narayanganj",
+          "Narsingdi",
+          "Natore",
+          "Nawabganj",
+          "Netrakona",
+          "Nilphamari",
+          "Noakhali",
+          "Pabna",
+          "Panchagarh",
+          "Patuakhali",
+          "Pirojpur",
+          "Rajbari",
+          "Rajshahi",
+          "Rangamati",
+          "Rangpur",
+          "Satkhira",
+          "Shariatpur",
+          "Sherpur",
+          "Sirajganj",
+          "Sunamganj",
+          "Sylhet",
+          "Tangail",
+          "Thakurgaon",
+        ];
+
+        setDistricts(manualDistricts.sort());
       } catch (error) {
         console.error("Error loading districts:", error);
       }
@@ -376,7 +440,7 @@ const Checkout = () => {
       case "delivery_only":
         return `Pay delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
-        )}) now, product amount on delivery`;
+        )}) now, product amount cash on delivery`;
       case "preorder":
         return `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
@@ -582,7 +646,7 @@ const Checkout = () => {
                         <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
                           {`Pay ৳${amounts.payableDeliveryCharge.toFixed(
                             2
-                          )} delivery charge now, product amount on delivery`}
+                          )} delivery charge now, product amount cash on delivery`}
                         </p>
                       </div>
                     </label>
@@ -833,7 +897,7 @@ const Checkout = () => {
                       <span>৳{amounts.productTotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-semibold text-sm md:text-base lg:text-md mt-2">
-                      <span>Grand Total (products + delivery)</span>
+                      <span> Total (products + delivery)</span>
                       <span>৳{amounts.finalTotal.toFixed(2)}</span>
                     </div>
                   </div>

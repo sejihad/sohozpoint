@@ -9,7 +9,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearErrors, loadUser, updateProfile } from "../../actions/userAction";
 import Loader from "../../component/layout/Loader/Loader";
@@ -19,6 +19,7 @@ import { UPDATE_PROFILE_RESET } from "../../constants/userContants";
 const UpdateProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef(null);
   const countryDropdownRef = useRef(null);
 
@@ -135,10 +136,14 @@ const UpdateProfile = () => {
     if (isUpdated) {
       toast.success("Profile Updated Successfully");
       dispatch(loadUser());
-      navigate("/profile");
+      const redirectTo = location.state?.from || "/profile";
+      const checkoutState = location.state?.checkoutState;
+
+      // Navigate with original state
+      navigate(redirectTo, { state: checkoutState });
       dispatch({ type: UPDATE_PROFILE_RESET });
     }
-  }, [isUpdated, dispatch, navigate]);
+  }, [isUpdated, dispatch, navigate, location.state]);
 
   useEffect(() => {
     if (error) {

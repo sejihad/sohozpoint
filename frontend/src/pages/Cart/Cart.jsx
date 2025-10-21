@@ -85,7 +85,20 @@ const Cart = () => {
     }
     if (!user?.country || !user?.number) {
       toast.info("First Complete Your Profile");
-      navigate("/profile/update");
+      navigate("/profile/update", {
+        state: {
+          from: "/checkout",
+          checkoutState: {
+            cartItems: cartItems.filter((item) =>
+              selectedItems.includes(
+                `${item.product._id}-${item.size || ""}-${item.color || ""}`
+              )
+            ),
+            directCheckout: true,
+          },
+        },
+      });
+
       return;
     }
     if (!selectedItems.length) {

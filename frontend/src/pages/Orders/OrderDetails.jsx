@@ -817,7 +817,7 @@ const OrderDetails = () => {
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-600">Payment Amount</p>
+                  <p className="text-sm text-gray-600">Paid Amount</p>
                   <p className="font-medium">
                     ৳{formatPrice(order.paymentInfo?.amount || 0)}
                   </p>

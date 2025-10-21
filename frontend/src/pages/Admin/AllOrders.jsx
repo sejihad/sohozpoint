@@ -35,7 +35,7 @@ const AllOrders = () => {
   const { orders, error, loading } = useSelector((state) => state.allOrders);
   const { error: deleteError, isDeleted } = useSelector((state) => state.order);
 
-  // ✅ Date filter function - উপরে declare করুন
+  // ✅ Date filter function
   const filterByDate = (orderDate, filterType) => {
     if (filterType === "all") return true;
 
@@ -94,11 +94,6 @@ const AllOrders = () => {
 
   // Filter and Search Orders
   const filteredOrders = orders?.filter((order) => {
-    // ✅ Payment status "pending" হলে skip করবে
-    if (order.paymentInfo?.status?.toLowerCase() === "pending") {
-      return false;
-    }
-
     const matchesSearch =
       searchTerm === "" ||
       order.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -224,25 +219,14 @@ const AllOrders = () => {
     setRefundFilter("all");
   };
 
-  // Get unique statuses for filter dropdown (payment status "pending" বাদ দিয়ে)
+  // ✅ Get unique statuses for filter dropdown (সব status সহ)
   const uniqueStatuses = [
-    ...new Set(
-      orders
-        ?.filter(
-          (order) => order.paymentInfo?.status?.toLowerCase() !== "pending"
-        )
-        ?.map((order) => order.orderStatus)
-    ),
+    ...new Set(orders?.map((order) => order.orderStatus)),
   ];
 
+  // ✅ Get unique payment statuses for filter dropdown (সব payment status সহ)
   const uniquePaymentStatuses = [
-    ...new Set(
-      orders
-        ?.filter(
-          (order) => order.paymentInfo?.status?.toLowerCase() !== "pending"
-        )
-        ?.map((order) => order.paymentInfo?.status)
-    ),
+    ...new Set(orders?.map((order) => order.paymentInfo?.status)),
   ];
 
   // Date filter options
@@ -283,9 +267,7 @@ const AllOrders = () => {
                 </h1>
                 <p className="text-gray-600">
                   Total {filteredOrders?.length || 0} orders found
-                  <span className="text-xs text-gray-500 ml-2">
-                    (Payment pending orders hidden)
-                  </span>
+                  {/* ✅ Payment pending message remove করুন */}
                 </p>
               </div>
 
@@ -576,7 +558,7 @@ const AllOrders = () => {
                             dateFilter !== "all" ||
                             refundFilter !== "all"
                               ? "Try adjusting your search or filters"
-                              : "No orders available (Payment pending orders are hidden)"}
+                              : "No orders available"}
                           </p>
                         </td>
                       </tr>

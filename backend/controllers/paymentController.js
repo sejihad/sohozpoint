@@ -63,7 +63,6 @@ const initializePayment = async (req, res) => {
       isPreOrder,
       coupon: coupon,
       orderStatus: "pending",
-      expiresAt: Date.now() + 60 * 60 * 1000,
     });
 
     // Step 2️⃣: EPS token নাও

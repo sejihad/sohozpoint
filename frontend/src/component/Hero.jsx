@@ -1,13 +1,21 @@
-import { useEffect, useState } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getBanners } from "../actions/bannerAction";
+
+// Import Swiper React components
+import { Swiper, SwiperSlide } from "swiper/react";
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
+// import required modules
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
 
 const Hero = () => {
   const dispatch = useDispatch();
   const { banners, loading, error } = useSelector((state) => state.banners);
-
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Fetch banners on mount
   useEffect(() => {
@@ -17,29 +25,8 @@ const Hero = () => {
   // Map banners to slides array
   const slides =
     banners?.map((banner) => ({
-      image: banner.image?.url || "", // adjust based on your API response
+      image: banner.image?.url || "",
     })) || [];
-
-  // Auto-slide effect
-  useEffect(() => {
-    if (slides.length === 0) return; // no slides yet
-
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [slides.length]);
-
-  const nextSlide = () => {
-    setCurrentSlide(currentSlide === slides.length - 1 ? 0 : currentSlide + 1);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(currentSlide === 0 ? slides.length - 1 : currentSlide - 1);
-  };
-
-  const goToSlide = (index) => setCurrentSlide(index);
 
   if (loading) {
     return (
@@ -67,56 +54,126 @@ const Hero = () => {
 
   return (
     <section className="relative container h-[45vh] sm:h-[50vh] overflow-hidden">
-      {/* Image Slider */}
-      <div className="relative h-full w-full">
+      <Swiper
+        navigation={true}
+        pagination={{
+          clickable: true,
+        }}
+        autoplay={{
+          delay: 2000,
+          disableOnInteraction: false,
+        }}
+        loop={true}
+        modules={[Navigation, Pagination, Autoplay]}
+        className="h-full w-full mySwiper"
+      >
         {slides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentSlide ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <img
-              src={slide.image}
-              alt={`Slide ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <SwiperSlide key={index}>
+            <div className="w-full h-full">
+              <img
+                src={slide.image}
+                alt={`Slide ${index + 1}`}
+                className="w-full h-full "
+              />
+            </div>
+          </SwiperSlide>
         ))}
-      </div>
+      </Swiper>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
-        aria-label="Previous slide"
-      >
-        <FiChevronLeft className="text-2xl text-white" />
-      </button>
+      {/* Custom CSS for Swiper */}
+      <style jsx global>{`
+        /* Arrow positioning and styling */
+        .mySwiper .swiper-button-prev,
+        .mySwiper .swiper-button-next {
+          width: 2.5rem !important;
+          display: none;
+          height: 2.5rem !important;
+          background: rgba(0, 0, 0, 0.6) !important;
+          border-radius: 50% !important;
+          backdrop-filter: blur(4px) !important;
+          transition: all 0.3s ease !important;
+          margin-top: -1.25rem !important; /* Center vertically */
+        }
 
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full shadow-md transition-all duration-300 z-20 backdrop-blur-sm"
-        aria-label="Next slide"
-      >
-        <FiChevronRight className="text-2xl text-white" />
-      </button>
+        .mySwiper .swiper-button-prev {
+          left: 1rem !important;
+        }
 
-      {/* Dot Indicators */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide
-                ? "bg-white scale-125 shadow-lg"
-                : "bg-white/50 hover:bg-white/70"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+        .mySwiper .swiper-button-next {
+          right: 1rem !important;
+        }
+
+        .mySwiper .swiper-button-prev:hover,
+        .mySwiper .swiper-button-next:hover {
+          background: rgba(0, 0, 0, 0.8) !important;
+          transform: scale(1.1) !important;
+        }
+
+        .mySwiper .swiper-button-prev:after,
+        .mySwiper .swiper-button-next:after {
+          font-size: 1.2rem !important;
+          font-weight: bold !important;
+          color: white !important;
+        }
+
+        /* Pagination dots */
+        .mySwiper .swiper-pagination-bullet {
+          background: rgba(255, 255, 255, 0.6) !important;
+          opacity: 1 !important;
+          width: 8px !important;
+          height: 8px !important;
+          transition: all 0.3s ease !important;
+        }
+
+        .mySwiper .swiper-pagination-bullet-active {
+          background: white !important;
+          transform: scale(1.2) !important;
+        }
+
+        /* Ensure image object-cover works on mobile */
+        .mySwiper .swiper-slide img {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          display: block !important;
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+          .mySwiper .swiper-button-prev,
+          .mySwiper .swiper-button-next {
+            display: none !important;
+          }
+
+          .mySwiper .swiper-pagination-bullet {
+            width: 6px !important;
+            height: 6px !important;
+          }
+
+          /* Force object-cover on mobile */
+          .mySwiper .swiper-slide {
+            height: 100% !important;
+          }
+
+          .mySwiper .swiper-slide img {
+            object-fit: fill !important;
+            min-height: 100% !important;
+          }
+        }
+
+        /* Fix for Swiper container height */
+        .mySwiper {
+          height: 100% !important;
+        }
+
+        .mySwiper .swiper-wrapper {
+          height: 100% !important;
+        }
+
+        .mySwiper .swiper-slide {
+          height: 100% !important;
+        }
+      `}</style>
     </section>
   );
 };

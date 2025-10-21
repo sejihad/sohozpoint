@@ -301,7 +301,28 @@ const ProductDetails = () => {
     }
     if (!user?.country || !user?.number) {
       toast.info("First Complete Your Profile");
-      navigate("/profile/update");
+      navigate("/profile/update", {
+        state: {
+          from: "/checkout",
+          checkoutState: {
+            cartItems: [
+              {
+                id: product._id,
+                name: product.name,
+                price: product.salePrice,
+                image: product.images[0]?.url,
+                weight: product.weight,
+                quantity: quantity,
+                size: selectedSize,
+                color: selectedColor,
+                deliveryCharge: product.deliveryCharge,
+              },
+            ],
+            directCheckout: true,
+          },
+        },
+      });
+
       return;
     }
     // Check if product is unavailable
