@@ -44,6 +44,9 @@ import MyOrders from "./pages/Orders/MyOrders";
 import OrderDetails from "./pages/Orders/OrderDetails";
 
 // import Checkout from "./pages/Payment/Checkout";
+import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
+import { logout } from "./actions/userAction";
 import NotificationBanner from "./component/layout/NotificationBanner";
 import AllBanners from "./pages/Admin/AllBanners";
 import AllBrands from "./pages/Admin/AllBrands";
@@ -57,6 +60,7 @@ import AllTypes from "./pages/Admin/AllTypes";
 import NotificationManager from "./pages/Admin/NotificationManager";
 import Checkout from "./pages/Payment/Checkout";
 import PaymentCancel from "./pages/Payment/PaymentCancel";
+import PaymentFail from "./pages/Payment/PaymentFail";
 import PaymentSuccess from "./pages/Payment/PaymentSuccess";
 import PrivacyPolicy from "./pages/Privacy/PrivacyPolicy";
 import CustomProductDetails from "./pages/ProductDetails/CustomProductDetails";
@@ -67,10 +71,26 @@ import Profile from "./pages/User/Profile";
 import Setting from "./pages/User/Setting";
 import UpdatePassword from "./pages/User/UpdatePassword";
 import UpdateProfile from "./pages/User/UpdateProfile";
+
 const App = () => {
+  const dispatch = useDispatch();
   useEffect(() => {
     // enableContentProtection();
   }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+
+        if (decoded.exp * 1000 < Date.now()) {
+          dispatch(logout());
+        }
+      } catch {
+        dispatch(logout());
+      }
+    }
+  }, [dispatch]);
   return (
     <BrowserRouter>
       <Header />
@@ -185,6 +205,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <PaymentCancel />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-fail"
+          element={
+            <ProtectedRoute>
+              <PaymentFail />
             </ProtectedRoute>
           }
         />

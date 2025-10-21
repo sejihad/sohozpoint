@@ -2,6 +2,9 @@ import {
   ALL_ORDERS_FAIL,
   ALL_ORDERS_REQUEST,
   ALL_ORDERS_SUCCESS,
+  CANCEL_ORDER_FAIL,
+  CANCEL_ORDER_REQUEST,
+  CANCEL_ORDER_SUCCESS,
   CLEAR_ERRORS,
   CREATE_ORDER_FAIL,
   CREATE_ORDER_REQUEST,
@@ -17,6 +20,9 @@ import {
   ORDER_DETAILS_FAIL,
   ORDER_DETAILS_REQUEST,
   ORDER_DETAILS_SUCCESS,
+  REQUEST_REFUND_FAIL,
+  REQUEST_REFUND_REQUEST,
+  REQUEST_REFUND_SUCCESS,
   UPDATE_ORDER_FAIL,
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_RESET,
@@ -200,6 +206,64 @@ export const orderDetailsReducer = (state = { order: {} }, action) => {
         error: null,
       };
 
+    default:
+      return state;
+  }
+};
+
+export const cancelOrderReducer = (state = {}, action) => {
+  switch (action.type) {
+    case CANCEL_ORDER_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case CANCEL_ORDER_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: action.payload,
+      };
+    case CANCEL_ORDER_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case CLEAR_ERRORS:
+      return {
+        ...state,
+        error: null,
+      };
+    default:
+      return state;
+  }
+};
+
+export const refundRequestReducer = (state = {}, action) => {
+  switch (action.type) {
+    case REQUEST_REFUND_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case REQUEST_REFUND_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: action.payload,
+      };
+    case REQUEST_REFUND_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case CLEAR_ERRORS:
+      return {
+        ...state,
+        error: null,
+      };
     default:
       return state;
   }

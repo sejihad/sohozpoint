@@ -2,6 +2,9 @@ import {
   ALL_ORDERS_FAIL,
   ALL_ORDERS_REQUEST,
   ALL_ORDERS_SUCCESS,
+  CANCEL_ORDER_FAIL,
+  CANCEL_ORDER_REQUEST,
+  CANCEL_ORDER_SUCCESS,
   CLEAR_ERRORS,
   DELETE_ORDER_FAIL,
   DELETE_ORDER_REQUEST,
@@ -12,6 +15,9 @@ import {
   ORDER_DETAILS_FAIL,
   ORDER_DETAILS_REQUEST,
   ORDER_DETAILS_SUCCESS,
+  REQUEST_REFUND_FAIL,
+  REQUEST_REFUND_REQUEST,
+  REQUEST_REFUND_SUCCESS,
   UPDATE_ORDER_FAIL,
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_SUCCESS,
@@ -168,6 +174,7 @@ export const updateOrder = (id, order) => async (dispatch) => {
 
     dispatch({ type: UPDATE_ORDER_SUCCESS, payload: data.success });
   } catch (error) {
+    console.log(error);
     dispatch({
       type: UPDATE_ORDER_FAIL,
       payload: error.response.data.message,
@@ -195,6 +202,64 @@ export const deleteOrder = (id) => async (dispatch) => {
     dispatch({
       type: DELETE_ORDER_FAIL,
       payload: error.response.data.message,
+    });
+  }
+};
+
+// Cancel Order
+export const cancelOrder = (orderId) => async (dispatch) => {
+  try {
+    dispatch({ type: CANCEL_ORDER_REQUEST });
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.put(
+      `${API_URL}/api/v1/order/${orderId}/cancel`,
+      {},
+      config
+    );
+
+    dispatch({
+      type: CANCEL_ORDER_SUCCESS,
+      payload: data.success,
+    });
+  } catch (error) {
+    dispatch({
+      type: CANCEL_ORDER_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Request Refund
+export const requestRefund = (orderId, reason) => async (dispatch) => {
+  try {
+    dispatch({ type: REQUEST_REFUND_REQUEST });
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
+    const { data } = await axios.put(
+      `${API_URL}/api/v1/order/${orderId}/refund-request`,
+      { reason },
+      config
+    );
+
+    dispatch({
+      type: REQUEST_REFUND_SUCCESS,
+      payload: data.success,
+    });
+  } catch (error) {
+    dispatch({
+      type: REQUEST_REFUND_FAIL,
+      payload: error.response?.data?.message || error.message,
     });
   }
 };

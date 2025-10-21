@@ -24,10 +24,12 @@ import {
 } from "./reducers/notificationReducer";
 import {
   allOrdersReducer,
+  cancelOrderReducer,
   myOrdersReducer,
   newOrderReducer,
   orderDetailsReducer,
   orderReducer,
+  refundRequestReducer,
 } from "./reducers/orderReducer";
 import {
   newProductReducer,
@@ -205,7 +207,8 @@ const rootReducer = combineReducers({
   order: orderReducer,
   orderDetails: orderDetailsReducer,
   adminOrderDetails: orderDetailsReducer,
-
+  cancelOrder: cancelOrderReducer,
+  refundRequest: refundRequestReducer,
   //notification
   newNotification: newNotificationReducer,
   notification: notificationReducer,

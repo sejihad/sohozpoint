@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const PaymentCancel = () => {
+const PaymentFail = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const cancelOrder = async () => {
+    const deleteOrder = async () => {
       if (!orderId) {
         setLoading(false);
         return;
@@ -19,33 +19,33 @@ const PaymentCancel = () => {
       try {
         setLoading(true);
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/v1/payment/cancel`,
+          `${import.meta.env.VITE_API_URL}/api/v1/payment/fail`,
           {
             orderId,
           }
         );
-        toast.info("⚠️ Payment cancelled. Order deleted.");
+        toast.error("❌ Payment failed. Order deleted.");
       } catch (err) {
-        console.error("Cancel order error:", err);
-        toast.error("Failed to delete cancelled order!");
+        console.error("Delete order error:", err);
+        toast.error("Failed to delete order!");
       } finally {
         setLoading(false);
       }
     };
 
-    cancelOrder();
+    deleteOrder();
   }, [orderId]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            Processing Cancellation
+            Processing Payment Failure
           </h2>
           <p className="text-gray-500">
-            Please wait while we cancel your order...
+            Please wait while we update your order status...
           </p>
         </div>
       </div>
@@ -53,13 +53,13 @@ const PaymentCancel = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-orange-50 p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-yellow-200 p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 p-6">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-red-200 p-8 text-center">
         {/* Icon */}
         <div className="mb-6">
-          <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-10 h-10 text-yellow-600"
+              className="w-10 h-10 text-red-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -68,25 +68,23 @@ const PaymentCancel = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold text-yellow-600 mb-3">
-          Payment Cancelled
-        </h1>
+        <h1 className="text-3xl font-bold text-red-600 mb-3">Payment Failed</h1>
 
         {/* Message */}
         <div className="space-y-4 mb-8">
           <p className="text-gray-600 text-lg leading-relaxed">
-            You've cancelled the payment process. The pending order has been
-            successfully deleted from our system.
+            We're sorry, but your payment was not successful. The order has been
+            removed from our system.
           </p>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-700 text-sm">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 text-sm">
               <strong>Order ID:</strong> {orderId || "N/A"}
             </p>
           </div>
@@ -111,7 +109,7 @@ const PaymentCancel = () => {
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            Back to Cart
+            Try Again from Cart
           </button>
 
           <button
@@ -158,7 +156,7 @@ const PaymentCancel = () => {
         {/* Help Text */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500">
-            Need help?{" "}
+            Still having issues?{" "}
             <button
               onClick={() => navigate("/contact")}
               className="text-green-600 hover:text-green-700 font-medium underline"
@@ -172,4 +170,4 @@ const PaymentCancel = () => {
   );
 };
 
-export default PaymentCancel;
+export default PaymentFail;

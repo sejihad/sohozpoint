@@ -347,7 +347,7 @@ const Checkout = () => {
         method: paymentMethod,
         type: paymentType,
         amount: amounts.payableNow,
-        status: "paid",
+        status: "pending",
       },
       itemsPrice: amounts.subtotal,
       deliveryPrice: amounts.baseDeliveryCharge,

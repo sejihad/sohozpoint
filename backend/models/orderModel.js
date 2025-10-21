@@ -19,14 +19,13 @@ const orderSchema = new mongoose.Schema(
     },
 
     userData: {
-      name: { type: String, required: true },
+      name: { type: String },
       email: { type: String },
-      number: { type: String },
+      phone: { type: String },
       userCode: { type: String },
       userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
       },
       country: { type: String, default: "Bangladesh" },
     },
@@ -34,32 +33,43 @@ const orderSchema = new mongoose.Schema(
     orderItems: [],
 
     shippingInfo: {
-      address: { type: String, required: true },
-      district: { type: String, required: true },
-      city: { type: String },
+      fullName: { type: String },
+      email: { type: String },
+      phone: { type: String },
+      zipCode: { type: String },
+      address: { type: String },
+      district: { type: String },
+      thana: { type: String },
       country: { type: String, default: "Bangladesh" },
       shippingMethod: { type: String },
     },
 
     paymentInfo: {
-      method: { type: String, required: true }, // cod / full / eps etc.
+      method: { type: String }, // cod / full / eps etc.
       type: { type: String }, // full / preorder / delivery_only
-      amount: { type: Number, required: true },
+      amount: { type: Number },
       status: {
         type: String,
-        default: "paid",
+        enum: ["pending", "paid"],
+        default: "pending",
       },
       transactionId: { type: String }, // for EPS / gateway reference
     },
 
+    // 🕐 TTL: 60 মিনিটে পেমেন্ট না হলে অর্ডার ডিলিট
+    expiresAt: {
+      type: Date,
+    },
+
     // 🧾 Price breakdown
-    itemsPrice: { type: Number, required: true },
-    deliveryPrice: { type: Number, required: true },
+    itemsPrice: { type: Number, default: 0 },
+    deliveryPrice: { type: Number, default: 0 },
     productDiscount: { type: Number, default: 0 },
     deliveryDiscount: { type: Number, default: 0 },
     couponDiscount: { type: Number, default: 0 },
-    totalPrice: { type: Number, required: true },
-    cashOnDelivery: { type: Number, required: true },
+    totalPrice: { type: Number, default: 0 },
+    cashOnDelivery: { type: Number, default: 0 },
+
     coupon: {
       code: { type: String },
       discountType: { type: String },
@@ -69,6 +79,9 @@ const orderSchema = new mongoose.Schema(
 
     isPreOrder: { type: Boolean, default: false },
     refund_request: { type: Boolean, default: false },
+    refundReason: {
+      type: String,
+    },
     // 🏷️ Order status lifecycle
     orderStatus: {
       type: String,
@@ -84,7 +97,12 @@ const orderSchema = new mongoose.Schema(
       ],
       default: "pending",
     },
-
+    steadfastData: {
+      consignment_id: { type: String },
+      tracking_code: {
+        type: String,
+      },
+    },
     deliveredAt: { type: Date },
     canceledAt: { type: Date },
     returnedAt: { type: Date },
@@ -99,5 +117,14 @@ orderSchema.pre("save", async function (next) {
   }
   next();
 });
+
+// ✅ পেমেন্ট সফল হলে TTL বন্ধ করার হেল্পার মেথড
+orderSchema.methods.markAsPaid = async function (transactionId) {
+  this.paymentInfo.status = "paid";
+  this.paymentInfo.transactionId = transactionId;
+
+  this.expiresAt = undefined; // ✅ TTL মুছে দিলাম → আর ডিলিট হবে না
+  await this.save();
+};
 
 module.exports = mongoose.model("Order", orderSchema);

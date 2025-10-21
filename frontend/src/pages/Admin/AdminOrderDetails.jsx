@@ -1,521 +1,832 @@
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { useEffect, useState } from "react";
-import {
-  FaBox,
-  FaCheckCircle,
-  FaClock,
-  FaCreditCard,
-  FaShippingFast,
-  FaTimesCircle,
-} from "react-icons/fa";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   clearErrors,
-  getAdminOrderDetails,
+  getOrderDetails,
   updateOrder,
 } from "../../actions/orderAction";
 import Loader from "../../component/layout/Loader/Loader";
-import MetaData from "../../component/layout/MetaData";
+import { UPDATE_ORDER_RESET } from "../../constants/orderContants";
 import Sidebar from "./Sidebar";
 
 const AdminOrderDetails = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { id } = useParams();
   const [status, setStatus] = useState("");
+  const pdfRef = useRef();
 
   const { order, loading, error } = useSelector((state) => state.orderDetails);
-  const { isUpdated, error: updateError } = useSelector((state) => state.order);
-
-  useEffect(() => {
-    dispatch(getAdminOrderDetails(id));
-  }, [dispatch, id]);
+  const {
+    loading: updateLoading,
+    isUpdated,
+    error: updateError,
+  } = useSelector((state) => state.order);
 
   useEffect(() => {
     if (error) {
       toast.error(error);
       dispatch(clearErrors());
     }
+
     if (updateError) {
       toast.error(updateError);
       dispatch(clearErrors());
     }
+
     if (isUpdated) {
       toast.success("Order Updated Successfully");
-      dispatch({ type: "UPDATE_ORDER_RESET" });
-      navigate("/admin/orders");
+      dispatch({ type: UPDATE_ORDER_RESET });
+      dispatch(getOrderDetails(id));
     }
-  }, [dispatch, error, updateError, isUpdated, navigate]);
 
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case "completed":
-        return <FaCheckCircle className="text-indigo-500 inline mr-2" />;
-      case "cancelled":
-        return <FaTimesCircle className="text-red-500 inline mr-2" />;
-      default:
-        return <FaClock className="text-yellow-500 inline mr-2" />;
-    }
-  };
+    dispatch(getOrderDetails(id));
+  }, [dispatch, id, error, updateError, isUpdated]);
 
-  const getPaymentIcon = (method) => {
-    switch (method?.toLowerCase()) {
-      case "stripe":
-        return <FaCreditCard className="text-blue-500 inline mr-2" />;
-      case "paypal":
-        return <FaCreditCard className="text-blue-400 inline mr-2" />;
-      default:
-        return <FaCreditCard className="text-gray-500 inline mr-2" />;
+  useEffect(() => {
+    if (order && order.orderStatus) {
+      setStatus(order.orderStatus);
     }
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case "ebook":
-        return <FaCreditCard className="text-purple-500 inline mr-2" />;
-      case "book":
-        return <FaBox className="text-brown-500 inline mr-2" />;
-      case "package":
-        return <FaShippingFast className="text-orange-500 inline mr-2" />;
-      default:
-        return <FaBox className="text-gray-500 inline mr-2" />;
-    }
-  };
+  }, [order]);
 
   const updateOrderHandler = (e) => {
     e.preventDefault();
-    dispatch(updateOrder(id, { status }));
+
+    if (!status) {
+      toast.error("Please select a status");
+      return;
+    }
+
+    const myForm = new FormData();
+    myForm.set("status", status);
+
+    dispatch(updateOrder(id, myForm));
   };
 
-  const generatePDF = () => {
-    // Initialize jsPDF
-    const doc = new jsPDF();
+  // ✅ Download PDF Function
+  const downloadPDF = async () => {
+    try {
+      toast.info("Generating PDF...");
 
-    // Add logo (replace with your actual logo)
-    // For now using text logo
-    doc.setFontSize(24);
-    doc.setTextColor(41, 128, 185);
-    doc.text("Mind Storm Books Shop", 105, 20, { align: "center" });
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text("Your One Stop Book Destination", 105, 28, { align: "center" });
+      const element = pdfRef.current;
 
-    // Add separator line
-    doc.setDrawColor(200);
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
+      // Apply basic styling to override any OKLCH colors
+      const originalHTML = element.innerHTML;
 
-    // Invoice title
-    doc.setFontSize(16);
-    doc.setTextColor(40, 40, 40);
-    doc.text("ORDER INVOICE", 105, 45, { align: "center" });
+      // Create a sanitized version with basic colors
+      const sanitizedHTML = originalHTML
+        .replace(
+          /style="[^"]*oklch[^"]*"/g,
+          'style="color: #000000; background: #ffffff;"'
+        )
+        .replace(/oklch\([^)]*\)/g, "#000000");
 
-    // Order details
-    doc.setFontSize(10);
-    doc.text(`Order ID: ${order._id}`, 20, 55);
-    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 20, 60);
-    doc.text(`Status: ${order.order_status}`, 20, 65);
-    doc.text(`Type: ${order.order_type}`, 20, 70);
-    doc.text(
-      `Payment: ${order.payment?.method} (${order.payment?.status})`,
-      20,
-      75
-    );
+      // Create a temporary element with sanitized content
+      const tempElement = document.createElement("div");
+      tempElement.innerHTML = sanitizedHTML;
+      tempElement.style.cssText = window.getComputedStyle(element).cssText;
 
-    // Customer information
-    doc.setFontSize(12);
-    doc.text("CUSTOMER INFORMATION", 20, 85);
-    doc.setFontSize(10);
-    doc.text(`User ID: ${order.user?.id}`, 20, 91); // Added User ID here
-    doc.text(`Name: ${order.user?.name}`, 20, 96);
-    doc.text(`Email: ${order.user?.email}`, 20, 101);
+      // Apply basic CSS to ensure no OKLCH remains
+      const basicStyles = `
+      * {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border-color: #dee2e6 !important;
+      }
+    `;
 
-    if (order.user?.number) {
-      doc.text(`Phone: ${order.user.number}`, 20, 106);
+      const styleTag = document.createElement("style");
+      styleTag.textContent = basicStyles;
+      tempElement.prepend(styleTag);
+
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "fixed";
+      tempContainer.style.left = "-10000px";
+      tempContainer.appendChild(tempElement);
+      document.body.appendChild(tempContainer);
+
+      const canvas = await html2canvas(tempElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      document.body.removeChild(tempContainer);
+
+      // Rest of your PDF code...
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`order-${order?.orderId || "invoice"}.pdf`);
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
     }
-    if (order.user?.country) {
-      doc.text(`Country: ${order.user.country}`, 20, 111);
+  };
+
+  const getStatusColor = (status) => {
+    if (!status || typeof status !== "string") {
+      return "bg-gray-100 text-gray-800";
     }
 
-    // Shipping information (for non-ebook orders)
-    if (order.order_type !== "ebook" && order.shippingInfo) {
-      doc.setFontSize(12);
-      doc.text("SHIPPING INFORMATION", 20, 121);
-      doc.setFontSize(10);
-      doc.text(`Address: ${order.shippingInfo.address}`, 20, 127);
-      doc.text(`City: ${order.shippingInfo.city}`, 20, 132);
-      doc.text(`State: ${order.shippingInfo.state}`, 20, 137);
-      doc.text(`Country: ${order.shippingInfo.country}`, 20, 142);
-      doc.text(`PIN Code: ${order.shippingInfo.pinCode}`, 20, 147);
-      doc.text(`Phone: ${order.shippingInfo.phone}`, 20, 152);
+    switch (status.toLowerCase()) {
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "confirm":
+        return "bg-blue-100 text-blue-800";
+      case "processing":
+        return "bg-yellow-100 text-yellow-800";
+      case "delivering":
+        return "bg-purple-100 text-purple-800";
+      case "cancel":
+        return "bg-red-100 text-red-800";
+      case "return":
+        return "bg-orange-100 text-orange-800";
+      case "refund":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
+  };
 
-    // Order items table
-    autoTable(doc, {
-      head: [["Product", "Type", "Price", "Qty", "Subtotal"]],
-      body: order.orderItems.map((item) => [
-        item.name,
-        item.type, // Add type column
-        `$${item.price.toFixed(2)}`,
-        item.quantity,
-        `$${(item.price * item.quantity).toFixed(2)}`,
-      ]),
-      startY:
-        order.order_type === "ebook" ? (order.user?.country ? 165 : 160) : 170,
-      theme: "grid",
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
-      },
-      columnStyles: {
-        1: { cellWidth: 20 }, // Adjust width for type column
-      },
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price || 0);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
-
-    // Price summary
-    const summaryY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(10);
-    doc.text(`Items Price: $${order.itemsPrice?.toFixed(2)}`, 150, summaryY);
-
-    if (order.order_type !== "ebook") {
-      doc.text(
-        `Shipping Price: $${order.shippingPrice?.toFixed(2)}`,
-        150,
-        summaryY + 5
-      );
-    }
-
-    doc.setFontSize(11);
-    doc.setFont(undefined, "bold");
-    doc.text(
-      `Total Price: $${order.totalPrice?.toFixed(2)}`,
-      150,
-      summaryY + (order.order_type !== "ebook" ? 15 : 10)
-    );
-    doc.setFont(undefined, "normal");
-
-    // Footer
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    doc.text(
-      "Thank you for your purchase!",
-      105,
-      doc.lastAutoTable.finalY + 30,
-      { align: "center" }
-    );
-    doc.text(
-      "For any inquiries, please contact our customer support.",
-      105,
-      doc.lastAutoTable.finalY + 35,
-      { align: "center" }
-    );
-
-    // Save the PDF
-    doc.save(`invoice_${order._id.slice(-6)}.pdf`);
   };
 
   if (loading || !order) return <Loader />;
 
   return (
-    <div className="w-full min-h-screen container bg-gray-50 flex flex-col md:flex-row">
+    <div className="w-full container min-h-screen bg-gray-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <div className="md:w-64 flex-shrink-0">
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-8">
-        <MetaData title={`Admin - Order #${order?._id?.slice(-6) || ""}`} />
-
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Order Details #{order?._id?.slice(-6)?.toUpperCase() || ""}
-          </h1>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            <button
-              onClick={generatePDF}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm sm:text-base"
-            >
-              Download Invoice
-            </button>
-            <Link
-              to="/admin/orders"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm sm:text-base text-center"
-            >
-              ← Back to Orders
-            </Link>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* Order Summary Section */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {getStatusIcon(order.order_status)}
-                  Order Status
-                </h3>
-                <p
-                  className={`text-lg ${
-                    order.order_status === "completed"
-                      ? "text-indigo-600"
-                      : order.order_status === "cancelled"
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                  } font-semibold`}
-                >
-                  {order.order_status}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {getPaymentIcon(order.payment?.method)}
-                  Payment Method
-                </h3>
-                <p className="text-lg text-gray-700 capitalize">
-                  {order.payment?.method}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Status:{" "}
-                  <span
-                    className={
-                      order.payment?.status === "paid"
-                        ? "text-indigo-600"
-                        : order.payment?.status === "cancel"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                    }
-                  >
-                    {order.payment?.status}
-                  </span>
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {getTypeIcon(order.order_type)}
-                  Order Type
-                </h3>
-                <p className="text-lg text-gray-700 capitalize">
-                  {order.order_type}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Date: {new Date(order.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Customer and Shipping Info */}
-          <div className="p-6 border-b border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Customer Info */}
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Customer Information
-              </h3>
-              <div className="space-y-2">
-                <p className="text-gray-700">
-                  <span className="font-medium">User Id:</span> {order.user?.id}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Name:</span> {order.user?.name}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Email:</span>{" "}
-                  {order.user?.email}
-                </p>
-                {order.user?.number && (
-                  <p className="text-gray-700">
-                    <span className="font-medium">Phone:</span>{" "}
-                    {order.user.number}
-                  </p>
-                )}
-                {order.user?.country && (
-                  <p className="text-gray-700">
-                    <span className="font-medium">Country:</span>{" "}
-                    {order.user.country}
-                  </p>
-                )}
-              </div>
+              <h1 className="text-3xl font-bold text-gray-800">
+                Order #{order?.orderId}
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Placed on {formatDate(order?.createdAt)}
+              </p>
             </div>
 
-            {/* Shipping Info - Only show for non-ebook orders */}
-            {order.order_type !== "ebook" && order.shippingInfo && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Shipping Information
-                </h3>
-                <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+              {/* Status Update Form */}
+              <form
+                onSubmit={updateOrderHandler}
+                className="flex flex-col sm:flex-row gap-3"
+              >
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="confirm">Confirm</option>
+                  <option value="processing">Processing</option>
+                  <option value="delivering">Delivering</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancel">Cancel</option>
+                  <option value="return">Return</option>
+                  <option value="refund">Refund</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={updateLoading}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {updateLoading ? "Updating..." : "Update Status"}
+                </button>
+              </form>
+
+              {/* Download PDF Button */}
+              {/* <button
+                onClick={downloadPDF}
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Download PDF
+              </button> */}
+            </div>
+          </div>
+
+          {order && (
+            <div className="space-y-6">
+              {/* Hidden PDF Content - Only for PDF generation */}
+              <div
+                ref={pdfRef}
+                className="bg-white p-8 border border-gray-200 hidden"
+              >
+                {/* PDF Header with Logo */}
+                <div className="text-center mb-8 border-b pb-6">
+                  <div className="flex justify-center mb-4">
+                    {/* Your Logo - Replace with actual logo image */}
+                    <div className="w-16 h-16 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                      SP
+                    </div>
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-800">
+                    SOHOZ POINT
+                  </h1>
+                  <p className="text-gray-600">Order Invoice</p>
+                </div>
+
+                {/* Order Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                      Order Details
+                    </h3>
+                    <div className="space-y-2">
+                      <p>
+                        <span className="font-medium">Order ID:</span> #
+                        {order.orderId}
+                      </p>
+                      <p>
+                        <span className="font-medium">Order Date:</span>{" "}
+                        {formatDate(order.createdAt)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Status:</span>{" "}
+                        {order.orderStatus}
+                      </p>
+                      {order.steadfastData?.tracking_code && (
+                        <p>
+                          <span className="font-medium">Tracking Code:</span>{" "}
+                          {order.steadfastData.tracking_code}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                      Customer Details
+                    </h3>
+                    <div className="space-y-2">
+                      <p>
+                        <span className="font-medium">Name:</span>{" "}
+                        {order.userData?.name}
+                      </p>
+                      <p>
+                        <span className="font-medium">Email:</span>{" "}
+                        {order.userData?.email}
+                      </p>
+                      <p>
+                        <span className="font-medium">Phone:</span>{" "}
+                        {order.userData?.phone}
+                      </p>
+                      <p>
+                        <span className="font-medium">User Code:</span>{" "}
+                        {order.userData?.userCode}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    Shipping Address
+                  </h3>
                   <p className="text-gray-700">
-                    <span className="font-medium">Address:</span>{" "}
-                    {order.shippingInfo.address}
+                    {order.shippingInfo?.fullName}
+                    <br />
+                    {order.shippingInfo?.phone}
+                    <br />
+                    {order.shippingInfo?.email}
+                    <br />
+                    {order.shippingInfo?.address}, {order.shippingInfo?.thana}
+                    <br />
+                    {order.shippingInfo?.district},{" "}
+                    {order.shippingInfo?.zipCode}
+                    <br />
+                    {order.shippingInfo?.country}
                   </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">City:</span>{" "}
-                    {order.shippingInfo.city}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">State:</span>{" "}
-                    {order.shippingInfo.state}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">Country:</span>{" "}
-                    {order.shippingInfo.country}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">PIN Code:</span>{" "}
-                    {order.shippingInfo.pinCode}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">Phone:</span>{" "}
-                    {order.shippingInfo.phone}
+                </div>
+
+                {/* Order Items Table */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Order Items
+                  </h3>
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          Product
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">
+                          Size
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">
+                          Color
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">
+                          Qty
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-right">
+                          Price
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-right">
+                          Subtotal
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {order.orderItems?.map((item, index) => (
+                        <tr key={index}>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {item.name}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center">
+                            {item.size || "-"}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center">
+                            {item.color || "-"}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center">
+                            {item.quantity}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-right">
+                            ৳{formatPrice(item.price)}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-right">
+                            ৳{formatPrice(item.subtotal)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Price Breakdown
+                  </h3>
+                  <div className="max-w-md ml-auto">
+                    <div className="flex justify-between mb-2">
+                      <span>Items Price:</span>
+                      <span>৳{formatPrice(order.itemsPrice)}</span>
+                    </div>
+                    <div className="flex justify-between mb-2">
+                      <span>Delivery Price:</span>
+                      <span>৳{formatPrice(order.deliveryPrice)}</span>
+                    </div>
+
+                    {order.productDiscount > 0 && (
+                      <div className="flex justify-between mb-2 text-green-600">
+                        <span>Product Discount:</span>
+                        <span>-৳{formatPrice(order.productDiscount)}</span>
+                      </div>
+                    )}
+
+                    {order.deliveryDiscount > 0 && (
+                      <div className="flex justify-between mb-2 text-green-600">
+                        <span>Delivery Discount:</span>
+                        <span>-৳{formatPrice(order.deliveryDiscount)}</span>
+                      </div>
+                    )}
+
+                    {order.couponDiscount > 0 && (
+                      <div className="flex justify-between mb-2 text-green-600">
+                        <span>Coupon Discount:</span>
+                        <span>-৳{formatPrice(order.couponDiscount)}</span>
+                      </div>
+                    )}
+
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total Price:</span>
+                        <span>৳{formatPrice(order.totalPrice)}</span>
+                      </div>
+                    </div>
+
+                    {order.paymentInfo?.method === "cod" &&
+                      order.cashOnDelivery > 0 && (
+                        <div className="flex justify-between text-orange-600 font-medium mt-2">
+                          <span>Cash on Delivery:</span>
+                          <span>৳{formatPrice(order.cashOnDelivery)}</span>
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                {/* Payment Information */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    Payment Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p>
+                        <span className="font-medium">Method:</span>{" "}
+                        {order.paymentInfo?.method || "N/A"}
+                      </p>
+                      <p>
+                        <span className="font-medium">Status:</span>{" "}
+                        {order.paymentInfo?.status || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p>
+                        <span className="font-medium">Type:</span>{" "}
+                        {order.paymentInfo?.type?.replace("_", " ") || "N/A"}
+                      </p>
+                      <p>
+                        <span className="font-medium">Transaction ID:</span>{" "}
+                        {order.paymentInfo?.transactionId || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center border-t pt-6 mt-8">
+                  <p className="text-gray-600">Thank you for your business!</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Generated on {new Date().toLocaleDateString()} at{" "}
+                    {new Date().toLocaleTimeString()}
                   </p>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Payment Info */}
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Payment Information
-            </h3>
-            <div className="space-y-2">
-              <p className="text-gray-700">
-                <span className="font-medium">Transaction ID:</span>{" "}
-                {order.payment?.transactionId}
-              </p>
-              <p className="text-gray-700">
-                <span className="font-medium">Items Price:</span> $
-                {order.itemsPrice?.toFixed(2)}
-              </p>
-              {order.order_type !== "ebook" && (
-                <p className="text-gray-700">
-                  <span className="font-medium">Shipping Price:</span> $
-                  {order.shippingPrice?.toFixed(2)}
-                </p>
-              )}
-              <p className="text-gray-700 font-bold">
-                <span className="font-medium">Total Paid:</span> $
-                {order.totalPrice?.toFixed(2)}
-              </p>
-            </div>
-          </div>
+              {/* Current Status */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Current Status
+                    </h3>
+                    <span
+                      className={`inline-flex mt-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(
+                        order.orderStatus
+                      )}`}
+                    >
+                      {order.orderStatus}
+                    </span>
+                  </div>
+                  {order.steadfastData?.tracking_code && (
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Tracking Code</p>
+                      <p className="font-mono font-bold text-blue-600">
+                        {order.steadfastData.tracking_code}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-          {/* Order Items */}
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Order Items
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                {/* Order Items Table */}
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Subtotal
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Customer Information */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Customer Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Name</p>
+                      <p className="font-medium">{order.userData?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{order.userData?.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{order.userData?.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">User Code</p>
+                      <p className="font-medium">{order.userData?.userCode}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Information */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Shipping Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Recipient Name</p>
+                      <p className="font-medium">
+                        {order.shippingInfo?.fullName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{order.shippingInfo?.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{order.shippingInfo?.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Address</p>
+                      <p className="font-medium">
+                        {order.shippingInfo?.address},{" "}
+                        {order.shippingInfo?.thana}
+                        <br />
+                        {order.shippingInfo?.district},{" "}
+                        {order.shippingInfo?.zipCode}
+                        <br />
+                        {order.shippingInfo?.country}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Order Items ({order.orderItems?.length || 0} items)
+                </h3>
+                <div className="space-y-3">
                   {order.orderItems?.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <img
-                              className="h-10 w-10 rounded"
-                              src={item.image}
-                              alt={item.name}
-                            />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {item.id}
-                            </div>
+                    <div
+                      key={index}
+                      className="flex items-start justify-between p-3 border border-gray-200 rounded-lg gap-3"
+                    >
+                      {/* Product Image & Basic Info */}
+                      <div className="flex items-start space-x-3 flex-1">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-10 h-10 sm:w-14 sm:h-14 object-cover rounded-md flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2">
+                            {item.name}
+                          </h4>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.size && (
+                              <span className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                                {item.size}
+                              </span>
+                            )}
+                            {item.color && (
+                              <span className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                                {item.color}
+                              </span>
+                            )}
+                            <span className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                              {item.quantity}pcs
+                            </span>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full 
-    ${
-      item.type === "ebook"
-        ? "bg-purple-100 text-purple-800"
-        : item.type === "book"
-        ? "bg-blue-100 text-blue-800"
-        : "bg-orange-100 text-orange-800"
-    }`}
-                        >
-                          {item.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${item.price?.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      </div>
 
-          {/* Update Order Section - Only show for non-ebook orders */}
-          {order.order_type !== "ebook" && (
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Update Order Status
-              </h3>
-              <form onSubmit={updateOrderHandler}>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="in progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Update Status
-                  </button>
+                      {/* Price - Compact */}
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-sm sm:text-base">
+                          ৳{formatPrice(item.subtotal)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          ৳{formatPrice(item.price)} each
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </form>
+              </div>
+
+              {/* Coupon Information */}
+              {order.coupon && order.coupon.code && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-green-800 mb-4">
+                    🎫 Coupon Applied
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-green-600">Coupon Code</p>
+                      <p className="font-medium text-green-800">
+                        {order.coupon.code}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600">Discount Type</p>
+                      <p className="font-medium text-green-800 capitalize">
+                        {order.coupon.discountType || "Percentage"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600">Discount Value</p>
+                      <p className="font-medium text-green-800">
+                        {order.coupon.discountType === "fixed"
+                          ? `৳${formatPrice(order.coupon.discountValue)}`
+                          : `${order.coupon.discountValue}%`}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600">Discount Amount</p>
+                      <p className="font-medium text-green-800">
+                        -৳
+                        {formatPrice(
+                          order.coupon.discountAmount || order.couponDiscount
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Price Breakdown */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Price Breakdown
+                </h3>
+                <div className="space-y-2 max-w-md">
+                  <div className="flex justify-between">
+                    <span>Items Price:</span>
+                    <span>৳{formatPrice(order.itemsPrice)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Delivery Price:</span>
+                    <span>৳{formatPrice(order.deliveryPrice)}</span>
+                  </div>
+
+                  {order.productDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Product Discount:</span>
+                      <span>-৳{formatPrice(order.productDiscount)}</span>
+                    </div>
+                  )}
+
+                  {order.deliveryDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Delivery Discount:</span>
+                      <span>-৳{formatPrice(order.deliveryDiscount)}</span>
+                    </div>
+                  )}
+
+                  {order.couponDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Coupon Discount:</span>
+                      <span>-৳{formatPrice(order.couponDiscount)}</span>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>৳{formatPrice(order.totalPrice)}</span>
+                    </div>
+                  </div>
+
+                  {order.paymentInfo?.method === "cod" &&
+                    order.cashOnDelivery > 0 && (
+                      <div className="flex justify-between text-orange-600 font-medium mt-2">
+                        <span>Cash on Delivery:</span>
+                        <span>৳{formatPrice(order.cashOnDelivery)}</span>
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              {/* Payment Information */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Payment Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Payment Method</p>
+                    <p className="font-medium capitalize">
+                      {order.paymentInfo?.method || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Payment Status</p>
+                    <p className="font-medium capitalize">
+                      {order.paymentInfo?.status || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Payment Type</p>
+                    <p className="font-medium capitalize">
+                      {order.paymentInfo?.type?.replace("_", " ") || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Transaction ID</p>
+                    <p className="font-medium">
+                      {order.paymentInfo?.transactionId || "N/A"}
+                    </p>
+                  </div>
+                  {order.cashOnDelivery > 0 && (
+                    <div>
+                      <p className="text-sm text-gray-600">Cash on Delivery</p>
+                      <p className="font-medium">
+                        ৳{formatPrice(order.cashOnDelivery)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Refund Information */}
+              {order.refund_request && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-orange-800 mb-2">
+                    Refund Requested
+                  </h3>
+                  <p className="text-orange-700">
+                    Customer has requested a refund for this order.
+                    {order.refundReason && (
+                      <span className="block mt-2">
+                        <strong>Reason:</strong> {order.refundReason}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* Steadfast Information */}
+              {order.steadfastData && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4">
+                    🚚 Steadfast Courier Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-blue-600">Consignment ID</p>
+                      <p className="font-medium text-blue-800">
+                        {order.steadfastData.consignment_id}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600">Tracking Code</p>
+                      <p className="font-mono font-bold text-blue-800">
+                        {order.steadfastData.tracking_code}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600">Status</p>
+                      <p className="font-medium text-blue-800 capitalize">
+                        {order.steadfastData.status?.replace("_", " ")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
