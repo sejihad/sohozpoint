@@ -156,7 +156,7 @@ const Hero = () => {
           }
 
           .mySwiper .swiper-slide img {
-            object-fit: fill !important;
+            object-fit: cover !important;
             min-height: 100% !important;
           }
         }
