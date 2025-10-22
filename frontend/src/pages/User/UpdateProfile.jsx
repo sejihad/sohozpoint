@@ -1,9 +1,7 @@
-import { Country } from "country-state-city";
 import { useEffect, useRef, useState } from "react";
 import {
   FiArrowLeft,
   FiCamera,
-  FiChevronDown,
   FiGlobe,
   FiPhone,
   FiUser,
@@ -21,52 +19,16 @@ const UpdateProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fileInputRef = useRef(null);
-  const countryDropdownRef = useRef(null);
 
   const { user } = useSelector((state) => state.user);
   const { error, isUpdated, loading } = useSelector((state) => state.profile);
 
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
-  const [country, setCountry] = useState("");
-  const [countrySearch, setCountrySearch] = useState("");
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [country, setCountry] = useState("Bangladesh"); // শুধুমাত্র বাংলাদেশ
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("/Profile.png");
   const [isHovering, setIsHovering] = useState(false);
-
-  // Load all countries on component mount
-  useEffect(() => {
-    const countries = Country.getAllCountries();
-    setFilteredCountries(countries);
-
-    // Close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (
-        countryDropdownRef.current &&
-        !countryDropdownRef.current.contains(event.target)
-      ) {
-        setShowCountryDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Filter countries based on search input
-  useEffect(() => {
-    if (countrySearch) {
-      const filtered = Country.getAllCountries().filter((c) =>
-        c.name.toLowerCase().includes(countrySearch.toLowerCase())
-      );
-      setFilteredCountries(filtered);
-    } else {
-      setFilteredCountries(Country.getAllCountries());
-    }
-  }, [countrySearch]);
 
   const updateProfileSubmit = async (e) => {
     e.preventDefault();
@@ -117,16 +79,10 @@ const UpdateProfile = () => {
     fileInputRef.current.click();
   };
 
-  const handleCountrySelect = (countryName) => {
-    setCountry(countryName);
-    setShowCountryDropdown(false);
-    setCountrySearch("");
-  };
-
   useEffect(() => {
     if (user) {
       setName(user.name || "");
-      setCountry(user.country || "");
+      setCountry(user.country || "Bangladesh"); // শুধুমাত্র বাংলাদেশ
       setNumber(user.number || "");
       setAvatarPreview(user.avatar?.url || "/Profile.png");
     }
@@ -239,59 +195,22 @@ const UpdateProfile = () => {
                     />
                   </div>
 
-                  {/* Country Field */}
-                  <div className="space-y-1" ref={countryDropdownRef}>
+                  {/* Country Field - Fixed to Bangladesh only */}
+                  <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-600 flex items-center">
                       <FiGlobe className="mr-2" /> Country
                     </label>
                     <div className="relative">
-                      <div
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition flex items-center justify-between cursor-pointer"
-                        onClick={() =>
-                          setShowCountryDropdown(!showCountryDropdown)
-                        }
-                      >
-                        <span>{country || "Select your country"}</span>
-                        <FiChevronDown
-                          className={`transition-transform ${
-                            showCountryDropdown ? "transform rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-
-                      {showCountryDropdown && (
-                        <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                          <div className="p-2 sticky top-0 bg-white border-b">
-                            <input
-                              type="text"
-                              value={countrySearch}
-                              onChange={(e) => setCountrySearch(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-200"
-                              placeholder="Search country..."
-                              autoFocus
-                            />
-                          </div>
-                          <div className="py-1">
-                            {filteredCountries.length > 0 ? (
-                              filteredCountries.map((c) => (
-                                <div
-                                  key={c.isoCode}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
-                                  onClick={() => handleCountrySelect(c.name)}
-                                >
-                                  <span className="mr-2">{c.flag}</span>
-                                  {c.name}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-4 py-2 text-gray-500">
-                                No countries found
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      <input
+                        type="text"
+                        value="Bangladesh"
+                        readOnly
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 cursor-not-allowed outline-none transition"
+                      />
                     </div>
+                    {/* <p className="text-green-600 text-sm mt-1">
+                      Currently we only serve in Bangladesh
+                    </p> */}
                   </div>
 
                   {/* Phone Field */}

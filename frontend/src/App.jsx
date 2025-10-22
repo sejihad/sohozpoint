@@ -46,7 +46,7 @@ import OrderDetails from "./pages/Orders/OrderDetails";
 // import Checkout from "./pages/Payment/Checkout";
 import { jwtDecode } from "jwt-decode";
 import { useDispatch } from "react-redux";
-import { logout } from "./actions/userAction";
+import { loadUser, logout } from "./actions/userAction";
 import NotificationBanner from "./component/layout/NotificationBanner";
 import AllBanners from "./pages/Admin/AllBanners";
 import AllBrands from "./pages/Admin/AllBrands";
@@ -79,18 +79,29 @@ const App = () => {
   }, []);
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
 
-        if (decoded.exp * 1000 < Date.now()) {
-          dispatch(logout());
-        }
-      } catch {
+    if (!token) {
+      // Token না থাকলে logout
+      dispatch(logout());
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+
+      // Token expired check
+      if (decoded.exp * 1000 < Date.now()) {
         dispatch(logout());
+      } else {
+        // Token valid → load fresh user data
+        dispatch(loadUser());
       }
+    } catch (err) {
+      // Invalid token
+      dispatch(logout());
     }
   }, [dispatch]);
+
   return (
     <BrowserRouter>
       <Header />

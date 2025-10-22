@@ -792,7 +792,7 @@ const Checkout = () => {
                   )}
 
                   {!isCouponApplied ? (
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
                       <input
                         type="text"
                         value={couponCode}

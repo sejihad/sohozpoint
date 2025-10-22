@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -200,14 +200,20 @@ const ProductDetails = () => {
   const { success: reviewSuccess, error: reviewError } = useSelector(
     (state) => state.newReview
   );
-
+  const [isDescriptionScrollable, setIsDescriptionScrollable] = useState(false);
+  const descriptionRef = useRef(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [review, setReview] = useState({ rating: 0, comment: "" });
   const [zoomImage, setZoomImage] = useState(null);
-
+  useEffect(() => {
+    if (descriptionRef.current) {
+      const element = descriptionRef.current;
+      setIsDescriptionScrollable(element.scrollHeight > element.clientHeight);
+    }
+  }, [product.description]);
   useEffect(() => {
     if (slug) {
       dispatch(getProductDetails(slug));
@@ -521,10 +527,10 @@ const ProductDetails = () => {
         </nav>
 
         {/* Main Product Section - 3 Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-8 items-stretch">
           {/* Left Column - Product Images */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 h-full">
               {/* Main Image */}
               <div className="flex justify-center mb-4 h-80">
                 <ProductImage
@@ -604,7 +610,7 @@ const ProductDetails = () => {
 
           {/* Middle Column - Product Information */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full flex flex-col">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
@@ -617,17 +623,31 @@ const ProductDetails = () => {
                 </span>
               </div>
 
-              {/* Description */}
-              <div className="mb-6">
+              {/* Description with Scroll - Only scrolls if content is too long */}
+              <div className="flex-1 min-h-0 flex flex-col mb-6">
                 <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="text-gray-700 whitespace-pre-line">
-                  {product.description || "No description available."}
-                </p>
+                <div
+                  className="flex-1 overflow-y-auto pr-2"
+                  ref={descriptionRef}
+                >
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {product.description || "No description available."}
+                  </p>
+                </div>
+
+                {/* Scroll indicator - only show when content is scrollable */}
+                {isDescriptionScrollable && (
+                  <div className="text-center mt-2">
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      Scroll to read more
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Key Features */}
+              {/* Key Features - This stays at the bottom */}
               {productListItems.length > 0 && (
-                <div className="mb-6">
+                <div className="mt-auto">
                   <h3 className="text-lg font-semibold mb-2">Key Features</h3>
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
                     {productListItems.map((item, index) => (
@@ -641,7 +661,7 @@ const ProductDetails = () => {
 
           {/* Right Column - Purchase Options */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-4">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full sticky top-4">
               {/* Price Section */}
               <div className="mb-4">
                 {discountPercentage > 0 && (
@@ -672,8 +692,6 @@ const ProductDetails = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Delivery Charge - Moved below quantity */}
               </div>
 
               {/* Size Selection - Only show if sizes exist */}
@@ -752,7 +770,7 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Delivery Charge - Now below quantity */}
+              {/* Delivery Charge */}
               <div className="mb-6 text-sm border-t pt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Delivery Charge:</span>
