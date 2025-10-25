@@ -42,7 +42,7 @@ const Categories = () => {
         <section className="container py-10 bg-gradient-to-br from-green-50 to-white">
           <div className="mx-auto px-4">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-              Browse by Category
+              Browse By Category
             </h2>
             <div className="grid grid-cols-3 sm:grid-cols-8 gap-4 md:gap-6">
               {categories && categories.length > 0 ? (

@@ -191,7 +191,11 @@ const StarRating = ({ rating, interactive = false, onChange }) => {
 const ProductDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const leftColRef = useRef(null);
+  const middleColRef = useRef(null);
+  const rightColRef = useRef(null);
   const { slug } = useParams();
+
   const { loading, product } = useSelector((state) => state.productDetails);
 
   const { orders } = useSelector((state) => state.myOrders);
@@ -200,27 +204,66 @@ const ProductDetails = () => {
   const { success: reviewSuccess, error: reviewError } = useSelector(
     (state) => state.newReview
   );
-  const [isDescriptionScrollable, setIsDescriptionScrollable] = useState(false);
-  const descriptionRef = useRef(null);
+
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [review, setReview] = useState({ rating: 0, comment: "" });
   const [zoomImage, setZoomImage] = useState(null);
-  useEffect(() => {
-    if (descriptionRef.current) {
-      const element = descriptionRef.current;
-      setIsDescriptionScrollable(element.scrollHeight > element.clientHeight);
-    }
-  }, [product.description]);
+
   useEffect(() => {
     if (slug) {
       dispatch(getProductDetails(slug));
     }
     dispatch(myOrders());
   }, [dispatch, slug]);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Remove any existing animation classes first
+            entry.target.classList.remove(
+              "animate-slide-in-left",
+              "animate-fade-in-up",
+              "animate-slide-in-right"
+            );
 
+            // Force reflow
+            void entry.target.offsetWidth;
+
+            // Add appropriate animation class
+            if (entry.target === leftColRef.current) {
+              entry.target.classList.add("animate-slide-in-left");
+            } else if (entry.target === middleColRef.current) {
+              entry.target.classList.add("animate-fade-in-up");
+            } else if (entry.target === rightColRef.current) {
+              entry.target.classList.add("animate-slide-in-right");
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      }
+    );
+
+    // Observe elements with a small delay to ensure they're in DOM
+    const timeoutId = setTimeout(() => {
+      if (leftColRef.current) observer.observe(leftColRef.current);
+      if (middleColRef.current) observer.observe(middleColRef.current);
+      if (rightColRef.current) observer.observe(rightColRef.current);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (leftColRef.current) observer.unobserve(leftColRef.current);
+      if (middleColRef.current) observer.unobserve(middleColRef.current);
+      if (rightColRef.current) observer.unobserve(rightColRef.current);
+    };
+  }, [product?._id]); // Add product ID as dependency
   useEffect(() => {
     if (reviewSuccess) {
       dispatch(getProductDetails(slug));
@@ -529,10 +572,10 @@ const ProductDetails = () => {
         {/* Main Product Section - 3 Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-8 items-stretch">
           {/* Left Column - Product Images */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 h-full">
+          <div ref={leftColRef} className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
               {/* Main Image */}
-              <div className="flex justify-center mb-4 h-80">
+              <div className="flex justify-center mb-4 h-60 md:h-80 flex-shrink-0">
                 <ProductImage
                   src={
                     productImages[selectedImage]?.url ||
@@ -546,7 +589,7 @@ const ProductDetails = () => {
 
               {/* Thumbnail Slider */}
               {productImages.length > 1 && (
-                <div className="flex space-x-2 overflow-x-auto py-2">
+                <div className="flex space-x-2 overflow-x-auto py-2 flex-shrink-0">
                   {productImages.map((img, index) => (
                     <button
                       key={index}
@@ -609,8 +652,8 @@ const ProductDetails = () => {
           </div>
 
           {/* Middle Column - Product Information */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full flex flex-col">
+          <div ref={middleColRef} className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
@@ -622,36 +665,28 @@ const ProductDetails = () => {
                   ({product.numOfReviews || 0} reviews)
                 </span>
               </div>
-
-              {/* Description with Scroll - Only scrolls if content is too long */}
-              <div className="flex-1 min-h-0 flex flex-col mb-6">
+              <div className="text-l font-bold text-green-700 mt-1">
+                {product.sold || 0} Sold
+              </div>
+              {/* Description Section */}
+              <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <div
-                  className="flex-1 overflow-y-auto pr-2"
-                  ref={descriptionRef}
-                >
-                  <p className="text-gray-700 whitespace-pre-line">
-                    {product.description || "No description available."}
-                  </p>
-                </div>
-
-                {/* Scroll indicator - only show when content is scrollable */}
-                {isDescriptionScrollable && (
-                  <div className="text-center mt-2">
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      Scroll to read more
-                    </span>
-                  </div>
-                )}
+                <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {product.description || "No description available."}
+                </p>
               </div>
 
-              {/* Key Features - This stays at the bottom */}
+              {/* Key Features Section - Now outside the description box */}
               {productListItems.length > 0 && (
-                <div className="mt-auto">
-                  <h3 className="text-lg font-semibold mb-2">Key Features</h3>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                <div className="mt-4">
+                  <h4 className="font-semibold text-gray-800 mb-3 text-lg">
+                    Key Features:
+                  </h4>
+                  <ul className="list-disc list-inside space-y-2 text-gray-700  rounded-lg p-4">
                     {productListItems.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className="leading-relaxed">
+                        {item}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -660,8 +695,8 @@ const ProductDetails = () => {
           </div>
 
           {/* Right Column - Purchase Options */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full sticky top-4">
+          <div ref={rightColRef} className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-4">
               {/* Price Section */}
               <div className="mb-4">
                 {discountPercentage > 0 && (
@@ -771,7 +806,7 @@ const ProductDetails = () => {
               )}
 
               {/* Delivery Charge */}
-              <div className="mb-6 text-sm border-t pt-4">
+              <div className="mb-4 text-sm border-t pt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Delivery Charge:</span>
                   <span
@@ -784,6 +819,36 @@ const ProductDetails = () => {
                     {product.deliveryCharge === "yes"
                       ? "Charge Applicable"
                       : "Free Delivery"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Delivery Time */}
+              <div className="mb-4 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Delivery Time:</span>
+                  <span className="text-blue-600 font-semibold">3-5 days</span>
+                </div>
+              </div>
+
+              {/* Stock Status */}
+              <div className="mb-6 text-sm border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Stock Status:</span>
+                  <span
+                    className={`font-semibold ${
+                      isProductInStock
+                        ? "text-green-600"
+                        : isProductOutOfStock
+                        ? "text-orange-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {isProductInStock
+                      ? "In Stock"
+                      : isProductOutOfStock
+                      ? "Out of Stock"
+                      : "Unavailable"}
                   </span>
                 </div>
               </div>

@@ -90,7 +90,7 @@ const myOrders = catchAsyncErrors(async (req, res, next) => {
     createdAt: -1,
   });
   const user = req.user._id;
-  console.log({ orders, user });
+
   res.status(200).json({
     success: true,
 
@@ -237,7 +237,8 @@ Sohoz Point Team
 
         // Regular product stock update
         const newQuantity = Math.max(0, product.quantity - item.quantity);
-        const updateData = { quantity: newQuantity };
+        const newSoldCount = (product.sold || 0) + item.quantity;
+        const updateData = { quantity: newQuantity, sold: newSoldCount };
 
         if (newQuantity === 0 && product.availability === "inStock") {
           updateData.availability = "outOfStock";

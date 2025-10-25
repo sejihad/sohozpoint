@@ -3,7 +3,6 @@ import {
   FiBox,
   FiChevronDown,
   FiChevronUp,
-  FiDollarSign,
   FiFilter,
   FiLayers,
   FiStar,
@@ -26,7 +25,7 @@ const Shop = () => {
   const { loading, products } = useSelector((state) => state.products);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -47,16 +46,14 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
-    subCategories: false,
-    subsubCategories: false,
+    subCategories: true,
+    subsubCategories: true,
     price: true,
     ratings: true,
     brand: true,
     type: true,
-    color: false,
+    color: true,
   });
-
-  const productsPerPage = 100;
 
   const query = useQuery();
   const location = useLocation();
@@ -105,7 +102,6 @@ const Shop = () => {
   useEffect(() => {
     const querySearch = query.get("search") || "";
     setSearchTerm(querySearch);
-    setCurrentPage(1);
   }, [location.search, query]);
 
   // Filter products based on all criteria - FIXED VERSION
@@ -180,7 +176,6 @@ const Shop = () => {
     });
 
     setFilteredProducts(filtered);
-    setCurrentPage(1);
   }, [products, searchTerm, filters, priceRange]);
 
   useEffect(() => {
@@ -283,17 +278,6 @@ const Shop = () => {
     }).length;
   };
 
-  // Pagination
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
   const showSearchInfo = searchTerm && filteredProducts.length > 0;
 
   // Filter sidebar component
@@ -317,10 +301,7 @@ const Shop = () => {
             className="flex justify-between items-center w-full text-left font-medium text-gray-900"
             onClick={() => toggleSection("price")}
           >
-            <span className="flex items-center gap-2">
-              <FiDollarSign className="w-4 h-4" />
-              Price Range
-            </span>
+            <span className="flex items-center gap-2">৳ Price Range</span>
             {expandedSections.price ? <FiChevronUp /> : <FiChevronDown />}
           </button>
 
@@ -820,84 +801,14 @@ const Shop = () => {
                       searchTerm ? `Search Results for "${searchTerm}"` : "All"
                     }
                     productsPerRow={{
-                      mobile: 1,
+                      mobile: 2,
                       tablet: 2,
                       laptop: 3,
                       desktop: 3,
                     }}
-                    products={currentProducts}
+                    products={filteredProducts}
                     loading={loading}
                   />
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-10">
-                    <div className="flex space-x-2 flex-wrap justify-center gap-2">
-                      {currentPage > 1 && (
-                        <button
-                          onClick={() => paginate(currentPage - 1)}
-                          className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors"
-                        >
-                          Previous
-                        </button>
-                      )}
-
-                      {[...Array(totalPages).keys()].map((num) => {
-                        const pageNum = num + 1;
-                        if (
-                          pageNum === 1 ||
-                          pageNum === totalPages ||
-                          (pageNum >= currentPage - 1 &&
-                            pageNum <= currentPage + 1)
-                        ) {
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => paginate(pageNum)}
-                              className={`px-3 py-2 rounded-md border text-sm font-medium min-w-[40px] ${
-                                currentPage === pageNum
-                                  ? "bg-green-500 text-white border-green-500"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                              }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        } else if (
-                          pageNum === currentPage - 2 ||
-                          pageNum === currentPage + 2
-                        ) {
-                          return (
-                            <span
-                              key={pageNum}
-                              className="px-2 py-2 text-gray-500"
-                            >
-                              ...
-                            </span>
-                          );
-                        }
-                        return null;
-                      })}
-
-                      {currentPage < totalPages && (
-                        <button
-                          onClick={() => paginate(currentPage + 1)}
-                          className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors"
-                        >
-                          Next
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Products Count Info */}
-                <div className="text-center text-gray-600 text-sm mt-4">
-                  Showing {indexOfFirstProduct + 1}-
-                  {Math.min(indexOfLastProduct, filteredProducts.length)} of{" "}
-                  {filteredProducts.length} products
-                  {searchTerm && ` for "${searchTerm}"`}
                 </div>
               </>
             )}

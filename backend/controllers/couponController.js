@@ -115,9 +115,7 @@ const applyCoupon = catchAsyncErrors(async (req, res, next) => {
 
   // Check usage limit
   if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
-    return next(
-      new ErrorHandler("This coupon has reached its usage limit", 400)
-    );
+    return next(new ErrorHandler("This coupon has used max", 400));
   }
 
   // Calculate discount

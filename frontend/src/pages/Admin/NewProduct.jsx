@@ -36,6 +36,7 @@ const NewProduct = () => {
     sizes: [],
     availability: "inStock", // Fixed: Changed from "available" to "inStock"
     quantity: "",
+    sold: "",
     weight: "",
     colors: [], // Fixed: Changed from "color" to "colors" array
     category: "",
@@ -117,6 +118,7 @@ const NewProduct = () => {
       sizes: [],
       availability: "inStock", // Fixed
       quantity: "",
+      sold: "",
       weight: "",
       colors: [], // Fixed
       category: "",
@@ -279,6 +281,7 @@ const NewProduct = () => {
     data.set("quantity", finalQuantity);
 
     data.set("weight", formData.weight);
+    data.set("sold", formData.sold);
 
     // Get category names
     const selectedCategory = categories.find(
@@ -588,6 +591,20 @@ const NewProduct = () => {
                   </div>
                 )}
 
+                {/* Weight */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sold
+                  </label>
+                  <input
+                    type="number"
+                    name="sold"
+                    placeholder="0"
+                    value={formData.sold}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
                 {/* Weight */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

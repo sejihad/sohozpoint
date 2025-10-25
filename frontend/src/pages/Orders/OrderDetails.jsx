@@ -312,7 +312,7 @@ const OrderDetails = () => {
     <div className="container mx-auto px-4 py-8 min-h-[100vh]">
       <MetaData title={`Order #${order?.orderId || ""}`} />
 
-      <div className="max-w-6xl mx-auto">
+      <div className=" mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
@@ -399,7 +399,7 @@ const OrderDetails = () => {
                 <textarea
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
-                  placeholder="Please describe the reason for your refund request..."
+                  placeholder="Please describe the reason for your refund request and provide the payment method along and account number number."
                   rows="4"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />

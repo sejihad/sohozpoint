@@ -100,7 +100,9 @@ const Product = ({
         )} */}
 
         <StarRating rating={product.ratings || 0} />
-
+        <div className="text-xs font-bold text-green-700 mt-1">
+          {product.sold || 0} Sold
+        </div>
         {/* {showCategory && (
           <div className="flex flex-wrap justify-center gap-1 my-2">
             <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">

@@ -94,6 +94,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
   productData.oldPrice = Number(productData.oldPrice);
   productData.salePrice = Number(productData.salePrice);
   productData.buyPrice = Number(productData.buyPrice);
+  productData.sold = Number(productData.sold);
   productData.quantity = productData.quantity
     ? Number(productData.quantity)
     : 0;
@@ -163,6 +164,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     "salePrice",
     "buyPrice",
     "quantity",
+    "sold",
     "weight",
   ];
   numberFields.forEach((field) => {

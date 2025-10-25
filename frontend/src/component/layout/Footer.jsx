@@ -13,11 +13,12 @@ const Footer = () => {
                 Sohoz Point
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed">
-                Sohoz Point is a modern e-commerce platform where you will find
-                the latest tech gadgets, essential daily-use products,
-                high-quality clothing, and a wide collection of fashionable
-                apparel. Our goal is to make people's everyday shopping easier
-                by providing all necessary products at affordable prices.
+                Sohoz Point is an advanced e-commerce platform that offers a
+                vast collection of the latest tech gadgets, essential daily
+                necessities, premium apparel, and trending fashion wear. We are
+                committed to making everyday shopping easier and more convenient
+                by ensuring all necessary products are available at affordable
+                prices.
               </p>
             </div>
 

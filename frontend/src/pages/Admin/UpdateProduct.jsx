@@ -58,6 +58,7 @@ const UpdateProduct = () => {
     sizes: [],
     availability: "inStock",
     quantity: "",
+    sold: "",
     weight: "",
     colors: [],
     category: "",
@@ -121,6 +122,7 @@ const UpdateProduct = () => {
         sizes: product.sizes || [],
         availability: product.availability || "inStock",
         quantity: product.quantity || "",
+        sold: product.sold || "",
         weight: product.weight || "",
         colors: product.colors || [],
         category: product.category || "",
@@ -280,6 +282,7 @@ const UpdateProduct = () => {
     data.set("oldPrice", formData.oldPrice);
     data.set("salePrice", formData.salePrice);
     data.set("buyPrice", formData.buyPrice);
+    data.set("sold", formData.sold);
 
     // FIXED: Send listItems as array properly
     const validListItems = listItems.filter((item) => item.trim());
@@ -639,6 +642,20 @@ const UpdateProduct = () => {
                   </div>
                 )}
 
+                {/* sold */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sold
+                  </label>
+                  <input
+                    type="number"
+                    name="sold"
+                    placeholder="0"
+                    value={formData.sold}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
                 {/* Weight */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

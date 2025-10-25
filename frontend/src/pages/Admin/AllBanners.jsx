@@ -30,6 +30,7 @@ const AllBanners = () => {
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [deviceType, setDeviceType] = useState("both");
   const [editId, setEditId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -46,6 +47,7 @@ const AllBanners = () => {
       dispatch({ type: NEW_BANNER_RESET });
       resetForm();
       setIsFormOpen(false);
+      dispatch(getAdminBanners());
     }
 
     if (isDeleted) {
@@ -64,9 +66,9 @@ const AllBanners = () => {
 
   const resetForm = () => {
     setEditId(null);
-
     setImage(null);
     setImagePreview(null);
+    setDeviceType("both");
   };
 
   const handleSubmit = (e) => {
@@ -75,6 +77,7 @@ const AllBanners = () => {
     const formData = new FormData();
 
     if (image) formData.append("image", image);
+    formData.append("deviceType", deviceType);
 
     if (editId) {
       dispatch(updateBanner(editId, formData));
@@ -85,8 +88,8 @@ const AllBanners = () => {
 
   const handleEdit = (banner) => {
     setEditId(banner._id);
-
     if (banner.image) setImagePreview(banner.image.url);
+    setDeviceType(banner.deviceType || "both");
     setIsFormOpen(true);
   };
 
@@ -96,6 +99,7 @@ const AllBanners = () => {
     }
   };
 
+  // Image input handler
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -107,8 +111,8 @@ const AllBanners = () => {
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.readyState === 2) {
-        setImagePreview(reader.result);
         setImage(file);
+        setImagePreview(reader.result);
       }
     };
     reader.readAsDataURL(file);
@@ -148,12 +152,13 @@ const AllBanners = () => {
           </div>
 
           {isFormOpen && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-8 animate-fade-in">
+            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 {editId ? "Edit Banner" : "Upload New Banner"}
               </h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Banner Image <span className="text-red-500">*</span>
@@ -169,7 +174,7 @@ const AllBanners = () => {
                         accept="image/*"
                         onChange={handleImageChange}
                         className="hidden"
-                        required={!editId} // Required only for new Banners
+                        required={!editId && !imagePreview}
                       />
                     </label>
                     {imagePreview && (
@@ -191,10 +196,27 @@ const AllBanners = () => {
                   </div>
                 </div>
 
+                {/* Device Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Display On
+                  </label>
+                  <select
+                    value={deviceType}
+                    onChange={(e) => setDeviceType(e.target.value)}
+                    className="border border-gray-300 rounded-lg p-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="both">Both Desktop & Mobile</option>
+                    <option value="desktop">Desktop Only</option>
+                    <option value="mobile">Mobile Only</option>
+                  </select>
+                </div>
+
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3 px-4 cursor-pointer rounded-lg text-white font-semibold flex items-center justify-center gap-2 ${
+                  className={`w-full max-w-xs py-3 px-4 cursor-pointer rounded-lg text-white font-semibold flex items-center justify-center gap-2 ${
                     loading
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-indigo-600 hover:bg-indigo-700"
@@ -216,6 +238,7 @@ const AllBanners = () => {
             </div>
           )}
 
+          {/* Banner List */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-800">
@@ -234,28 +257,37 @@ const AllBanners = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {banners?.map((banner) => (
+                {banners.map((banner) => (
                   <div
                     key={banner._id}
                     className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    {banner.image ? (
-                      <div className="w-full h-48 bg-white flex items-center justify-center p-4">
-                        <img
-                          src={banner.image.url}
-                          alt="Banner"
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500">No Image</span>
-                      </div>
-                    )}
+                    <div className="w-full h-48 bg-white flex items-center justify-center p-4">
+                      <img
+                        src={banner.image?.url}
+                        alt="Banner"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
                     <div className="p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs text-gray-500">
-                          {new Date(banner.createdAt).toLocaleDateString()}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-600 capitalize">
+                          {banner.deviceType}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            banner.deviceType === "both"
+                              ? "bg-green-100 text-green-800"
+                              : banner.deviceType === "desktop"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-purple-100 text-purple-800"
+                          }`}
+                        >
+                          {banner.deviceType === "both"
+                            ? "Both"
+                            : banner.deviceType === "desktop"
+                            ? "Desktop"
+                            : "Mobile"}
                         </span>
                       </div>
                       <div className="flex justify-end gap-2">

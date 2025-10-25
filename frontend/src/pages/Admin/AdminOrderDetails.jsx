@@ -241,7 +241,7 @@ const AdminOrderDetails = () => {
               </form>
 
               {/* Download PDF Button */}
-              {/* <button
+              <button
                 onClick={downloadPDF}
                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"
               >
@@ -259,7 +259,7 @@ const AdminOrderDetails = () => {
                   />
                 </svg>
                 Download PDF
-              </button> */}
+              </button>
             </div>
           </div>
 

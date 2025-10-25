@@ -12,6 +12,13 @@ const bannerSchema = new mongoose.Schema({
     },
   },
 
+  // To control where the banner appears
+  deviceType: {
+    type: String,
+    enum: ["desktop", "mobile", "both"],
+    default: "both",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
