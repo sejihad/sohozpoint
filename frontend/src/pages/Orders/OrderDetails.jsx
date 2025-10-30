@@ -8,6 +8,7 @@ import {
   FaMoneyBillWave,
   FaPhone,
   FaSearch,
+  FaStar,
   FaTimes,
   FaTruck,
   FaUndo,
@@ -16,6 +17,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import slugify from "slugify";
 import {
   cancelOrder,
   clearErrors,
@@ -134,7 +136,10 @@ const OrderDetails = () => {
       !order.refund_request
     );
   };
-
+  // ✅ Check if order is delivered and user can review
+  const canReview = () => {
+    return order?.orderStatus?.toLowerCase() === "delivered";
+  };
   // ✅ Handle cancel order
   const handleCancelOrder = () => {
     if (window.confirm("Are you sure you want to cancel this order?")) {
@@ -321,6 +326,9 @@ const OrderDetails = () => {
             </h1>
             <p className="text-gray-600 mt-2">
               Placed on {formatDate(order?.createdAt)}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              Delivery Time: 3-5 days
             </p>
 
             {/* Remaining Time Display */}
@@ -689,40 +697,58 @@ const OrderDetails = () => {
                 {order.orderItems?.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 p-4 border border-gray-200 rounded-lg"
                   >
-                    <img
-                      src={item.image || "/placeholder-image.jpg"}
-                      alt={item.name || "Product"}
-                      className="w-16 h-16 object-cover rounded-md"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {item.name || "Unnamed Product"}
-                      </h4>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {item.size && (
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={item.image || "/placeholder-image.jpg"}
+                        alt={item.name || "Product"}
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {item.name || "Unnamed Product"}
+                        </h4>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {item.size && (
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                              Size: {item.size}
+                            </span>
+                          )}
+                          {item.color && (
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                              Color: {item.color}
+                            </span>
+                          )}
                           <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                            Size: {item.size}
+                            Qty: {item.quantity || 0}
                           </span>
-                        )}
-                        {item.color && (
-                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                            Color: {item.color}
-                          </span>
-                        )}
-                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                          Qty: {item.quantity || 0}
-                        </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
+
+                    <div className="flex-1 mt-3 sm:mt-0 text-right">
                       <p className="font-semibold text-gray-900">
                         ৳{formatPrice(item.price)}
                       </p>
                       <p className="text-sm text-gray-500">
                         Subtotal: ৳{formatPrice(item.subtotal)}
                       </p>
+
+                      {canReview() && (
+                        <Link
+                          to={`/${slugify(item?.product?.category, {
+                            lower: true,
+                            strict: true,
+                          })}/${slugify(item?.product?.slug, {
+                            lower: true,
+                            strict: true,
+                          })}`}
+                          className="inline-flex items-center px-3 py-1.5 mt-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                        >
+                          <FaStar className="mr-1" /> Review Now
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}

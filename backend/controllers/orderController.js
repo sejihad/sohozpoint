@@ -2,6 +2,7 @@ const Order = require("../models/orderModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productModel");
+const mongoose = require("mongoose");
 const createOrder = catchAsyncErrors(async (req, res, next) => {
   const {
     orderItems,
@@ -89,7 +90,6 @@ const myOrders = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.find({ "userData.userId": req.user._id }).sort({
     createdAt: -1,
   });
-  const user = req.user._id;
 
   res.status(200).json({
     success: true,
@@ -223,21 +223,18 @@ Sohoz Point Team
   // ✅ 4. Handle stock update when order is delivered
   if (newStatus === "delivered" && oldStatus !== "delivered") {
     for (const item of order.orderItems) {
-      const productId = item.product?._id || item.product;
+      const productId = item?.id;
       const product = await Product.findById(productId);
-
+      console.log(productId, product);
       if (product) {
         // ✅ Check if this is a preorder product
-        if (product.isPreOrder || product.availability === "preorder") {
-          console.log(
-            `📦 Preorder Product: "${product.name}" - Skipping stock update`
-          );
+        if (order.isPreOrder) {
           continue;
         }
 
         // Regular product stock update
         const newQuantity = Math.max(0, product.quantity - item.quantity);
-        const newSoldCount = (product.sold || 0) + item.quantity;
+        const newSoldCount = product.sold + item.quantity;
         const updateData = { quantity: newQuantity, sold: newSoldCount };
 
         if (newQuantity === 0 && product.availability === "inStock") {
@@ -245,9 +242,6 @@ Sohoz Point Team
         }
 
         await Product.findByIdAndUpdate(productId, updateData);
-        console.log(
-          `📦 Stock Updated: ${product.name} (${product.quantity} → ${newQuantity})`
-        );
       }
     }
     order.deliveredAt = new Date();
@@ -291,15 +285,12 @@ Sohoz Point Team
   if (newStatus === "return" && oldStatus !== "return") {
     // Restore stock for returned items
     for (const item of order.orderItems) {
-      const productId = item.product?._id || item.product;
+      const productId = item?.id;
       const product = await Product.findById(productId);
 
       if (product) {
         // ✅ Check if this is a preorder product
-        if (product.isPreOrder || product.availability === "preorder") {
-          console.log(
-            `📦 Preorder Product: "${product.name}" - Skipping stock update on return`
-          );
+        if (order.isPreOrder) {
           continue;
         }
 
@@ -317,16 +308,9 @@ Sohoz Point Team
           newQuantity > 0
         ) {
           updateData.availability = "inStock";
-          console.log(
-            `🔄 Product "${product.name}" is back IN STOCK after return`
-          );
         }
 
         await Product.findByIdAndUpdate(productId, updateData);
-
-        console.log(
-          `📦 Stock Restored: ${product.name} (${product.quantity} → ${newQuantity})`
-        );
       }
     }
 

@@ -39,6 +39,8 @@ import {
   productReducer,
   productReviewsReducer,
   productsReducer,
+  reviewReducer,
+  reviewUpdateReducer,
 } from "./reducers/productReducer";
 
 import {
@@ -197,9 +199,9 @@ const rootReducer = combineReducers({
   productDetails: productDetailsReducer,
   productAdminDetails: productAdminDetailsReducer,
   newReview: newReviewReducer,
-
-  productReviews: productReviewsReducer,
-
+  reviewUpdate: reviewUpdateReducer,
+  reviews: productReviewsReducer,
+  review: reviewReducer,
   //order
   newOrder: newOrderReducer,
   myOrders: myOrdersReducer,

@@ -610,7 +610,7 @@ const Shop = () => {
 
         <div className="flex gap-8">
           {/* Sidebar - Desktop */}
-          <div className="hidden lg:block w-80 flex-shrink-0">
+          <div className="hidden lg:block w-80 flex-shrink-0 h-[calc(100vh-2rem)] overflow-y-auto sticky top-4">
             <FilterSidebar />
           </div>
 

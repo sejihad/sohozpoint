@@ -39,6 +39,7 @@ const Checkout = () => {
     isPreOrder = false,
   } = location.state || {};
 
+  const [errors, setErrors] = useState({});
   // State variables
   const [shippingInfo, setShippingInfo] = useState({
     fullName: user?.name || "",
@@ -346,6 +347,12 @@ const Checkout = () => {
       ...prev,
       [name]: value,
     }));
+
+    // field change হলে error clear করো
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const handlePaymentMethodChange = (method) => {
@@ -371,12 +378,27 @@ const Checkout = () => {
 
   // ✅ FIXED: Place Order with validation
   const handlePlaceOrder = async () => {
+    const newErrors = {};
+
+    if (!shippingInfo.fullName.trim())
+      newErrors.fullName = "Full name is required";
+    if (!shippingInfo.email.trim()) newErrors.email = "Email is required";
+    if (!shippingInfo.phone.trim())
+      newErrors.phone = "Phone number is required";
+    if (!shippingInfo.zipCode.trim())
+      newErrors.zipCode = "Zip code is required";
+    if (!shippingInfo.district.trim())
+      newErrors.district = "Please select a district";
+    if (!shippingInfo.thana.trim()) newErrors.thana = "Thana is required";
+    if (!shippingInfo.address.trim()) newErrors.address = "Address is required";
+    setErrors(newErrors);
     if (
       !shippingInfo.fullName ||
       !shippingInfo.email ||
       !shippingInfo.phone ||
       !shippingInfo.district ||
       !shippingInfo.thana ||
+      !shippingInfo.zipCode ||
       !shippingInfo.address
     ) {
       toast.error("Please fill all required shipping information");
@@ -503,6 +525,11 @@ const Checkout = () => {
                       placeholder="Enter your full name"
                       required
                     />
+                    {errors.fullName && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.fullName}
+                      </p>
+                    )}
                   </div>
 
                   {/* Email */}
@@ -519,6 +546,11 @@ const Checkout = () => {
                       placeholder="Enter your email"
                       required
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
 
                   {/* Phone Number */}
@@ -535,12 +567,17 @@ const Checkout = () => {
                       placeholder="Enter your phone number"
                       required
                     />
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.phone}
+                      </p>
+                    )}
                   </div>
 
                   {/* Zip Code */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Zip Code
+                      Zip Code *
                     </label>
                     <input
                       type="text"
@@ -549,7 +586,13 @@ const Checkout = () => {
                       onChange={handleShippingChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base"
                       placeholder="Enter zip code"
+                      required
                     />
+                    {errors.zipCode && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.zipCode}
+                      </p>
+                    )}
                   </div>
 
                   {/* District */}
@@ -571,6 +614,11 @@ const Checkout = () => {
                         </option>
                       ))}
                     </select>
+                    {errors.district && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.district}
+                      </p>
+                    )}
                   </div>
 
                   {/* Thana */}
@@ -587,6 +635,11 @@ const Checkout = () => {
                       placeholder="Enter your thana"
                       required
                     />
+                    {errors.thana && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.thana}
+                      </p>
+                    )}
                   </div>
 
                   {/* Full Address */}
@@ -603,6 +656,11 @@ const Checkout = () => {
                       placeholder="Enter your full address (House, Road, Area details)"
                       required
                     />
+                    {errors.address && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.address}
+                      </p>
+                    )}
                   </div>
 
                   {/* Shipping Method */}

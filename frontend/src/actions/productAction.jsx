@@ -28,6 +28,9 @@ import {
   UPDATE_PRODUCT_FAIL,
   UPDATE_PRODUCT_REQUEST,
   UPDATE_PRODUCT_SUCCESS,
+  UPDATE_REVIEW_FAIL,
+  UPDATE_REVIEW_REQUEST,
+  UPDATE_REVIEW_SUCCESS,
 } from "../constants/productContants";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -220,14 +223,14 @@ export const newReview = (reviewData) => async (dispatch) => {
     const token = localStorage.getItem("token");
     const config = {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data", // ✅ Change this
         Authorization: `Bearer ${token}`,
       },
     };
 
     const { data } = await axios.put(
       `${API_URL}/api/v1/review`,
-      reviewData,
+      reviewData, // ✅ Directly send FormData, no JSON conversion
       config
     );
 
@@ -244,12 +247,7 @@ export const newReview = (reviewData) => async (dispatch) => {
 };
 
 // ✅ Get Reviews
-export const getReviews = (type, id) => async (dispatch) => {
-  if (type === "product" || type === "ebook") {
-    type = "product";
-  } else if (type === "package") {
-    type = "package";
-  }
+export const getReviews = (id) => async (dispatch) => {
   try {
     dispatch({ type: ALL_REVIEW_REQUEST });
     const token = localStorage.getItem("token");
@@ -258,16 +256,14 @@ export const getReviews = (type, id) => async (dispatch) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const { data } = await axios.get(
-      `${API_URL}/api/v1/${type}/reviews/${id}`,
-      config
-    );
+    const { data } = await axios.get(`${API_URL}/api/v1/reviews/${id}`, config);
 
     dispatch({
       type: ALL_REVIEW_SUCCESS,
       payload: data.reviews,
     });
   } catch (error) {
+    console.log(error);
     dispatch({
       type: ALL_REVIEW_FAIL,
       payload: error.response.data.message,
@@ -276,12 +272,7 @@ export const getReviews = (type, id) => async (dispatch) => {
 };
 
 // ✅ Delete Review
-export const deleteReview = (type, productId, reviewId) => async (dispatch) => {
-  if (type === "product" || type === "ebook") {
-    type = "product";
-  } else if (type === "package") {
-    type = "package";
-  }
+export const deleteReview = (productId, reviewId) => async (dispatch) => {
   try {
     dispatch({ type: DELETE_REVIEW_REQUEST });
     const token = localStorage.getItem("token");
@@ -291,7 +282,7 @@ export const deleteReview = (type, productId, reviewId) => async (dispatch) => {
       },
     };
     const { data } = await axios.delete(
-      `${API_URL}/api/v1/${type}/review/${productId}/${reviewId}`,
+      `${API_URL}/api/v1/review/${productId}/${reviewId}`,
       config
     );
 
@@ -307,6 +298,34 @@ export const deleteReview = (type, productId, reviewId) => async (dispatch) => {
   }
 };
 
+export const updateReview = (reviewId, reviewData) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_REVIEW_REQUEST });
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.put(
+      `${API_URL}/api/v1/review/${reviewId}`,
+      reviewData,
+      config
+    );
+
+    dispatch({
+      type: UPDATE_REVIEW_SUCCESS,
+      payload: data.success,
+    });
+  } catch (error) {
+    dispatch({
+      type: UPDATE_REVIEW_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
 // ✅ Clear Errors
 export const clearErrors = () => (dispatch) => {
   dispatch({ type: CLEAR_ERRORS });

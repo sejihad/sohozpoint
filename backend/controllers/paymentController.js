@@ -1,3 +1,4 @@
+// paymentController.js
 const axios = require("axios");
 const crypto = require("crypto");
 const Order = require("../models/orderModel.js");
@@ -13,7 +14,41 @@ const {
   FRONTEND_URL,
 } = process.env;
 
+// -----------------------
+// 🔹 Token Cache for Reuse
+// -----------------------
+let cachedToken = null;
+let tokenExpiry = null;
+
+const getEpsToken = async () => {
+  const now = Date.now();
+
+  if (cachedToken && tokenExpiry && now < tokenExpiry) {
+    return cachedToken; // reuse
+  }
+
+  const hashForToken = generateHash(EPS_USERNAME);
+
+  const tokenResponse = await axios.post(
+    `${EPS_BASE_URL}/v1/Auth/GetToken`,
+    { userName: EPS_USERNAME, password: EPS_PASSWORD },
+    { headers: { "x-hash": hashForToken } }
+  );
+
+  const token = tokenResponse?.data?.token;
+  const expiresIn = tokenResponse?.data?.expiresIn || 300; // default 5 min
+
+  if (!token) throw new Error("Failed to get EPS token");
+
+  cachedToken = token;
+  tokenExpiry = now + expiresIn * 1000;
+
+  return token;
+};
+
+// -----------------------
 // 🔹 Generate HMACSHA512 Base64 hash
+// -----------------------
 const generateHash = (data) => {
   const key = Buffer.from(EPS_HASH_KEY, "utf8");
   const hmac = crypto.createHmac("sha512", key);
@@ -22,7 +57,7 @@ const generateHash = (data) => {
 };
 
 // -----------------------
-// ✅ EPS Payment Initialization Controller
+// ✅ Initialize Payment
 // -----------------------
 const initializePayment = async (req, res) => {
   const {
@@ -41,7 +76,7 @@ const initializePayment = async (req, res) => {
   } = req.body;
 
   try {
-    // Step 1️⃣: Pending order তৈরি করো
+    // Step 1: Create pending order
     const pendingOrder = await Order.create({
       userData: {
         userId: req.user._id,
@@ -65,24 +100,14 @@ const initializePayment = async (req, res) => {
       orderStatus: "pending",
     });
 
-    // Step 2️⃣: EPS token নাও
-    const hashForToken = generateHash(EPS_USERNAME);
-    const tokenResponse = await axios.post(
-      `${EPS_BASE_URL}/v1/Auth/GetToken`,
-      { userName: EPS_USERNAME, password: EPS_PASSWORD },
-      { headers: { "x-hash": hashForToken } }
-    );
+    // Step 2: Get EPS token (reuse if cached)
+    const token = await getEpsToken();
 
-    const token = tokenResponse?.data?.token;
-    if (!token)
-      return res
-        .status(500)
-        .json({ message: "Failed to get EPS token from gateway" });
-
-    // Step 3️⃣: Payment initialize data তৈরি করো
+    // Step 3: Payment initialize
     const merchantTransactionId = `EPS_${Date.now()}`;
     pendingOrder.paymentInfo.transactionId = merchantTransactionId;
     await pendingOrder.save();
+
     const hashForPayment = generateHash(merchantTransactionId);
 
     const paymentBody = {
@@ -106,7 +131,6 @@ const initializePayment = async (req, res) => {
       ProductName: orderItems.map((i) => i.name).join(", "),
     };
 
-    // Step 4️⃣: EPS Initialize কল করো
     const paymentResponse = await axios.post(
       `${EPS_BASE_URL}/v1/EPSEngine/InitializeEPS`,
       paymentBody,
@@ -124,7 +148,6 @@ const initializePayment = async (req, res) => {
         .status(400)
         .json({ message: "EPS Payment Initialization Failed" });
 
-    // ✅ Frontend এ redirect URL ও orderId পাঠাও
     res.json({
       redirectUrl: RedirectURL,
       merchantTransactionId,
@@ -137,29 +160,17 @@ const initializePayment = async (req, res) => {
 };
 
 // -----------------------
-// ✅ EPS Payment Success Callback
+// ✅ Payment Success Callback
 // -----------------------
 const createOrderAfterPayment = async (req, res) => {
   try {
     const { merchantTransactionId, orderId } = req.body;
 
-    // ✅ Step 1: EPS token নাও
-    const hashForToken = generateHash(EPS_USERNAME);
-    const tokenResponse = await axios.post(
-      `${EPS_BASE_URL}/v1/Auth/GetToken`,
-      { userName: EPS_USERNAME, password: EPS_PASSWORD },
-      { headers: { "x-hash": hashForToken } }
-    );
+    // Step 1: Get EPS token (reuse if cached)
+    const EPS_TOKEN = await getEpsToken();
 
-    const EPS_TOKEN = tokenResponse?.data?.token;
-    if (!EPS_TOKEN) {
-      return res.status(500).json({ message: "Failed to get EPS token" });
-    }
-
-    // ✅ Step 2: Verify এর জন্য hash বানাও (HashKey + merchantTransactionId)
+    // Step 2: Verify Payment
     const verifyHash = generateHash(merchantTransactionId);
-
-    // ✅ Step 3: GET রিকুয়েস্ট পাঠাও (POST না)
     const verifyResponse = await axios.get(
       `${EPS_BASE_URL}/v1/EPSEngine/CheckMerchantTransactionStatus?merchantTransactionId=${merchantTransactionId}`,
       {
@@ -170,7 +181,6 @@ const createOrderAfterPayment = async (req, res) => {
       }
     );
 
-    // ❌ যদি Status "Success" না হয় → অর্ডার ডিলিট
     if (verifyResponse.data?.Status !== "Success") {
       await Order.findByIdAndDelete(orderId);
       return res
@@ -178,17 +188,14 @@ const createOrderAfterPayment = async (req, res) => {
         .json({ message: "❌ Payment failed. Order deleted." });
     }
 
-    // ✅ পেমেন্ট সফল হলে অর্ডার আপডেট করো
+    // Step 3: Update Order as Paid
     const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    await order.markAsPaid(merchantTransactionId); // TTL বন্ধ ও স্ট্যাটাস আপডেট
+    await order.markAsPaid(merchantTransactionId); // custom method in Order model
 
     res.status(200).json({
       success: true,
-      message: "✅ Order created successfully",
       order,
     });
   } catch (err) {

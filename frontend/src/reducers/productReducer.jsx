@@ -32,6 +32,10 @@ import {
   UPDATE_PRODUCT_REQUEST,
   UPDATE_PRODUCT_RESET,
   UPDATE_PRODUCT_SUCCESS,
+  UPDATE_REVIEW_FAIL,
+  UPDATE_REVIEW_REQUEST,
+  UPDATE_REVIEW_RESET,
+  UPDATE_REVIEW_SUCCESS,
 } from "../constants/productContants";
 
 // All products reducer
@@ -304,6 +308,35 @@ export const reviewReducer = (state = {}, action) => {
       return {
         ...state,
         error: null,
+      };
+    default:
+      return state;
+  }
+};
+
+export const reviewUpdateReducer = (state = {}, action) => {
+  switch (action.type) {
+    case UPDATE_REVIEW_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case UPDATE_REVIEW_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: action.payload,
+      };
+    case UPDATE_REVIEW_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case UPDATE_REVIEW_RESET:
+      return {
+        ...state,
+        success: false,
       };
     default:
       return state;

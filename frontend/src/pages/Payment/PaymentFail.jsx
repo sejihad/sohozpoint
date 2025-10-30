@@ -26,8 +26,6 @@ const PaymentFail = () => {
         );
         toast.error("❌ Payment failed. Order deleted.");
       } catch (err) {
-        console.error("Delete order error:", err);
-        toast.error("Failed to delete order!");
       } finally {
         setLoading(false);
       }

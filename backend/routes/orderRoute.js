@@ -6,7 +6,6 @@ const {
   deleteOrder,
   getAllOrders,
   getSingleAdminOrder,
-
   cancelOrder,
   requestRefund,
 } = require("../controllers/orderController");

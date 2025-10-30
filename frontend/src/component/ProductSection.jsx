@@ -10,7 +10,7 @@ const StarRating = ({ rating }) => {
   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
   return (
-    <div className="flex justify-center mt-2 text-yellow-400 text-sm">
+    <div className="flex items-center gap-0.5 text-yellow-400 text-xs">
       {[...Array(fullStars)].map((_, i) => (
         <FaStar key={i} />
       ))}
@@ -44,17 +44,18 @@ const Product = ({
     unavailable: "Unavailable",
   };
   return (
-    <div className="bg-white shadow hover:shadow-lg transition duration-300 border-amber-50 flex flex-col h-full">
+    <Link
+      to={`/${slugify(product.category, {
+        lower: true,
+        strict: true,
+      })}/${slugify(product.slug, {
+        lower: true,
+        strict: true,
+      })}`}
+      className="bg-white shadow hover:shadow-lg transition duration-300 border-amber-50 flex flex-col h-full"
+    >
       <div className="relative group overflow-hidden border border-gray-200 p-2 bg-white">
-        <Link
-          to={`/${slugify(product.category, {
-            lower: true,
-            strict: true,
-          })}/${slugify(product.slug, {
-            lower: true,
-            strict: true,
-          })}`}
-        >
+        <div>
           <img
             src={
               product.images?.[0]?.url ||
@@ -65,7 +66,7 @@ const Product = ({
             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
-        </Link>
+        </div>
         {product.oldPrice && (
           <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
             -
@@ -78,28 +79,22 @@ const Product = ({
       </div>
 
       <div className="p-4 text-center flex-grow flex flex-col">
-        <Link
-          to={`/${slugify(product.category, {
-            lower: true,
-            strict: true,
-          })}/${slugify(product.name, {
-            lower: true,
-            strict: true,
-          })}`}
-          className="block hover:text-green-600"
-        >
+        <div className="block hover:text-green-600">
           <h3 className="text-md font-semibold text-gray-800 line-clamp-1 ">
             {product.name}
           </h3>
-        </Link>
+        </div>
 
         {/* {product.title && (
           <p className="text-sm text-gray-500 line-clamp-1 h-5 mt-1">
             {product.title}
           </p>
         )} */}
+        <div className="flex items-center justify-center gap-1 text-gray-600 text-sm mt-1">
+          <StarRating rating={product.ratings || 0} />
+          <span className="text-xs">({product.numOfReviews || 0})</span>
+        </div>
 
-        <StarRating rating={product.ratings || 0} />
         <div className="text-xs font-bold text-green-700 mt-1">
           {product.sold || 0} Sold
         </div>
@@ -131,7 +126,7 @@ const Product = ({
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

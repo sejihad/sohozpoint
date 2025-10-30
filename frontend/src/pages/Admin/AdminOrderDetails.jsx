@@ -1,18 +1,17 @@
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import html2pdf from "html2pdf.js";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   clearErrors,
-  getOrderDetails,
+  getAdminOrderDetails,
   updateOrder,
 } from "../../actions/orderAction";
+import logo from "../../assets/logo.png";
 import Loader from "../../component/layout/Loader/Loader";
 import { UPDATE_ORDER_RESET } from "../../constants/orderContants";
 import Sidebar from "./Sidebar";
-
 const AdminOrderDetails = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
@@ -40,10 +39,10 @@ const AdminOrderDetails = () => {
     if (isUpdated) {
       toast.success("Order Updated Successfully");
       dispatch({ type: UPDATE_ORDER_RESET });
-      dispatch(getOrderDetails(id));
+      dispatch(getAdminOrderDetails(id));
     }
 
-    dispatch(getOrderDetails(id));
+    dispatch(getAdminOrderDetails(id));
   }, [dispatch, id, error, updateError, isUpdated]);
 
   useEffect(() => {
@@ -66,82 +65,51 @@ const AdminOrderDetails = () => {
     dispatch(updateOrder(id, myForm));
   };
 
-  // ✅ Download PDF Function
-  const downloadPDF = async () => {
+  // ✅ Download PDF Function - Fixed version
+  const downloadPDF = () => {
     try {
-      toast.info("Generating PDF...");
-
       const element = pdfRef.current;
-
-      // Apply basic styling to override any OKLCH colors
-      const originalHTML = element.innerHTML;
-
-      // Create a sanitized version with basic colors
-      const sanitizedHTML = originalHTML
-        .replace(
-          /style="[^"]*oklch[^"]*"/g,
-          'style="color: #000000; background: #ffffff;"'
-        )
-        .replace(/oklch\([^)]*\)/g, "#000000");
-
-      // Create a temporary element with sanitized content
-      const tempElement = document.createElement("div");
-      tempElement.innerHTML = sanitizedHTML;
-      tempElement.style.cssText = window.getComputedStyle(element).cssText;
-
-      // Apply basic CSS to ensure no OKLCH remains
-      const basicStyles = `
-      * {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border-color: #dee2e6 !important;
-      }
-    `;
-
-      const styleTag = document.createElement("style");
-      styleTag.textContent = basicStyles;
-      tempElement.prepend(styleTag);
-
-      const tempContainer = document.createElement("div");
-      tempContainer.style.position = "fixed";
-      tempContainer.style.left = "-10000px";
-      tempContainer.appendChild(tempElement);
-      document.body.appendChild(tempContainer);
-
-      const canvas = await html2canvas(tempElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
-
-      document.body.removeChild(tempContainer);
-
-      // Rest of your PDF code...
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      if (!element) {
+        toast.error("PDF content not found!");
+        return;
       }
 
-      pdf.save(`order-${order?.orderId || "invoice"}.pdf`);
-      toast.success("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
+      // Store original display state
+      const originalDisplay = element.style.display;
+
+      // Make hidden div visible temporarily
+      element.style.display = "block";
+
+      const opt = {
+        margin: 0.5,
+        filename: `Order_${order?.orderId || "invoice"}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+        },
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+      };
+
+      html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(() => {
+          // Restore original display state
+          element.style.display = originalDisplay;
+          toast.success("PDF downloaded successfully!");
+        })
+        .catch((err) => {
+          console.error("PDF generation error:", err);
+          element.style.display = originalDisplay;
+          toast.error("Failed to download PDF!");
+        });
+    } catch (err) {
+      console.error("PDF download error:", err);
+      toast.error("Failed to download PDF!");
     }
   };
 
@@ -258,7 +226,7 @@ const AdminOrderDetails = () => {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Download PDF
+                Download Invoice
               </button>
             </div>
           </div>
@@ -268,144 +236,368 @@ const AdminOrderDetails = () => {
               {/* Hidden PDF Content - Only for PDF generation */}
               <div
                 ref={pdfRef}
-                className="bg-white p-8 border border-gray-200 hidden"
+                className="hidden"
+                style={{
+                  display: "none",
+                  backgroundColor: "#ffffff",
+                  padding: "1.5rem",
+                  fontFamily: "Arial, sans-serif",
+                  fontSize: "12px",
+                  lineHeight: "1.4",
+                }}
               >
                 {/* PDF Header with Logo */}
-                <div className="text-center mb-8 border-b pb-6">
-                  <div className="flex justify-center mb-4">
-                    {/* Your Logo - Replace with actual logo image */}
-                    <div className="w-16 h-16 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                      SP
-                    </div>
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginBottom: "1.5rem",
+                    borderBottom: "2px solid #333",
+                    paddingBottom: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {/* Logo */}
+                    <img
+                      src={logo}
+                      alt="Company Logo"
+                      style={{
+                        height: "60px",
+                        width: "auto",
+                        maxWidth: "200px",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    SOHOZ POINT
-                  </h1>
-                  <p className="text-gray-600">Order Invoice</p>
                 </div>
 
-                {/* Order Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Order Details - Responsive Grid */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1.5rem",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  {/* Order Details */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    <h3
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#1f2937",
+                        marginBottom: "0.5rem",
+                        borderBottom: "1px solid #e5e7eb",
+                        paddingBottom: "0.25rem",
+                      }}
+                    >
                       Order Details
                     </h3>
-                    <div className="space-y-2">
-                      <p>
-                        <span className="font-medium">Order ID:</span> #
-                        {order.orderId}
-                      </p>
-                      <p>
-                        <span className="font-medium">Order Date:</span>{" "}
-                        {formatDate(order.createdAt)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Status:</span>{" "}
-                        {order.orderStatus}
-                      </p>
-                      {order.steadfastData?.tracking_code && (
-                        <p>
-                          <span className="font-medium">Tracking Code:</span>{" "}
-                          {order.steadfastData.tracking_code}
-                        </p>
-                      )}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>Order ID:</span>
+                        <span>#{order.orderId}</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>Order Date:</span>
+                        <span>{formatDate(order.createdAt)}</span>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Customer Details */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    <h3
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#1f2937",
+                        marginBottom: "0.5rem",
+                        borderBottom: "1px solid #e5e7eb",
+                        paddingBottom: "0.25rem",
+                      }}
+                    >
                       Customer Details
                     </h3>
-                    <div className="space-y-2">
-                      <p>
-                        <span className="font-medium">Name:</span>{" "}
-                        {order.userData?.name}
-                      </p>
-                      <p>
-                        <span className="font-medium">Email:</span>{" "}
-                        {order.userData?.email}
-                      </p>
-                      <p>
-                        <span className="font-medium">Phone:</span>{" "}
-                        {order.userData?.phone}
-                      </p>
-                      <p>
-                        <span className="font-medium">User Code:</span>{" "}
-                        {order.userData?.userCode}
-                      </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>Name:</span>
+                        <span>{order.userData?.name}</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>Email:</span>
+                        <span
+                          style={{ fontSize: "11px", wordBreak: "break-all" }}
+                        >
+                          {order.userData?.email}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>Phone:</span>
+                        <span>{order.userData?.phone}</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span style={{ fontWeight: "500" }}>User Code:</span>
+                        <span>{order.userData?.userCode || "N/A"}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Shipping Address */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                {/* Shipping Address - Full Details */}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h3
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#1f2937",
+                      marginBottom: "0.5rem",
+                      borderBottom: "1px solid #e5e7eb",
+                      paddingBottom: "0.25rem",
+                    }}
+                  >
                     Shipping Address
                   </h3>
-                  <p className="text-gray-700">
-                    {order.shippingInfo?.fullName}
-                    <br />
-                    {order.shippingInfo?.phone}
-                    <br />
-                    {order.shippingInfo?.email}
-                    <br />
-                    {order.shippingInfo?.address}, {order.shippingInfo?.thana}
-                    <br />
-                    {order.shippingInfo?.district},{" "}
-                    {order.shippingInfo?.zipCode}
-                    <br />
-                    {order.shippingInfo?.country}
-                  </p>
+                  <div style={{ color: "#374151", lineHeight: "1.5" }}>
+                    <p style={{ fontWeight: "600", margin: "0 0 0.25rem 0" }}>
+                      {order.shippingInfo?.fullName}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>Phone:</strong> {order.shippingInfo?.phone}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>Email:</strong> {order.shippingInfo?.email}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>Address:</strong> {order.shippingInfo?.address}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>Thana:</strong> {order.shippingInfo?.thana}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>District:</strong> {order.shippingInfo?.district}
+                    </p>
+                    <p style={{ margin: "0 0 0.25rem 0" }}>
+                      <strong>Zip Code:</strong> {order.shippingInfo?.zipCode}
+                    </p>
+                    <p style={{ margin: "0" }}>
+                      <strong>Country:</strong> {order.shippingInfo?.country}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Order Items Table */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                {/* Order Items Table - Responsive */}
+                <div style={{ marginBottom: "1.5rem", overflow: "hidden" }}>
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      color: "#1f2937",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
                     Order Items
                   </h3>
-                  <table className="w-full border-collapse border border-gray-300">
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      border: "1px solid #d1d5db",
+                      fontSize: "10px",
+                      tableLayout: "fixed",
+                      wordWrap: "break-word",
+                    }}
+                  >
+                    <colgroup>
+                      <col style={{ width: "30%" }} />
+                      <col style={{ width: "10%" }} />
+                      <col style={{ width: "10%" }} />
+                      <col style={{ width: "8%" }} />
+                      <col style={{ width: "16%" }} />
+                      <col style={{ width: "16%" }} />
+                    </colgroup>
                     <thead>
-                      <tr className="bg-gray-100">
-                        <th className="border border-gray-300 px-4 py-2 text-left">
+                      <tr
+                        style={{ backgroundColor: "#374151", color: "white" }}
+                      >
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "left",
+                            fontWeight: "600",
+                          }}
+                        >
                           Product
                         </th>
-                        <th className="border border-gray-300 px-4 py-2 text-center">
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "center",
+                            fontWeight: "600",
+                          }}
+                        >
                           Size
                         </th>
-                        <th className="border border-gray-300 px-4 py-2 text-center">
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "center",
+                            fontWeight: "600",
+                          }}
+                        >
                           Color
                         </th>
-                        <th className="border border-gray-300 px-4 py-2 text-center">
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "center",
+                            fontWeight: "600",
+                          }}
+                        >
                           Qty
                         </th>
-                        <th className="border border-gray-300 px-4 py-2 text-right">
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "right",
+                            fontWeight: "600",
+                          }}
+                        >
                           Price
                         </th>
-                        <th className="border border-gray-300 px-4 py-2 text-right">
+                        <th
+                          style={{
+                            border: "1px solid #4b5563",
+                            padding: "0.5rem 0.25rem",
+                            textAlign: "right",
+                            fontWeight: "600",
+                          }}
+                        >
                           Subtotal
                         </th>
                       </tr>
                     </thead>
                     <tbody>
                       {order.orderItems?.map((item, index) => (
-                        <tr key={index}>
-                          <td className="border border-gray-300 px-4 py-2">
+                        <tr
+                          key={index}
+                          style={{
+                            backgroundColor:
+                              index % 2 === 0 ? "#f9fafb" : "white",
+                          }}
+                        >
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              fontWeight: "500",
+                              wordWrap: "break-word",
+                              overflow: "hidden",
+                            }}
+                          >
                             {item.name}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              textAlign: "center",
+                            }}
+                          >
                             {item.size || "-"}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              textAlign: "center",
+                            }}
+                          >
                             {item.color || "-"}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              textAlign: "center",
+                              fontWeight: "600",
+                            }}
+                          >
                             {item.quantity}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              textAlign: "right",
+                            }}
+                          >
                             ৳{formatPrice(item.price)}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">
-                            ৳{formatPrice(item.subtotal)}
+                          <td
+                            style={{
+                              border: "1px solid #d1d5db",
+                              padding: "0.5rem 0.25rem",
+                              textAlign: "right",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ৳{formatPrice(item.price * item.quantity)}
                           </td>
                         </tr>
                       ))}
@@ -414,97 +606,139 @@ const AdminOrderDetails = () => {
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Price Breakdown
+                <div style={{ marginBottom: "1rem" }}>
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      color: "#1f2937",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Price Summary
                   </h3>
-                  <div className="max-w-md ml-auto">
-                    <div className="flex justify-between mb-2">
-                      <span>Items Price:</span>
-                      <span>৳{formatPrice(order.itemsPrice)}</span>
+                  <div
+                    style={{
+                      maxWidth: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <span style={{ fontWeight: "500" }}>Items Price:</span>
+                      <span style={{ fontWeight: "600" }}>
+                        ৳{formatPrice(order.itemsPrice)}
+                      </span>
                     </div>
-                    <div className="flex justify-between mb-2">
-                      <span>Delivery Price:</span>
-                      <span>৳{formatPrice(order.deliveryPrice)}</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <span style={{ fontWeight: "500" }}>Delivery Price:</span>
+                      <span style={{ fontWeight: "600" }}>
+                        ৳{formatPrice(order.deliveryPrice)}
+                      </span>
                     </div>
 
                     {order.productDiscount > 0 && (
-                      <div className="flex justify-between mb-2 text-green-600">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: "#059669",
+                          fontSize: "12px",
+                        }}
+                      >
                         <span>Product Discount:</span>
-                        <span>-৳{formatPrice(order.productDiscount)}</span>
+                        <span style={{ fontWeight: "600" }}>
+                          -৳{formatPrice(order.productDiscount)}
+                        </span>
                       </div>
                     )}
 
                     {order.deliveryDiscount > 0 && (
-                      <div className="flex justify-between mb-2 text-green-600">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: "#059669",
+                          fontSize: "12px",
+                        }}
+                      >
                         <span>Delivery Discount:</span>
-                        <span>-৳{formatPrice(order.deliveryDiscount)}</span>
+                        <span style={{ fontWeight: "600" }}>
+                          -৳{formatPrice(order.deliveryDiscount)}
+                        </span>
                       </div>
                     )}
 
                     {order.couponDiscount > 0 && (
-                      <div className="flex justify-between mb-2 text-green-600">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          color: "#059669",
+                          fontSize: "12px",
+                        }}
+                      >
                         <span>Coupon Discount:</span>
-                        <span>-৳{formatPrice(order.couponDiscount)}</span>
+                        <span style={{ fontWeight: "600" }}>
+                          -৳{formatPrice(order.couponDiscount)}
+                        </span>
                       </div>
                     )}
 
-                    <div className="border-t pt-2 mt-2">
-                      <div className="flex justify-between font-bold text-lg">
-                        <span>Total Price:</span>
+                    <div
+                      style={{
+                        borderTop: "2px solid #9ca3af",
+                        paddingTop: "0.75rem",
+                        marginTop: "0.75rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <span>Total:</span>
                         <span>৳{formatPrice(order.totalPrice)}</span>
                       </div>
                     </div>
 
                     {order.paymentInfo?.method === "cod" &&
                       order.cashOnDelivery > 0 && (
-                        <div className="flex justify-between text-orange-600 font-medium mt-2">
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            color: "#ea580c",
+                            fontWeight: "600",
+                            fontSize: "12px",
+                            marginTop: "0.25rem",
+                          }}
+                        >
                           <span>Cash on Delivery:</span>
                           <span>৳{formatPrice(order.cashOnDelivery)}</span>
                         </div>
                       )}
                   </div>
                 </div>
-
-                {/* Payment Information */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    Payment Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p>
-                        <span className="font-medium">Method:</span>{" "}
-                        {order.paymentInfo?.method || "N/A"}
-                      </p>
-                      <p>
-                        <span className="font-medium">Status:</span>{" "}
-                        {order.paymentInfo?.status || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <p>
-                        <span className="font-medium">Type:</span>{" "}
-                        {order.paymentInfo?.type?.replace("_", " ") || "N/A"}
-                      </p>
-                      <p>
-                        <span className="font-medium">Transaction ID:</span>{" "}
-                        {order.paymentInfo?.transactionId || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="text-center border-t pt-6 mt-8">
-                  <p className="text-gray-600">Thank you for your business!</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Generated on {new Date().toLocaleDateString()} at{" "}
-                    {new Date().toLocaleTimeString()}
-                  </p>
-                </div>
               </div>
 
+              {/* Rest of your existing UI remains exactly the same */}
               {/* Current Status */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between">
@@ -637,7 +871,7 @@ const AdminOrderDetails = () => {
                       {/* Price - Compact */}
                       <div className="text-right flex-shrink-0">
                         <p className="font-semibold text-sm sm:text-base">
-                          ৳{formatPrice(item.subtotal)}
+                          ৳{formatPrice(item.price * item.quantity)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           ৳{formatPrice(item.price)} each

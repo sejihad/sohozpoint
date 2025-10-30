@@ -11,6 +11,7 @@ const {
   createReview,
   deleteReview,
   getReviews,
+  updateReview,
 } = require("../controllers/productController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
@@ -46,10 +47,10 @@ router
 
 // ⭐️ Review Routes
 router.put("/review", isAuthenticator, createReview);
-
-router.route("/product/reviews/:id").get(isAuthenticator, getReviews);
+router.put("/review/:reviewId", isAuthenticator, updateReview);
+router.route("/reviews/:id").get(isAuthenticator, getReviews);
 router
-  .route("/product/review/:bookId/:reviewId")
+  .route("/review/:productId/:reviewId")
   .delete(isAuthenticator, deleteReview);
 
 module.exports = router;

@@ -26,8 +26,6 @@ const PaymentCancel = () => {
         );
         toast.info("⚠️ Payment cancelled. Order deleted.");
       } catch (err) {
-        console.error("Cancel order error:", err);
-        toast.error("Failed to delete cancelled order!");
       } finally {
         setLoading(false);
       }

@@ -307,9 +307,7 @@ const UpdateProduct = () => {
     data.set("subCategory", formData.subCategory);
     data.set("subsubCategory", formData.subsubCategory);
 
-    if (formData.videoLink) {
-      data.set("videoLink", formData.videoLink);
-    }
+    data.set("videoLink", formData.videoLink || "");
 
     // Add images to delete if any
     if (imagesToDelete.length > 0) {

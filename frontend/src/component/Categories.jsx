@@ -63,6 +63,7 @@ const Categories = () => {
                         alt={cat.name}
                         className="w-full h-full object-contain"
                         draggable="false"
+                        loading="lazy"
                       />
                     </div>
 

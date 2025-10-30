@@ -17,7 +17,7 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
   }
 
   // Automatically limit quantity to max stock
-  const quantityToAdd = Math.min(quantity, product.quantity);
+  const quantityToAdd = quantity;
 
   // Find or create cart
   // Find or create cart
@@ -116,12 +116,6 @@ const getCart = catchAsyncErrors(async (req, res, next) => {
     if (p.availability === "unavailable" || p.quantity <= 0) {
       updated = true;
       return false;
-    }
-
-    // 2️⃣ Adjust quantity if user had selected more than available
-    if (item.quantity > p.quantity) {
-      item.quantity = p.quantity;
-      updated = true;
     }
 
     // 3️⃣ Update price if changed

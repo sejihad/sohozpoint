@@ -26,6 +26,7 @@ const Login = () => {
     otpPending,
     otpUserId,
     otpMessage,
+    user,
   } = useSelector((state) => state.user);
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -45,7 +46,12 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && !otpPending) {
-      navigate("/");
+      // Checkout state na thakle role-based routing
+      if (user?.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (user?.role === "user") {
+        navigate("/");
+      }
     }
 
     const container = document.querySelector(".form-container");

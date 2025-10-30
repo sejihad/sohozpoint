@@ -407,7 +407,7 @@ const App = () => {
           }
         />
         <Route
-          path="/admin/reviews/:type/:id"
+          path="/admin/reviews/:id"
           element={
             <ProtectedRoute isAdmin={true}>
               <Reviews />

@@ -109,7 +109,7 @@ const Hero = () => {
       </Swiper>
 
       {/* Custom CSS for Swiper */}
-      <style jsx global>{`
+      <style>{`
         /* ✅ Navigation arrows completely removed */
 
         /* Pagination dots */

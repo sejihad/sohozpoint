@@ -30,7 +30,6 @@ router.post("/payment/fail", async (req, res) => {
     res.status(404).json({ success: false, message: "Order not found" });
   } catch (error) {
     console.error("Payment Fail Delete Error:", error);
-    res.status(500).json({ message: "Failed to delete order" });
   }
 });
 
@@ -50,7 +49,6 @@ router.post("/payment/cancel", async (req, res) => {
     res.status(404).json({ success: false, message: "Order not found" });
   } catch (error) {
     console.error("Payment Cancel Delete Error:", error);
-    res.status(500).json({ message: "Failed to delete order" });
   }
 });
 

@@ -404,47 +404,82 @@ const getProductCart = catchAsyncErrors(async (req, res, next) => {
 
 // Create New Review or Update the review
 const createReview = catchAsyncErrors(async (req, res, next) => {
-  const { rating, comment, productId } = req.body;
+  const { rating, comment, productId, name } = req.body;
 
-  const review = {
-    user: req.user._id,
-    name: req.user.name,
-    rating: Number(rating),
-    comment,
-  };
+  let reviewImages = [];
 
-  const product = await Product.findById(productId);
+  if (req.files && req.files.images) {
+    try {
+      const files = Array.isArray(req.files.images)
+        ? req.files.images
+        : [req.files.images];
 
-  const isReviewed = product.reviews.find(
-    (rev) => rev.user.toString() === req.user._id.toString()
-  );
+      // Maximum 5 ta image check
+      if (files.length > 5) {
+        return next(
+          new ErrorHandler("Maximum 5 images allowed for review", 400)
+        );
+      }
 
-  if (isReviewed) {
-    product.reviews.forEach((rev) => {
-      if (rev.user.toString() === req.user._id.toString())
-        (rev.rating = rating), (rev.comment = comment);
-    });
-  } else {
-    product.reviews.push(review);
-    product.numOfReviews = product.reviews.length;
+      // Cloudinary e multiple images upload
+      const uploadPromises = files.map(async (file) => {
+        const result = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.data.toString("base64")}`,
+          {
+            folder: "/product/reviews",
+            resource_type: "image",
+            transformation: [
+              { width: 800, height: 600, crop: "limit" },
+              { quality: "auto" },
+              { format: "webp" },
+            ],
+          }
+        );
+        return {
+          public_id: result.public_id,
+          url: result.secure_url,
+        };
+      });
+
+      reviewImages = await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error("Multiple images upload error:", error);
+      return next(new ErrorHandler("Failed to upload review images", 500));
+    }
   }
 
-  let avg = 0;
+  // ✅ ERROR: "book" change to "product"
+  const product = await Product.findById(productId);
+  if (!product) return next(new ErrorHandler("Product not found", 404));
+  console.log(req.user.name);
+  const review = {
+    user: req.user._id,
+    name: req.user.role === "admin" ? name : req.user.name,
+    rating: Number(rating),
+    comment,
+    images: reviewImages, // ✅ Change "reviewImages" to "images" for consistency
+    createdAt: Date.now(),
+  };
 
-  product.reviews.forEach((rev) => {
-    avg += rev.rating;
-  });
+  product.reviews.push(review);
+  product.numOfReviews = product.reviews.length;
 
-  product.ratings = avg / product.reviews.length;
+  const totalRating = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
+  product.ratings = totalRating / product.reviews.length;
 
   await product.save({ validateBeforeSave: false });
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
+    message: "Review added successfully",
+    review,
   });
 });
+
 const getReviews = catchAsyncErrors(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id).populate(
+    "reviews.user"
+  );
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
@@ -455,7 +490,93 @@ const getReviews = catchAsyncErrors(async (req, res, next) => {
     reviews: product.reviews,
   });
 });
+const updateReview = catchAsyncErrors(async (req, res, next) => {
+  const { rating, comment, name } = req.body;
+  const { reviewId } = req.params;
 
+  const product = await Product.findOne({ "reviews._id": reviewId });
+  if (!product)
+    return next(new ErrorHandler("Product or review not found", 404));
+
+  const review = product.reviews.id(reviewId);
+  if (!review) return next(new ErrorHandler("Review not found", 404));
+
+  if (
+    review.user.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return next(new ErrorHandler("You can only update your own reviews", 403));
+  }
+
+  // Upload new images (multiple images support)
+  if (req.files && req.files.images) {
+    try {
+      // Delete old images from cloudinary
+      if (review.images && review.images.length > 0) {
+        const deletePromises = review.images.map(async (image) => {
+          if (image.public_id) {
+            await cloudinary.uploader.destroy(image.public_id);
+          }
+        });
+        await Promise.all(deletePromises);
+      }
+
+      // Upload new images
+      const files = Array.isArray(req.files.images)
+        ? req.files.images
+        : [req.files.images];
+
+      // Maximum 5 ta image check
+      if (files.length > 5) {
+        return next(
+          new ErrorHandler("Maximum 5 images allowed for review", 400)
+        );
+      }
+
+      const uploadPromises = files.map(async (file) => {
+        const result = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.data.toString("base64")}`,
+          {
+            folder: "/product/reviews",
+            resource_type: "image",
+            transformation: [
+              { width: 800, height: 600, crop: "limit" },
+              { quality: "auto" },
+              { format: "webp" },
+            ],
+          }
+        );
+        return {
+          public_id: result.public_id,
+          url: result.secure_url,
+        };
+      });
+
+      review.images = await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error("Image update error:", error);
+      return next(new ErrorHandler("Failed to update review images", 500));
+    }
+  }
+
+  // Update review fields
+  review.rating = Number(rating);
+  review.comment = comment;
+  if (req.user.role === "admin") review.name = name;
+  review.updatedAt = Date.now();
+
+  // Recalculate product ratings
+  const totalRating = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
+  product.ratings = totalRating / product.reviews.length;
+
+  await product.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: "Review updated successfully",
+    review,
+  });
+});
 // Delete Review
 const deleteReview = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.productId);
@@ -464,26 +585,49 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
+  // Find the review to be deleted
+  const reviewToDelete = product.reviews.find(
+    (rev) => rev._id.toString() === req.params.reviewId.toString()
+  );
+
+  if (!reviewToDelete) {
+    return next(new ErrorHandler("Review not found", 404));
+  }
+
+  // Delete images from Cloudinary if they exist
+  if (reviewToDelete.images && reviewToDelete.images.length > 0) {
+    try {
+      const deletePromises = reviewToDelete.images.map(async (image) => {
+        if (image.public_id) {
+          await cloudinary.uploader.destroy(image.public_id);
+        }
+      });
+      await Promise.all(deletePromises);
+    } catch (error) {
+      console.error("Error deleting review images from Cloudinary:", error);
+      // Continue with review deletion even if image deletion fails
+    }
+  }
+
+  // Filter out the review to be deleted
   const reviews = product.reviews.filter(
     (rev) => rev._id.toString() !== req.params.reviewId.toString()
   );
 
+  // Calculate new average rating
   let avg = 0;
-
   reviews.forEach((rev) => {
     avg += rev.rating;
   });
 
   let ratings = 0;
-
-  if (reviews.length === 0) {
-    ratings = 0;
-  } else {
+  if (reviews.length > 0) {
     ratings = avg / reviews.length;
   }
 
   const numOfReviews = reviews.length;
 
+  // Update the product
   await Product.findByIdAndUpdate(
     req.params.productId,
     {
@@ -500,6 +644,7 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    message: "Review deleted successfully",
   });
 });
 module.exports = {
@@ -513,5 +658,6 @@ module.exports = {
   getProductCart,
   createReview,
   deleteReview,
+  updateReview,
   getReviews,
 };
