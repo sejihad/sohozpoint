@@ -165,7 +165,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/"
-                  className="text-gray-600 hover:text-green-600 transition-all duration-300 flex items-center group"
+                  className="hidden md:flex text-gray-600 hover:text-green-600 transition-all duration-300  items-center group"
                 >
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   Home
@@ -174,7 +174,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/shop"
-                  className="text-gray-600 hover:text-green-600 transition-all duration-300 flex items-center group"
+                  className="hidden md:flex text-gray-600 hover:text-green-600 transition-all duration-300  items-center group"
                 >
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   Shop

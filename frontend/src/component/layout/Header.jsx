@@ -7,6 +7,7 @@ import {
   FaShoppingBag,
   FaSignOutAlt,
   FaTachometerAlt,
+  FaTh,
   FaUser,
   FaWhatsapp,
 } from "react-icons/fa";
@@ -698,7 +699,7 @@ const Header = () => {
             }`}
             onClick={toggleMobileCategories}
           >
-            <FaAngleDown size={20} />
+            <FaTh size={20} />
             <span className="text-xs mt-1 font-medium">CATEGORY</span>
           </button>
 

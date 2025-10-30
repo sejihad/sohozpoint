@@ -156,7 +156,7 @@ const StarRating = ({ rating, interactive = false, onChange }) => {
       {[...Array(fullStars)].map((_, i) => (
         <span
           key={`full-${i}`}
-          className={`text-xl ${interactive ? "cursor-pointer" : ""}`}
+          className={`text-2xl ${interactive ? "cursor-pointer" : ""}`}
           onClick={() => handleClick(i + 1)}
           onMouseEnter={() => handleMouseEnter(i + 1)}
           onMouseLeave={handleMouseLeave}
@@ -166,7 +166,7 @@ const StarRating = ({ rating, interactive = false, onChange }) => {
       ))}
       {halfStar && (
         <span
-          className={`text-xl ${interactive ? "cursor-pointer" : ""}`}
+          className={`text-2xl ${interactive ? "cursor-pointer" : ""}`}
           onClick={() => handleClick(fullStars + 1)}
           onMouseEnter={() => handleMouseEnter(fullStars + 1)}
           onMouseLeave={handleMouseLeave}
@@ -177,7 +177,7 @@ const StarRating = ({ rating, interactive = false, onChange }) => {
       {[...Array(emptyStars)].map((_, i) => (
         <span
           key={`empty-${i}`}
-          className={`text-xl ${interactive ? "cursor-pointer" : ""}`}
+          className={`text-2xl ${interactive ? "cursor-pointer" : ""}`}
           onClick={() => handleClick(fullStars + (halfStar ? 1 : 0) + i + 1)}
           onMouseEnter={() =>
             handleMouseEnter(fullStars + (halfStar ? 1 : 0) + i + 1)

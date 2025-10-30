@@ -52,20 +52,20 @@ const Contact = () => {
   return (
     <>
       <MetaData title="Contact Us" />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Back Button */}
 
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 text-center">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-center">
               <h2 className="text-2xl font-bold text-white">Contact Us</h2>
             </div>
 
             {/* Form */}
             <form className="p-6 space-y-5" onSubmit={submitHandler}>
               {/* Information Text */}
-              <div className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm">
+              <div className="bg-green-50 p-4 rounded-lg text-green-800 text-sm">
                 <p>
                   Have any questions, feedback, or concerns? Fill out the form
                   below and our team will get back to you as soon as possible.
@@ -82,7 +82,7 @@ const Contact = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                   placeholder="Enter your full name"
                   required
                 />
@@ -98,7 +98,7 @@ const Contact = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                   placeholder="Enter your email"
                   required
                 />
@@ -113,7 +113,7 @@ const Contact = () => {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition min-h-[120px]"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition min-h-[120px]"
                   placeholder="Enter your message..."
                   required
                 />
@@ -123,7 +123,7 @@ const Contact = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-600 cursor-pointer hover:from-indigo-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 ${
+                className={`w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-600 cursor-pointer hover:from-green-700 hover:to-green-700 text-white font-medium rounded-lg shadow-md transition-all duration-300 ${
                   loading ? "opacity-70 cursor-not-allowed" : ""
                 }`}
               >

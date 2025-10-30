@@ -783,9 +783,10 @@ const OrderDetails = () => {
                             lower: true,
                             strict: true,
                           })}`}
-                          className="inline-flex items-center px-3 py-1.5 mt-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                          className="inline-flex items-center px-3.5 py-2 mt-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm"
                         >
-                          <FaStar className="mr-1" /> Review Now
+                          <FaStar className="mr-1" />
+                          Write a Review
                         </Link>
                       )}
                     </div>

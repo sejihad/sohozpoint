@@ -8,7 +8,7 @@ import {
   getAdminOrderDetails,
   updateOrder,
 } from "../../actions/orderAction";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/invoice.png";
 import Loader from "../../component/layout/Loader/Loader";
 import { UPDATE_ORDER_RESET } from "../../constants/orderContants";
 import Sidebar from "./Sidebar";
@@ -267,7 +267,7 @@ const AdminOrderDetails = () => {
                       src={logo}
                       alt="Company Logo"
                       style={{
-                        height: "60px",
+                        height: "200px",
                         width: "auto",
                         maxWidth: "200px",
                       }}

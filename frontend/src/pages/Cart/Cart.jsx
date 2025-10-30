@@ -83,35 +83,50 @@ const Cart = () => {
       navigate("/login");
       return;
     }
+
     if (!user?.country || !user?.number) {
       toast.info("First Complete Your Profile");
       navigate("/profile/update", {
         state: {
           from: "/checkout",
           checkoutState: {
-            cartItems: cartItems.filter((item) =>
-              selectedItems.includes(
-                `${item.product._id}-${item.size || ""}-${item.color || ""}`
-              )
-            ),
+            cartItems: selectedItemsData.map((item) => ({
+              id: item.product._id,
+              name: item.name,
+              price: item.price,
+              image: item.image,
+              weight: item.weight,
+              quantity: item.quantity,
+              subtotal: item.subtotal || item.price * item.quantity,
+              size: item.size,
+              color: item.color,
+              deliveryCharge: item.deliveryCharge,
+            })),
             directCheckout: true,
           },
         },
       });
-
       return;
     }
+
     if (!selectedItems.length) {
       toast.error("Please select at least one item to checkout");
       return;
     }
 
-    // Filter selected items only
-    const selectedCartItems = cartItems.filter((item) =>
-      selectedItems.includes(
-        `${item.product._id}-${item.size || ""}-${item.color || ""}`
-      )
-    );
+    // Filter and map only necessary fields
+    const selectedCartItems = selectedItemsData.map((item) => ({
+      id: item.product._id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      weight: item.weight,
+      quantity: item.quantity,
+      subtotal: item.subtotal || item.price * item.quantity,
+      size: item.size,
+      color: item.color,
+      deliveryCharge: item.deliveryCharge,
+    }));
 
     navigate("/checkout", {
       state: {
