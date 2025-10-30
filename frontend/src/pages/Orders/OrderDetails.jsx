@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import {
   FaBox,
@@ -30,6 +31,8 @@ import MetaData from "../../component/layout/MetaData";
 const OrderDetails = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
+  const [productDetails, setProductDetails] = useState({});
+
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [refundReason, setRefundReason] = useState("");
   const [trackingStatus, setTrackingStatus] = useState(null);
@@ -46,7 +49,43 @@ const OrderDetails = () => {
     success: refundSuccess,
     error: refundError,
   } = useSelector((state) => state.refundRequest);
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (!order?.orderItems?.length) return;
 
+      try {
+        const promises = order.orderItems.map(async (item) => {
+          const res = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/v1/product/id/${item.id}`
+          );
+
+          const data = res.data; // axios automatically parses JSON
+
+          return {
+            id: item.id,
+            category: data.product.category,
+            slug: data.product.slug,
+          };
+        });
+
+        const results = await Promise.all(promises);
+
+        const detailsMap = {};
+        results.forEach((p) => {
+          detailsMap[p.id] = { category: p.category, slug: p.slug };
+        });
+
+        setProductDetails(detailsMap);
+      } catch (error) {
+        console.error(
+          "Failed to fetch product details:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    fetchProductDetails();
+  }, [order]);
   useEffect(() => {
     dispatch(getOrderDetails(id));
   }, [dispatch, id, cancelSuccess, refundSuccess]);
@@ -735,12 +774,12 @@ const OrderDetails = () => {
                         Subtotal: ৳{formatPrice(item.subtotal)}
                       </p>
 
-                      {canReview() && (
+                      {canReview() && productDetails[item.id] && (
                         <Link
-                          to={`/${slugify(item?.product?.category, {
+                          to={`/${slugify(productDetails[item.id].category, {
                             lower: true,
                             strict: true,
-                          })}/${slugify(item?.product?.slug, {
+                          })}/${slugify(productDetails[item.id].slug, {
                             lower: true,
                             strict: true,
                           })}`}

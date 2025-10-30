@@ -12,6 +12,7 @@ const {
   deleteReview,
   getReviews,
   updateReview,
+  getOrderProductDetails,
 } = require("../controllers/productController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
@@ -23,6 +24,7 @@ router.get("/products", getAllProducts);
 router.get("/products/:id", getProductCart);
 
 router.get("/product/:slug", getProductDetails);
+router.get("/product/id/:id", getOrderProductDetails);
 
 // 🔐 Admin Routes
 router.get(

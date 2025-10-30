@@ -611,9 +611,7 @@ const ProductDetails = () => {
 
   const hasCompletedOrder = orders?.some((order) => {
     return order.orderItems?.some((item) => {
-      return (
-        item.product?._id === product?._id && order.orderStatus === "delivered"
-      );
+      return item.id === product?._id && order.orderStatus === "delivered";
     });
   });
 
