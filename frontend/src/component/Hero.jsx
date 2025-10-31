@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getBanners } from "../actions/bannerAction";
 
-// Import Swiper React components
+// Swiper Components
 import { Swiper, SwiperSlide } from "swiper/react";
 
-// Import Swiper styles
+// Swiper Styles
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// import required modules
+// Swiper Modules
 import { Autoplay, Pagination } from "swiper/modules";
 
 const Hero = () => {
@@ -18,60 +17,59 @@ const Hero = () => {
   const { banners, loading, error } = useSelector((state) => state.banners);
   const [deviceType, setDeviceType] = useState("desktop");
 
-  // Detect device type
+  // ✅ Detect device type
   useEffect(() => {
     const checkDeviceType = () => {
       const isMobile = window.innerWidth <= 768;
       setDeviceType(isMobile ? "mobile" : "desktop");
     };
 
-    // Initial check
     checkDeviceType();
-
-    // Add resize listener
     window.addEventListener("resize", checkDeviceType);
 
-    // Cleanup
     return () => window.removeEventListener("resize", checkDeviceType);
   }, []);
 
-  // Fetch banners on mount
+  // ✅ Fetch banners on mount
   useEffect(() => {
     dispatch(getBanners());
   }, [dispatch]);
 
-  // Filter banners based on device type
+  // ✅ Filter banners by device type
   const filteredBanners =
     banners?.filter((banner) => {
       if (banner.deviceType === "both") return true;
       return banner.deviceType === deviceType;
     }) || [];
 
-  // Map filtered banners to slides array
+  // ✅ Prepare slides
   const slides = filteredBanners.map((banner) => ({
     image: banner.image?.url || "",
     id: banner._id,
   }));
 
+  // ✅ Loading State
   if (loading) {
     return (
-      <section className="relative w-full h-[50vh] sm:h-[60vh] flex items-center justify-center bg-gray-100">
+      <section className="relative w-full h-[250px] flex items-center justify-center bg-gray-100">
         <div className="animate-pulse text-gray-500">Loading banners...</div>
       </section>
     );
   }
 
+  // ✅ Error State
   if (error) {
     return (
-      <section className="relative w-full h-[50vh] sm:h-[60vh] flex items-center justify-center bg-gray-100">
+      <section className="relative w-full h-[250px] flex items-center justify-center bg-gray-100">
         <p className="text-red-500 text-lg">{error}</p>
       </section>
     );
   }
 
+  // ✅ No Banners
   if (slides.length === 0) {
     return (
-      <section className="relative container h-[45vh] sm:h-[50vh] flex items-center justify-center bg-gray-200">
+      <section className="relative w-full h-[250px] flex items-center justify-center bg-gray-200">
         <div className="text-center">
           <p className="text-gray-700 text-lg mb-2">No banners available</p>
         </div>
@@ -79,28 +77,24 @@ const Hero = () => {
     );
   }
 
+  // ✅ Main Banner Section
   return (
-    <section className="relative container h-[45vh] sm:h-[50vh] overflow-hidden">
+    <section className="relative w-full max-w-[1350px] mx-auto overflow-hidden rounded-lg">
       <Swiper
-        navigation={false} // ✅ Navigation disabled
-        pagination={{
-          clickable: true,
-        }}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
         loop={true}
-        modules={[Pagination, Autoplay]} // ✅ Navigation module removed
-        className="h-full w-full mySwiper"
+        modules={[Pagination, Autoplay]}
+        className="mySwiper"
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={slide.id || index}>
-            <div className="w-full h-full">
+            {/* ✅ Different height for mobile & desktop */}
+            <div className="relative w-full h-[200px] sm:h-[250px] md:h-[250px]">
               <img
                 src={slide.image}
                 alt={`Banner ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="absolute top-0 left-0 w-full h-full"
                 loading="eager"
               />
             </div>
@@ -108,11 +102,9 @@ const Hero = () => {
         ))}
       </Swiper>
 
-      {/* Custom CSS for Swiper */}
+      {/* ✅ Custom CSS */}
       <style>{`
-        /* ✅ Navigation arrows completely removed */
-
-        /* Pagination dots */
+        /* Pagination Dots */
         .mySwiper .swiper-pagination-bullet {
           background: rgba(255, 255, 255, 0.6) !important;
           opacity: 1 !important;
@@ -126,33 +118,12 @@ const Hero = () => {
           transform: scale(1.2) !important;
         }
 
-        /* Ensure image object-cover works */
-        .mySwiper .swiper-slide img {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          display: block !important;
-        }
-
-        /* Mobile specific styles */
+        /* Responsive bullet size */
         @media (max-width: 768px) {
           .mySwiper .swiper-pagination-bullet {
             width: 6px !important;
             height: 6px !important;
           }
-        }
-
-        /* Fix for Swiper container height */
-        .mySwiper {
-          height: 100% !important;
-        }
-
-        .mySwiper .swiper-wrapper {
-          height: 100% !important;
-        }
-
-        .mySwiper .swiper-slide {
-          height: 100% !important;
         }
       `}</style>
     </section>
