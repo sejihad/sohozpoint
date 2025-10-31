@@ -90,7 +90,7 @@ const Hero = () => {
         {slides.map((slide, index) => (
           <SwiperSlide key={slide.id || index}>
             {/* ✅ Different height for mobile & desktop */}
-            <div className="relative w-full h-[300px] md:h-[250px] sm:h-[250px]">
+            <div className="relative w-full h-[250px] md:h-[300px] sm:h-[400px]">
               <img
                 src={slide.image}
                 alt={`Banner ${index + 1}`}
