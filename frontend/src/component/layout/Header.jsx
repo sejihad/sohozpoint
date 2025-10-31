@@ -56,7 +56,7 @@ const Header = () => {
       id: 1,
       title: "Account Verification",
       message: "Your email has been successfully verified",
-      time: "1 day ago",
+      time: "",
       read: true,
       type: "account",
     },

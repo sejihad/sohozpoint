@@ -48,6 +48,7 @@ import { jwtDecode } from "jwt-decode";
 import { useDispatch } from "react-redux";
 import { loadUser, logout } from "./actions/userAction";
 import NotificationBanner from "./component/layout/NotificationBanner";
+import About from "./pages/About/About";
 import AllBanners from "./pages/Admin/AllBanners";
 import AllBrands from "./pages/Admin/AllBrands";
 import AllCharges from "./pages/Admin/AllCharges";
@@ -64,6 +65,7 @@ import PaymentFail from "./pages/Payment/PaymentFail";
 import PaymentSuccess from "./pages/Payment/PaymentSuccess";
 import PrivacyPolicy from "./pages/Privacy/PrivacyPolicy";
 import CustomProductDetails from "./pages/ProductDetails/CustomProductDetails";
+import ShippingPolicy from "./pages/ShippingPolicy/ShippingPolicy";
 import Shop from "./pages/Shop/Shop";
 import TermsConditions from "./pages/Terms/TermsAndConditions";
 import Delete from "./pages/User/Delete";
@@ -114,7 +116,9 @@ const App = () => {
         <Route path="/shop" element={<Shop />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
         <Route path="/terms" element={<TermsConditions />} />
+        <Route path="/shipping" element={<ShippingPolicy />} />
 
         <Route path="/products/:category" element={<ProductPage />} />
         <Route path="/category/:category" element={<CatProduct />} />
