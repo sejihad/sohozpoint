@@ -79,7 +79,7 @@ const Hero = () => {
 
   // ✅ Main Banner Section
   return (
-    <section className="relative w-full max-w-[1350px] mx-auto overflow-hidden rounded-lg">
+    <section className="relative w-full container mx-auto overflow-hidden rounded-lg">
       <Swiper
         pagination={{ clickable: true }}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
