@@ -114,11 +114,11 @@ const App = () => {
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/:slug" element={<BlogDetails />} />
         <Route path="/shop" element={<Shop />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
-        <Route path="/terms" element={<TermsConditions />} />
-        <Route path="/shipping" element={<ShippingPolicy />} />
+        <Route path="/terms&conditions" element={<TermsConditions />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
 
         <Route path="/products/:category" element={<ProductPage />} />
         <Route path="/category/:category" element={<CatProduct />} />

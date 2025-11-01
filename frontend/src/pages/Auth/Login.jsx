@@ -249,7 +249,11 @@ const Login = () => {
                   onChange={(e) => setAgreeTerms(e.target.checked)}
                 />{" "}
                 I agree to the{" "}
-                <Link to="/terms" className="text-green-600" target="_blank">
+                <Link
+                  to="/terms&conditions"
+                  className="text-green-600"
+                  target="_blank"
+                >
                   Terms and Conditions
                 </Link>
               </label>

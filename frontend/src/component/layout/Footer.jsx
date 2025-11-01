@@ -201,7 +201,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li>
                 <Link
-                  to="/privacy"
+                  to="/privacy-policy"
                   className="text-gray-600 hover:text-green-600 transition-all duration-300 flex items-center group"
                 >
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -210,7 +210,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/terms"
+                  to="/terms&conditions"
                   className="text-gray-600 hover:text-green-600 transition-all duration-300 flex items-center group"
                 >
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -219,7 +219,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/shipping"
+                  to="/shipping-policy"
                   className="text-gray-600 hover:text-green-600 transition-all duration-300 flex items-center group"
                 >
                   <span className="w-2 h-2 bg-green-400 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -271,13 +271,13 @@ const Footer = () => {
 
           <div className="flex space-x-6">
             <Link
-              to="/terms"
+              to="/terms&conditions"
               className="text-gray-500 hover:text-green-600 text-sm transition-all duration-300 hover:underline"
             >
               Terms of Service
             </Link>
             <Link
-              to="/privacy"
+              to="/privacy-policy"
               className="text-gray-500 hover:text-green-600 text-sm transition-all duration-300 hover:underline"
             >
               Privacy Policy

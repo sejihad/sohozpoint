@@ -990,7 +990,7 @@ const Checkout = () => {
                     I agree to the{" "}
                     <button
                       type="button"
-                      onClick={() => navigate("/terms")}
+                      onClick={() => navigate("/terms&conditions")}
                       className="text-green-600 underline"
                     >
                       Terms & Conditions

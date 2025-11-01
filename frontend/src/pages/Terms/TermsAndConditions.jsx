@@ -137,6 +137,10 @@ const TermsAndConditions = () => {
                 website
               </li>
               <li>
+                If you do not cancel your order within 12 hours, the delivery
+                charge will not be refunded.
+              </li>
+              <li>
                 After 12 hours, cancellation requests must be made via email or
                 phone
               </li>
