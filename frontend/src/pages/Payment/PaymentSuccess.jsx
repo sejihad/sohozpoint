@@ -42,6 +42,78 @@ const PaymentSuccess = () => {
       setLoading(false);
     }
   }, [merchantTransactionId, orderId]);
+  useEffect(() => {
+    if (order) {
+      // 1️⃣ Pixel (browser) event
+      if (window.fbq) {
+        try {
+          const value = Number(order.totalPrice) || 0;
+
+          const contents = order.orderItems.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            item_price: item.price,
+            name: item.name,
+            color: item.color,
+            size: item.size,
+          }));
+
+          window.fbq(
+            "track",
+            "Purchase",
+            {
+              contents,
+              content_type: "product",
+              content_name: contents.map((c) => c.name).join(", "),
+              order_id: order._id,
+              value: value,
+              currency: "USD",
+            },
+            {
+              eventID: order.orderId,
+            }
+          );
+
+          console.log("🔥 Pixel Purchase Fired:", order.orderId);
+        } catch (err) {
+          console.error("Pixel fire failed:", err);
+        }
+      }
+
+      // 2️⃣ Backend CAPI call
+      const sendServerEvent = async () => {
+        try {
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/v1/track-purchase`,
+            {
+              email: order.userData.email,
+              phone: order.userData.phone,
+              value: Number(order.totalPrice),
+              currency: "USD",
+              eventID: order.orderId,
+              order_id: order._id,
+              contents: order.orderItems.map((item) => ({
+                id: item.id,
+                quantity: item.quantity,
+                item_price: item.price,
+                name: item.name,
+                color: item.color,
+                size: item.size,
+              })),
+              content_type: "product",
+              content_name: order.orderItems.map((i) => i.name).join(", "),
+            }
+          );
+
+          console.log("🔥 Server CAPI Purchase Sent:", order.orderId);
+        } catch (error) {
+          console.error("Server CAPI Failed:", error);
+        }
+      };
+
+      sendServerEvent();
+    }
+  }, [order]);
 
   if (loading) {
     return (

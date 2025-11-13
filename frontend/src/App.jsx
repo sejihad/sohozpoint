@@ -76,8 +76,29 @@ import UpdateProfile from "./pages/User/UpdateProfile";
 
 const App = () => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
   useEffect(() => {
     // enableContentProtection();
+  }, []);
+  useEffect(() => {
+    const eventID = "pv-" + Date.now();
+
+    // Pixel PageView event
+    if (window.fbq) {
+      window.fbq("track", "PageView", {}, { eventID });
+    }
+
+    // CAPI PageView event
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/track-pageview`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventID,
+        url: window.location.href,
+        email: user?.email || "",
+        phone: user?.number || "",
+      }),
+    }).catch((err) => console.error("CAPI Error:", err));
   }, []);
   useEffect(() => {
     const token = localStorage.getItem("token");

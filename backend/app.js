@@ -24,6 +24,7 @@ const subsubcategory = require("./routes/subsubcategoryRoute");
 const product = require("./routes/productRoute");
 const ship = require("./routes/shipRoute");
 const payment = require("./routes/paymentRoute");
+const meta = require("./routes/metaRoute");
 
 const order = require("./routes/orderRoute");
 
@@ -73,6 +74,8 @@ app.use("/api/v1", order);
 app.use("/api/v1", notification);
 app.use("/api/v1", coupon);
 app.use("/api/v1", cart);
+app.use("/api/v1", meta);
+
 // Error Middleware
 app.use(errorMiddleware);
 
