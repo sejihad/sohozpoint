@@ -38,7 +38,7 @@ const NotificationBanner = () => {
               <div className="text-wrapper">
                 <div
                   className={`scrolling-text ${
-                    isHovered ? "paused" : "scrolling"
+                    isHovered ? "scrolling" : "scrolling"
                   }`}
                 >
                   {notification?.text}

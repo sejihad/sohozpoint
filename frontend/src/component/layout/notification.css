@@ -43,6 +43,7 @@
 
 .scrolling-text {
   white-space: nowrap;
+  user-select: none;
 }
 
 .scrolling-text.scrolling {
