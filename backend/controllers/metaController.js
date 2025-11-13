@@ -22,6 +22,17 @@ const purchase = async (req, res) => {
       order_id = "",
     } = req.body;
 
+    // Transform contents - keep only official CAPI parameters
+    const transformedContents = contents.map((item) => {
+      // Only include official parameters from Meta documentation
+      return {
+        id: item.id, // required
+        quantity: item.quantity, // required
+        item_price: item.price, // required for Purchase event
+        // Remove: name, color, size - these are custom fields
+      };
+    });
+
     const hashedEmail = crypto
       .createHash("sha256")
       .update(email.trim().toLowerCase())
@@ -41,23 +52,30 @@ const purchase = async (req, res) => {
           event_time: Math.floor(Date.now() / 1000),
           event_id: eventID,
           user_data: {
-            em: hashedEmail,
-            ph: hashedPhone,
+            em: [hashedEmail], // Array format as per documentation
+            ph: hashedPhone ? [hashedPhone] : undefined,
             client_ip_address: req.ip,
             client_user_agent: req.headers["user-agent"],
           },
           custom_data: {
-            currency,
-            value,
+            currency: currency.toLowerCase(), // usd, bdt etc
+            value: Number(value),
             order_id,
-            contents,
-            content_type,
-            content_name,
+            contents: transformedContents,
+            // Remove content_type and content_name if they cause issues
+            // content_type,
+            // content_name,
           },
           action_source: "website",
+          event_source_url: req.headers.referer || "https://yourwebsite.com", // Add from headers
         },
       ],
     };
+
+    // Clean up undefined fields
+    if (!payload.data[0].user_data.ph) {
+      delete payload.data[0].user_data.ph;
+    }
 
     const response = await fetch(
       `https://graph.facebook.com/v18.0/${pixel_id}/events?access_token=${access_token}`,
