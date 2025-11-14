@@ -227,6 +227,221 @@ const TermsAndConditions = () => {
             </p>
           </div>
 
+          {/* Bengali Translation Section */}
+          <div className="p-8 bg-green-50 border-t-4 border-green-600">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+              বাংলায় শর্তাবলী
+            </h2>
+
+            {/* Section 1 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ১. শর্তাবলী গ্রহণ
+              </h3>
+              <p className="text-gray-600">
+                আমাদের ওয়েবসাইট অ্যাক্সেস বা ব্যবহার করে এবং অর্ডার প্রদানের
+                মাধ্যমে আপনি এই শর্তাবলী দ্বারা আবদ্ধ হতে সম্মত হন। আপনি যদি
+                সম্মত না হন, দয়া করে আমাদের পরিষেবাগুলি ব্যবহার করবেন না।
+              </p>
+            </div>
+
+            {/* Section 2 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ২. অর্ডার প্লেসমেন্ট ও পেমেন্ট
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>সমস্ত মূল্য বাংলাদেশী টাকায় (BDT) দেখানো হয়েছে</li>
+                <li>
+                  প্রমোশনকালীন সময়েও সমস্ত অর্ডারের জন্য ডেলিভারি চার্জ
+                  বাধ্যতামূলক
+                </li>
+                <li>
+                  চেকআউটের সময় ডেলিভারি চার্জ মূল পণ্যের মূল্য থেকে কাটা হবে
+                </li>
+                <li>
+                  অর্ডার প্রসেসিং শুরু হওয়ার আগে পেমেন্ট সম্পন্ন করতে হবে
+                </li>
+                <li>
+                  আমরা ক্যাশ অন ডেলিভারি এবং অনলাইন পেমেন্ট পদ্ধতি গ্রহণ করি
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 3 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৩. ডেলিভারি নীতি
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>স্ট্যান্ডার্ড ডেলিভারি সময় ৩-৫ কার্যদিবস</li>
+                <li>
+                  অবস্থান এবং পণ্যের প্রাপ্যতার উপর ভিত্তি করে ডেলিভারি সময়
+                  পরিবর্তিত হতে পারে
+                </li>
+                <li>
+                  কুরিয়ার সার্ভিস বা প্রাকৃতিক দুর্যোগের কারণে delays এর জন্য
+                  আমরা দায়ী নই
+                </li>
+                <li>
+                  গ্রাহকদের অবশ্যই সঠিক শিপিং ঠিকানা এবং যোগাযোগের তথ্য প্রদান
+                  করতে হবে
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 4 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৪. রিটার্ন ও রিফান্ড নীতি
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    রিটার্ন শর্তাবলী:
+                  </h4>
+                  <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                    <li>ডেলিভারির ৭ দিনের মধ্যে পণ্য ফেরত দেওয়া যাবে</li>
+                    <li>
+                      পণ্য অবশ্যই ট্যাগ এবং প্যাকেজিং সহ আসল অবস্থায় থাকতে হবে
+                    </li>
+                    <li>পণ্যে কোন ক্ষতি বা ব্যবহারের চিহ্ন থাকা যাবে না</li>
+                    <li>আসল ইনভয়েস উপস্থাপন করতে হবে</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    রিফান্ড প্রক্রিয়া:
+                  </h4>
+                  <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                    <li>
+                      অর্ডার বাতিল করতে আমাদের কাস্টমার সার্ভিসে যোগাযোগ করুন
+                    </li>
+                    <li>
+                      রিফান্ডের জন্য, আপনার ব্যাংক অ্যাকাউন্টের বিবরণ প্রদান
+                      করুন (অ্যাকাউন্ট নম্বর, ব্যাংকের নাম, শাখা)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 5 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৫. বাতিলকরণ নীতি
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>শিপমেন্টের আগে অর্ডার বাতিল করা যাবে</li>
+                <li>একবার শিপ করা হলে, অর্ডার বাতিল করা যাবে না</li>
+                <li>
+                  বাতিলকৃত অর্ডারের জন্য, রিফান্ড নীতি অনুযায়ী রিফান্ড প্রসেস
+                  করা হবে
+                </li>
+                <li>
+                  ওয়েবসাইটের মাধ্যমে অর্ডার প্লেস করার ১২ ঘন্টার মধ্যে অর্ডার
+                  বাতিল করা যাবে
+                </li>
+                <li>
+                  আপনি যদি ১২ ঘন্টার মধ্যে আপনার অর্ডার বাতিল না করেন, তাহলে
+                  ডেলিভারি চার্জ ফেরত দেওয়া হবে না
+                </li>
+                <li>
+                  ১২ ঘন্টার পরে, বাতিলকরণের অনুরোধ ইমেল বা ফোনের মাধ্যমে করতে
+                  হবে
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 6 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৬. পণ্যের গুণমান ও ওয়ারেন্টি
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>আমরা ওয়েবসাইটে বর্ণিত হিসাবে পণ্যের গুণমান নিশ্চিত করি</li>
+                <li>
+                  পণ্যের ছবি শুধুমাত্র রেফারেন্সের জন্য; আসল পণ্য সামান্য ভিন্ন
+                  হতে পারে
+                </li>
+                <li>
+                  যেখানে প্রযোজ্য সেখানে প্রস্তুতকারকের ওয়ারেন্টি প্রযোজ্য
+                </li>
+                <li>
+                  ডেলিভারির ২৪ ঘন্টার মধ্যে কোন গুণমান সমস্যার জন্য আমাদের সাথে
+                  যোগাযোগ করুন
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 7 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৭. ব্যবহারকারী অ্যাকাউন্ট ও নিরাপত্তা
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>আপনার লগইন ক্রেডেনশিয়াল সুরক্ষিত এবং গোপন রাখুন</li>
+                <li>
+                  আপনার অ্যাকাউন্টের অধীনে সমস্ত কার্যকলাপের জন্য আপনি দায়ী
+                </li>
+                <li>
+                  কোন অননুমোদিত অ্যাকাউন্ট ব্যবহারের কথা আমাদের অবিলম্বে জানান
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 8 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৮. বুদ্ধিবৃত্তিক সম্পত্তি
+              </h3>
+              <p className="text-gray-600">
+                এই ওয়েবসাইটে ব্যবহৃত সমস্ত কন্টেন্ট, লোগো, পণ্যের ছবি এবং
+                সফ্টওয়্যার Digital Nexgen বা এর লাইসেন্সকারীদের মালিকানাধীন।
+                আমাদের লিখিত অনুমতি ছাড়া আপনি কোন কন্টেন্ট কপি, বিতরণ বা
+                ব্যবহার করতে পারবেন না।
+              </p>
+            </div>
+
+            {/* Section 9 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ৯. দায় সীমাবদ্ধতা
+              </h3>
+              <p className="text-gray-600 mb-2">
+                Sohoz Point কোন পরোক্ষ বা অপ্রত্যাশিত ক্ষতির জন্য দায়ী নয়।
+                আমাদের মোট দায়িত্ব আপনি যে পণ্য ক্রয় করেছেন তার মূল্যের মধ্যে
+                সীমাবদ্ধ।
+              </p>
+              <p className="text-gray-500 text-sm">
+                আপনার নিজের ঝুঁকিতে আমাদের পরিষেবাগুলি ব্যবহার করুন।
+              </p>
+            </div>
+
+            {/* Section 10 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ১০. শর্তাবলীতে পরিবর্তন
+              </h3>
+              <p className="text-gray-600">
+                আমরা সময়ে সময়ে এই শর্তাবলী আপডেট করতে পারি। আপডেটের পরে আমাদের
+                পরিষেবাগুলি ব্যবহার চালিয়ে যাওয়ার অর্থ আপনি সংশোধিত শর্তাবলী
+                গ্রহণ করেছেন।
+              </p>
+            </div>
+
+            {/* Section 11 Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                ১১. আইন governing
+              </h3>
+              <p className="text-gray-600">
+                এই শর্তাবলী গণপ্রজাতন্ত্রী বাংলাদেশের আইন দ্বারা নিয়ন্ত্রিত এবং
+                এর অনুসারে ব্যাখ্যা করা হয়।
+              </p>
+            </div>
+          </div>
+
           {/* Section 12 */}
           <div className="p-8 bg-green-50">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">

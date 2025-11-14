@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
             Privacy Policy
           </h1>
           <p className="text-xl text-green-100 max-w-3xl mx-auto">
-            Last Updated: November 1, 2025 | Effective Date: December 1, 2025
+            Last Updated: November 1, 2025
           </p>
         </div>
       </div>
@@ -211,6 +211,169 @@ const PrivacyPolicy = () => {
                 We may update this policy. Changes will be posted on our website
                 with a revised "Last Updated" date.
               </p>
+            </div>
+
+            {/* Bengali Translation Section */}
+            <div className="p-8 bg-green-50 border-t-4 border-green-600">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                বাংলায় গোপনীয়তা নীতি
+              </h2>
+
+              {/* Section 1 Bengali */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  ১. আমরা কোন তথ্য সংগ্রহ করি
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-700 mb-2">
+                      ক. ব্যক্তিগত তথ্য
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                      <li>নাম, ইমেইল ঠিকানা, ফোন নম্বর</li>
+                      <li>শিপিং এবং বিলিং ঠিকানা</li>
+                      <li>পেমেন্ট তথ্য (সুরক্ষিতভাবে প্রক্রিয়াকৃত)</li>
+                      <li>যোগাযোগ বা ব্যবহারকারী প্রোফাইল বিবরণ</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-700 mb-2">
+                      খ. ব্যবহারের তথ্য
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                      <li>ডিভাইস মডেল এবং ব্রাউজার তথ্য</li>
+                      <li>আইপি ঠিকানা এবং অবস্থান ডেটা</li>
+                      <li>ওয়েবসাইট ইন্টারঅ্যাকশন এবং ব্রাউজিং ইতিহাস</li>
+                      <li>অর্ডার ইতিহাস এবং পছন্দ</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-700 mb-2">
+                      গ. কুকিজ এবং ট্র্যাকিং
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                      <li>লগইন কার্যকারিতার জন্য সেশন কুকিজ</li>
+                      <li>ওয়েবসাইট উন্নতির জন্য অ্যানালিটিক্স কুকিজ</li>
+                      <li>ভাল ব্যবহারকারী অভিজ্ঞতার জন্য পছন্দ কুকিজ</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2 Bengali */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  ২. আমরা আপনার তথ্য কিভাবে ব্যবহার করি
+                </h3>
+                <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                  <li>আপনার অর্ডার প্রক্রিয়া এবং সম্পূর্ণ করা</li>
+                  <li>গ্রাহক সহায়তা এবং পরিষেবা প্রদান</li>
+                  <li>অর্ডার নিশ্চিতকরণ এবং শিপিং আপডেট পাঠানো</li>
+                  <li>
+                    ওয়েবসাইট পারফরম্যান্স এবং ব্যবহারকারী অভিজ্ঞতা উন্নত করা
+                  </li>
+                  <li>প্রচারমূলক অফার পাঠানো (আপনার সম্মতিতে)</li>
+                  <li>আইনি বাধ্যবাধকতা পালন করা</li>
+                </ul>
+              </div>
+
+              {/* Section 3 Bengali */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  ৩. তথ্য শেয়ারিং এবং প্রকাশ
+                </h3>
+                <p className="mb-3 text-gray-600">
+                  আমরা আপনার ব্যক্তিগত তথ্য বিক্রি করি না। তবে, আমরা সীমিত তথ্য
+                  শেয়ার করতে পারি:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                  <li>লেনদেন সম্পূর্ণ করার জন্য পেমেন্ট প্রসেসরদের সাথে</li>
+                  <li>অর্ডার ডেলিভারির জন্য শিপিং পার্টনাদের সাথে</li>
+                  <li>
+                    বিশ্বস্ত পরিষেবা প্রদানকারীদের সাথে (অ্যানালিটিক্স, হোস্টিং)
+                  </li>
+                  <li>যখন আইন দ্বারা প্রয়োজন (যেমন, আইনি অনুরোধ)</li>
+                </ul>
+              </div>
+
+              {/* Section 4-7 Bengali Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Section 4 Bengali */}
+                <div className="bg-white p-4 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">
+                    ৪. পেমেন্ট সুরক্ষা
+                  </h3>
+                  <p className="text-gray-600">
+                    সমস্ত পেমেন্ট তথ্য সুরক্ষিত, এনক্রিপ্টেড পেমেন্ট গেটওয়ের
+                    মাধ্যমে প্রক্রিয়াকৃত হয়। আমরা আপনার ক্রেডিট কার্ডের বিবরণ
+                    আমাদের সার্ভারে সংরক্ষণ করি না।
+                  </p>
+                </div>
+
+                {/* Section 5 Bengali */}
+                <div className="bg-white p-4 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">
+                    ৫. তথ্য সুরক্ষা
+                  </h3>
+                  <p className="text-gray-600 mb-2">
+                    আমরা আপনার ডেটা রক্ষা করতে SSL এনক্রিপশন, সুরক্ষিত সার্ভার
+                    অবকাঠামো এবং নিয়মিত সুরক্ষা অডিট বাস্তবায়ন করি।
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    নোট: আমরা ব্যাপক ব্যবস্থা নিলেও, কোন সিস্টেম ১০০% সুরক্ষিত
+                    নয়।
+                  </p>
+                </div>
+
+                {/* Section 6 Bengali */}
+                <div className="bg-white p-4 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">
+                    ৬. শিশুদের গোপনীয়তা
+                  </h3>
+                  <p className="text-gray-600">
+                    আমাদের প্ল্যাটফর্ম ১৩ বছরের কম বয়সী শিশুদের জন্য নয়। আমরা
+                    ইচ্ছাকৃতভাবে নাবালকদের কাছ থেকে ডেটা সংগ্রহ করি না।
+                  </p>
+                </div>
+
+                {/* Section 7 Bengali */}
+                <div className="bg-white p-4 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">
+                    ৭. তথ্য ধারণ
+                  </h3>
+                  <p className="text-gray-600">
+                    আমরা আপনার ব্যক্তিগত ডেটা শুধুমাত্র আমাদের পরিষেবা প্রদানের
+                    জন্য এবং আইন দ্বারা প্রয়োজনীয় সময় পর্যন্ত রাখি।
+                  </p>
+                </div>
+              </div>
+
+              {/* Section 8 Bengali */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  ৮. আপনার অধিকার এবং পছন্দ
+                </h3>
+                <p className="mb-3 text-gray-600">
+                  আপনি আপনার ডেটা অ্যাক্সেস, সংশোধন বা মুছে ফেলার জন্য অনুরোধ
+                  করতে পারেন, বিপণন যোগাযোগ থেকে অপ্ট আউট করতে পারেন এবং কুকি
+                  পছন্দ পরিচালনা করতে পারেন।
+                </p>
+                <p className="text-green-600 font-medium">
+                  অনুরোধ করতে, দয়া করে ইমেল করুন: sohozpoint.com@gmail.com,
+                  info@sohozpoint.com
+                </p>
+              </div>
+
+              {/* Section 9 Bengali */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  ৯. নীতি পরিবর্তন
+                </h3>
+                <p className="text-gray-600">
+                  আমরা এই নীতি আপডেট করতে পারি। পরিবর্তনগুলি আমাদের ওয়েবসাইটে
+                  একটি সংশোধিত "সর্বশেষ আপডেট" তারিখ সহ পোস্ট করা হবে।
+                </p>
+              </div>
             </div>
 
             {/* Section 10 */}

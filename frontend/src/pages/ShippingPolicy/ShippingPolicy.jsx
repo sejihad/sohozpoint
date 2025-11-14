@@ -150,6 +150,128 @@ const ShippingPolicy = () => {
               </li>
             </ul>
           </div>
+
+          {/* Bengali Translation Section */}
+          <div className="p-8 border-t-4 border-green-600">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+              বাংলায় শিপিং নীতি
+            </h2>
+
+            {/* Delivery Timeline Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                ডেলিভারি সময়সূচী
+              </h3>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <p className="text-green-600 font-medium">৩-৫ কার্যদিবস</p>
+              </div>
+            </div>
+
+            {/* Order Processing Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                অর্ডার প্রসেসিং
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 font-bold">
+                    ১
+                  </div>
+                  <span className="text-gray-600">
+                    অর্ডার প্লেস এবং পেমেন্ট নিশ্চিত
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 font-bold">
+                    ২
+                  </div>
+                  <span className="text-gray-600">
+                    ২৪ ঘন্টার মধ্যে অর্ডার প্রসেস
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 font-bold">
+                    ৩
+                  </div>
+                  <span className="text-gray-600">
+                    ডেলিভারি পার্টনারের কাছে হস্তান্তর
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 font-bold">
+                    ৪
+                  </div>
+                  <span className="text-gray-600">
+                    ডেলিভারির জন্য বের হয়েছে
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 font-bold">
+                    ৫
+                  </div>
+                  <span className="text-gray-600">
+                    আপনার দরজায় পৌঁছে দেওয়া
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Areas Bengali */}
+            <div className="mb-6 bg-green-50 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                ডেলিভারি এলাকা
+              </h3>
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2">
+                  আমরা ডেলিভারি করি:
+                </h4>
+                <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                  <li>সমস্ত এলাকায়</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Tracking & Support Bengali */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                অর্ডার ট্র্যাকিং ও সহায়তা
+              </h3>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-700 mb-2">
+                  রিয়েল-টাইম ট্র্যাকিং
+                </h4>
+                <p className="text-gray-600">
+                  আমাদের ওয়েবসাইট বা মোবাইল অ্যাপের মাধ্যমে রিয়েল-টাইমে আপনার
+                  অর্ডার ট্র্যাক করুন। ডেলিভারির প্রতিটি পর্যায়ে ইমেল আপডেট
+                  পান।
+                </p>
+              </div>
+            </div>
+
+            {/* Important Notes Bengali */}
+            <div className="mb-6 bg-green-50 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                গুরুত্বপূর্ণ নোট
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>
+                  ছুটির দিন এবং উৎসবের সময় ডেলিভারি সময় পরিবর্তিত হতে পারে
+                </li>
+                <li>
+                  কুরিয়ার সার্ভিস বা প্রাকৃতিক দুর্যোগের কারণে delays এর জন্য
+                  আমরা দায়ী নই
+                </li>
+                <li>দয়া করে সঠিক ঠিকানা এবং যোগাযোগের তথ্য প্রদান করুন</li>
+                <li>
+                  প্যাকেজ গ্রহণের জন্য ডেলিভারি ঠিকানায় কেউ উপস্থিত থাকতে হবে
+                </li>
+                <li>
+                  পণ্য ক্ষতিগ্রস্ত না হলে ৭ দিনের মধ্যে আপনি পণ্য ফেরত দিতে
+                  পারেন
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
