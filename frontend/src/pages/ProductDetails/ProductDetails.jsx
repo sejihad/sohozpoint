@@ -654,7 +654,7 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-8 items-stretch">
           {/* Left Column - Product Images */}
           <div ref={leftColRef} className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 h-fit">
               {/* Main Image */}
               <div className="flex justify-center mb-4 h-60 md:h-80 flex-shrink-0">
                 <ProductImage
@@ -738,7 +738,7 @@ const ProductDetails = () => {
             ref={middleColRef}
             className="md:col-span-1 max-h-[500px] md:max-h-none overflow-hidden"
           >
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 h-full flex flex-col">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 flex flex-col h-full md:h-fit">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
@@ -786,7 +786,7 @@ const ProductDetails = () => {
 
           {/* Right Column - Purchase Options */}
           <div ref={rightColRef} className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-4">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 sticky top-4  h-fit">
               {/* Price Section */}
               <div className="mb-4">
                 {discountPercentage > 0 && (
@@ -1144,89 +1144,95 @@ const ProductDetails = () => {
           {productReviews?.length > 0 ? (
             <div className="space-y-4 md:space-y-6">
               {/* Show ALL reviews without slicing */}
-              {productReviews?.map((review, index) => (
-                <div
-                  key={review?._id || index}
-                  className="border-b pb-4 md:pb-6 last:border-0 bg-gray-50 rounded-lg p-3 md:p-4 transition-all hover:shadow-md"
-                >
-                  <div className="flex justify-between items-start mb-3 flex-col sm:flex-row gap-3">
-                    <div className="flex-1 w-full">
-                      <div className="flex items-center gap-3 mb-2">
-                        {/* User Profile Image */}
-                        <div className="flex-shrink-0">
-                          {/* Fallback to initial if no image */}
-                          <div
-                            className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base ${
-                              review?.user?.avatar ? "hidden" : "flex"
-                            }`}
-                          >
-                            {review?.name?.charAt(0)?.toUpperCase() || "U"}
+              {productReviews?.map((review, index) => {
+                // Alternate between two background colors
+                const bgColorClass =
+                  index % 2 === 0
+                    ? "bg-gray-50" // Even index - Light gray
+                    : "bg-blue-50"; // Odd index - Light blue
+
+                return (
+                  <div
+                    key={review?._id || index}
+                    className={`border-b pb-4 md:pb-6 last:border-0 rounded-lg p-3 md:p-4 transition-all hover:shadow-md ${bgColorClass}`}
+                  >
+                    <div className="flex justify-between items-start mb-3 flex-col sm:flex-row gap-3">
+                      <div className="flex-1 w-full">
+                        <div className="flex items-center gap-3 mb-2">
+                          {/* User Profile Image */}
+                          <div className="flex-shrink-0">
+                            {/* Fallback to initial if no image */}
+                            <div
+                              className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base ${
+                                review?.user?.avatar ? "hidden" : "flex"
+                              }`}
+                            >
+                              {review?.name?.charAt(0)?.toUpperCase() || "U"}
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
+                              {review?.name || "Anonymous User"}
+                            </h4>
+                            <p className="text-xs md:text-sm text-gray-500">
+                              {review.createdAt
+                                ? new Date(review.createdAt).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    }
+                                  )
+                                : "Unknown date"}
+                            </p>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
-                            {review?.name || "Anonymous User"}
-                          </h4>
-                          <p className="text-xs md:text-sm text-gray-500">
-                            {review.createdAt
-                              ? new Date(review.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )
-                              : "Unknown date"}
-                          </p>
+                      <div className="flex-shrink-0 self-start sm:self-center">
+                        <div className="flex justify-end sm:justify-center">
+                          <StarRating rating={review?.rating} />
+                        </div>
+                        <p className="text-xs text-gray-500 text-right sm:text-center mt-1">
+                          {review?.rating}.0 rating
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-700 mt-2 mb-3 leading-relaxed bg-white p-3 rounded-md border text-sm md:text-base">
+                      {review.comment}
+                    </p>
+
+                    {/* Review Images Display */}
+                    {review?.images?.length > 0 && (
+                      <div className="mt-4">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">
+                          Photos ({review?.images?.length})
+                        </h5>
+                        <div className="flex flex-wrap gap-2 md:gap-3">
+                          {review?.images?.map(
+                            (img, imgIndex) =>
+                              img?.url && (
+                                <div key={imgIndex} className="relative group">
+                                  <img
+                                    src={img.url}
+                                    alt={`Review image ${imgIndex + 1}`}
+                                    className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg border-2 border-gray-200 object-cover cursor-pointer hover:border-blue-500 transition-all group-hover:scale-105"
+                                    onError={(e) => {
+                                      e.target.src = "/placeholder-image.jpg";
+                                    }}
+                                  />
+                                </div>
+                              )
+                          )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="flex-shrink-0 self-start sm:self-center">
-                      <div className="flex justify-end sm:justify-center">
-                        <StarRating rating={review?.rating} />
-                      </div>
-                      <p className="text-xs text-gray-500 text-right sm:text-center mt-1">
-                        {review?.rating}.0 rating
-                      </p>
-                    </div>
+                    )}
                   </div>
-
-                  <p className="text-gray-700 mt-2 mb-3 leading-relaxed bg-white p-3 rounded-md border text-sm md:text-base">
-                    {review.comment}
-                  </p>
-
-                  {/* Review Images Display */}
-                  {review?.images?.length > 0 && (
-                    <div className="mt-4">
-                      <h5 className="text-sm font-medium text-gray-700 mb-2">
-                        Photos ({review?.images?.length})
-                      </h5>
-                      <div className="flex flex-wrap gap-2 md:gap-3">
-                        {review?.images?.map(
-                          (img, imgIndex) =>
-                            img?.url && (
-                              <div key={imgIndex} className="relative group">
-                                <img
-                                  src={img.url}
-                                  alt={`Review image ${imgIndex + 1}`}
-                                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg border-2 border-gray-200 object-cover cursor-pointer hover:border-blue-500 transition-all group-hover:scale-105"
-                                  // onClick={() => setZoomImage(imgIndex)}
-                                  onError={(e) => {
-                                    e.target.src = "/placeholder-image.jpg";
-                                  }}
-                                />
-                                {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg"></div> */}
-                              </div>
-                            )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 mx-2 md:mx-0">

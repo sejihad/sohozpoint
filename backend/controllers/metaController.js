@@ -87,7 +87,6 @@ const purchase = async (req, res) => {
     );
 
     const result = await response.json();
-    console.log("✅ Meta CAPI Purchase Response:", result);
 
     res.status(200).json({ success: true, result });
   } catch (error) {
@@ -150,7 +149,6 @@ const pageView = async (req, res) => {
     );
 
     const result = await response.json();
-    console.log("✅ Meta CAPI PageView Response:", result);
 
     res.status(200).json({ success: true, result });
   } catch (error) {

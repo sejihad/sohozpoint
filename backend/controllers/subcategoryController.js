@@ -6,12 +6,24 @@ const slugify = require("slugify");
 
 // Create Subcategory
 const createSubcategory = catchAsyncErrors(async (req, res, next) => {
-  const { name } = req.body;
+  const { name, category } = req.body;
+
+  // Validate category exists
+  if (category) {
+    const categoryExists = await Category.findById(category);
+    if (!categoryExists) {
+      return next(new ErrorHandler("Category not found", 404));
+    }
+  }
 
   const subcategory = await Subcategory.create({
     name,
+    category, // Add category field
     slug: slugify(name, { lower: true, strict: true }),
   });
+
+  // Populate category details in response
+  await subcategory.populate("category", "name");
 
   res.status(201).json({
     success: true,
@@ -21,7 +33,10 @@ const createSubcategory = catchAsyncErrors(async (req, res, next) => {
 
 // Get all subcategories
 const getAllSubcategories = catchAsyncErrors(async (req, res, next) => {
-  const subcategories = await Subcategory.find();
+  const subcategories = await Subcategory.find().populate(
+    "category",
+    "name slug"
+  );
 
   res.status(200).json({
     success: true,
@@ -31,7 +46,10 @@ const getAllSubcategories = catchAsyncErrors(async (req, res, next) => {
 
 // Get subcategory details
 const getSubcategoryDetails = catchAsyncErrors(async (req, res, next) => {
-  const subcategory = await Subcategory.findById(req.params.id);
+  const subcategory = await Subcategory.findById(req.params.id).populate(
+    "category",
+    "name slug"
+  );
 
   if (!subcategory) {
     return next(new ErrorHandler("Subcategory not found", 404));
@@ -48,12 +66,24 @@ const updateSubcategory = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Subcategory not found", 404));
   }
 
+  // Validate category if provided
+  if (req.body.category) {
+    const categoryExists = await Category.findById(req.body.category);
+    if (!categoryExists) {
+      return next(new ErrorHandler("Category not found", 404));
+    }
+    subcategory.category = req.body.category;
+  }
+
   if (req.body.name) {
     subcategory.name = req.body.name;
     subcategory.slug = slugify(req.body.name, { lower: true, strict: true });
   }
 
   await subcategory.save();
+
+  // Populate category details in response
+  await subcategory.populate("category", "name");
 
   res.status(200).json({
     success: true,

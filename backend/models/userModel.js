@@ -18,7 +18,10 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, "Please enter a valid email"],
   },
   number: String,
-  country: String,
+  country: {
+    type: String,
+    default: "Bangladesh",
+  },
 
   password: {
     type: String,

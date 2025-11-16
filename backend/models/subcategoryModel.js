@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const slugify = require("slugify");
 
 const subcategorySchema = new mongoose.Schema({
+  category: {
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
   name: {
     type: String,
     required: [true, "Please Enter Subcategory Name"],

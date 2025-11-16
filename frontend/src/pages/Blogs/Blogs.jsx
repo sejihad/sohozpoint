@@ -44,24 +44,23 @@ const Blogs = () => {
                 </div>
               ) : (
                 blogs.map((blog) => (
-                  <div
+                  <Link
+                    to={`/blog/${slugify(blog.title, {
+                      lower: true,
+                      strict: true,
+                    })}`}
                     key={blog._id}
                     className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
                   >
                     {/* Blog Image */}
                     <div className="h-48 overflow-hidden">
-                      <Link
-                        to={`/blog/${slugify(blog.title, {
-                          lower: true,
-                          strict: true,
-                        })}`}
-                      >
+                      <div>
                         <img
                           src={blog.image.url}
                           alt={blog.title}
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                         />
-                      </Link>
+                      </div>
                     </div>
 
                     {/* Blog Content */}
@@ -83,13 +82,7 @@ const Blogs = () => {
                           : blog.desc}
                       </p>
 
-                      <Link
-                        to={`/blog/${slugify(blog.title, {
-                          lower: true,
-                          strict: true,
-                        })}`}
-                        className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
-                      >
+                      <div className="inline-flex items-center text-green-600 hover:text-green-800 font-medium">
                         Read More
                         <svg
                           className="w-4 h-4 ml-2"
@@ -105,9 +98,9 @@ const Blogs = () => {
                             d="M14 5l7 7m0 0l-7 7m7-7H3"
                           />
                         </svg>
-                      </Link>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>

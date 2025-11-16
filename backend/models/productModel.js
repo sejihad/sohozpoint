@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
   },
   title: {
     type: String,
-    required: [true, "Please Enter product Title"],
+
     trim: true,
   },
   description: {

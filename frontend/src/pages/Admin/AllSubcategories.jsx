@@ -4,6 +4,7 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiEdit2,
+  FiFolder,
   FiPlus,
   FiSearch,
   FiTrash2,
@@ -11,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { getAdminCategory } from "../../actions/categoryAction";
 import {
   clearErrors,
   createSubcategory,
@@ -28,6 +30,7 @@ import Sidebar from "./Sidebar";
 
 const AllSubcategories = () => {
   const dispatch = useDispatch();
+  const { categories } = useSelector((state) => state.categories);
 
   const { subcategories, loading: subcategoriesLoading } = useSelector(
     (state) => state.subcategories
@@ -43,6 +46,7 @@ const AllSubcategories = () => {
   } = useSelector((state) => state.subcategory);
 
   const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
   const [editId, setEditId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,9 +56,11 @@ const AllSubcategories = () => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [groupedByCategory, setGroupedByCategory] = useState(true);
 
   useEffect(() => {
     dispatch(getAdminSubcategories());
+    dispatch(getAdminCategory());
 
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -75,14 +81,12 @@ const AllSubcategories = () => {
       dispatch({ type: NEW_SUBCATEGORY_RESET });
       resetForm();
       setIsFormOpen(false);
-      // Refresh the subcategories list
       dispatch(getAdminSubcategories());
     }
 
     if (isDeleted) {
       toast.success("Subcategory deleted successfully");
       dispatch({ type: DELETE_SUBCATEGORY_RESET });
-      // Refresh the subcategories list
       dispatch(getAdminSubcategories());
     }
 
@@ -90,7 +94,6 @@ const AllSubcategories = () => {
       toast.success("Subcategory updated successfully");
       dispatch({ type: UPDATE_SUBCATEGORY_RESET });
       resetForm();
-      // Refresh the subcategories list
       dispatch(getAdminSubcategories());
     }
   }, [dispatch, error, success, isDeleted, isUpdated, updateDeleteError]);
@@ -98,6 +101,7 @@ const AllSubcategories = () => {
   const resetForm = () => {
     setEditId(null);
     setName("");
+    setCategory("");
     setFormErrors({});
   };
 
@@ -106,6 +110,10 @@ const AllSubcategories = () => {
 
     if (!name.trim()) {
       errors.name = "Subcategory name is required";
+    }
+
+    if (!category) {
+      errors.category = "Category is required";
     }
 
     setFormErrors(errors);
@@ -119,7 +127,7 @@ const AllSubcategories = () => {
       return;
     }
 
-    const formData = { name };
+    const formData = { name, category };
 
     if (editId) {
       dispatch(updateSubcategory(editId, formData));
@@ -131,6 +139,7 @@ const AllSubcategories = () => {
   const handleEdit = (sub) => {
     setEditId(sub._id);
     setName(sub.name);
+    setCategory(sub.category?._id || sub.category);
     setIsFormOpen(true);
     setFormErrors({});
   };
@@ -159,6 +168,16 @@ const AllSubcategories = () => {
     return 0;
   });
 
+  // Group subcategories by category
+  const groupedSubcategories = sortedSubcategories.reduce((acc, sub) => {
+    const categoryName = sub.category?.name || "Uncategorized";
+    if (!acc[categoryName]) {
+      acc[categoryName] = [];
+    }
+    acc[categoryName].push(sub);
+    return acc;
+  }, {});
+
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -168,7 +187,7 @@ const AllSubcategories = () => {
   };
 
   return (
-    <div className="min-h-screen container bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <MetaData title="Manage Subcategories" />
       <div className="flex flex-col md:flex-row">
         <Sidebar />
@@ -206,17 +225,48 @@ const AllSubcategories = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      if (formErrors.category) {
+                        setFormErrors({ ...formErrors, category: "" });
+                      }
+                    }}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+                      formErrors.category ? "border-red-500" : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">-- Choose Category --</option>
+                    {categories &&
+                      categories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                  {formErrors.category && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.category}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Subcategory Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="Enter subcategory name"
-                    required
                     value={name}
                     onChange={(e) => {
                       setName(e.target.value);
-                      if (formErrors.name)
+                      if (formErrors.name) {
                         setFormErrors({ ...formErrors, name: "" });
+                      }
                     }}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                       formErrors.name ? "border-red-500" : "border-gray-300"
@@ -232,10 +282,10 @@ const AllSubcategories = () => {
                 <button
                   type="submit"
                   disabled={loading || updateDeleteLoading}
-                  className={`w-full py-3 px-4 cursor-pointer rounded-lg text-white font-semibold flex items-center justify-center gap-2 ${
+                  className={`w-full py-3 px-4 rounded-lg text-white font-semibold flex items-center justify-center gap-2 ${
                     loading || updateDeleteLoading
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
+                      : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
                   }`}
                 >
                   {loading || updateDeleteLoading ? (
@@ -296,7 +346,19 @@ const AllSubcategories = () => {
                   />
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setGroupedByCategory(!groupedByCategory)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                      groupedByCategory
+                        ? "bg-indigo-100 text-indigo-700 border-indigo-300"
+                        : "bg-gray-100 text-gray-700 border-gray-300"
+                    }`}
+                  >
+                    <FiFolder size={16} />
+                    {groupedByCategory ? "Grouped" : "Flat"}
+                  </button>
+
                   <span className="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-2 rounded-full whitespace-nowrap">
                     {subcategories?.length || 0} subcategories
                   </span>
@@ -348,7 +410,71 @@ const AllSubcategories = () => {
                   No subcategories match your search.
                 </p>
               </div>
+            ) : groupedByCategory ? (
+              // Grouped by Category View
+              <div className="space-y-6">
+                {Object.entries(groupedSubcategories).map(
+                  ([categoryName, subs]) => (
+                    <div
+                      key={categoryName}
+                      className="border border-gray-200 rounded-lg"
+                    >
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                          <FiFolder className="text-indigo-500" />
+                          {categoryName}
+                          <span className="bg-indigo-500 text-white text-xs px-2 py-1 rounded-full ml-2">
+                            {subs.length} subcategories
+                          </span>
+                        </h3>
+                      </div>
+                      <div className="p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {subs.map((sub) => (
+                            <div
+                              key={sub._id}
+                              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-800 truncate">
+                                    {sub.name}
+                                  </h4>
+                                </div>
+                                <div className="flex gap-2 ml-2">
+                                  <button
+                                    onClick={() => handleEdit(sub)}
+                                    className="p-1 text-indigo-600 hover:bg-indigo-50 cursor-pointer rounded transition-colors"
+                                    title="Edit"
+                                  >
+                                    <FiEdit2 size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(sub._id)}
+                                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                    title="Delete"
+                                  >
+                                    <FiTrash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                Slug: {sub.slug}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Created:{" "}
+                                {new Date(sub.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             ) : (
+              // Flat View (Original)
               <div className="space-y-4">
                 {!isMobile && (
                   <div className="hidden md:flex items-center text-xs text-gray-500 font-medium uppercase tracking-wider border-b pb-2">
@@ -377,9 +503,14 @@ const AllSubcategories = () => {
                       className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-gray-800 truncate flex-1">
-                          {sub.name}
-                        </h4>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-800 truncate">
+                            {sub.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            Category: {sub.category?.name || "N/A"}
+                          </p>
+                        </div>
                         <div className="flex gap-2 ml-2">
                           <button
                             onClick={() => handleEdit(sub)}

@@ -8,7 +8,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
   const requiredFields = [
     "name",
-    "title",
+
     "description",
     "oldPrice",
     "salePrice",

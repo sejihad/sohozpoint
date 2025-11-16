@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -10,6 +10,9 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState(null);
+
+  // Track if events have been fired
+  const eventsFiredRef = useRef(false);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -25,6 +28,9 @@ const PaymentSuccess = () => {
         if (data.success) {
           toast.success("🎉 Payment Successful! Order Created.");
           setOrder(data.order);
+
+          // Fire events immediately after setting order
+          fireTrackingEvents(data.order);
         } else {
           toast.error("❌ Payment verification failed!");
         }
@@ -36,20 +42,17 @@ const PaymentSuccess = () => {
       }
     };
 
-    if (merchantTransactionId && orderId) {
-      verifyPayment();
-    } else {
-      setLoading(false);
-    }
-  }, [merchantTransactionId, orderId]);
-  useEffect(() => {
-    if (order) {
+    const fireTrackingEvents = async (orderData) => {
+      // Prevent duplicate event firing
+      if (eventsFiredRef.current) return;
+      eventsFiredRef.current = true;
+
       // 1️⃣ Pixel (browser) event
       if (window.fbq) {
         try {
-          const value = Number(order.totalPrice) || 0;
+          const value = Number(orderData.totalPrice) || 0;
 
-          const contents = order.orderItems.map((item) => ({
+          const contents = orderData.orderItems.map((item) => ({
             id: item.id,
             quantity: item.quantity,
             item_price: item.price,
@@ -65,55 +68,57 @@ const PaymentSuccess = () => {
               contents,
               content_type: "product",
               content_name: contents.map((c) => c.name).join(", "),
-              order_id: order._id,
+              order_id: orderData._id,
               value: value,
               currency: "USD",
             },
             {
-              eventID: order.orderId,
+              eventID: orderData.orderId,
             }
           );
 
-          console.log("🔥 Pixel Purchase Fired:", order.orderId);
+          console.log("🔥 Pixel Purchase Fired:", orderData.orderId);
         } catch (err) {
           console.error("Pixel fire failed:", err);
         }
       }
 
       // 2️⃣ Backend CAPI call
-      const sendServerEvent = async () => {
-        try {
-          await axios.post(
-            `${import.meta.env.VITE_API_URL}/api/v1/track-purchase`,
-            {
-              email: order.userData.email,
-              phone: order.userData.phone,
-              value: Number(order.totalPrice),
-              currency: "USD",
-              eventID: order.orderId,
-              order_id: order._id,
-              contents: order.orderItems.map((item) => ({
-                id: item.id,
-                quantity: item.quantity,
-                item_price: item.price,
-                name: item.name,
-                color: item.color,
-                size: item.size,
-              })),
-              content_type: "product",
-              content_name: order.orderItems.map((i) => i.name).join(", "),
-            }
-          );
+      try {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/v1/track-purchase`,
+          {
+            email: orderData.userData.email,
+            phone: orderData.userData.phone,
+            value: Number(orderData.totalPrice),
+            currency: "USD",
+            eventID: orderData.orderId,
+            order_id: orderData._id,
+            contents: orderData.orderItems.map((item) => ({
+              id: item.id,
+              quantity: item.quantity,
+              item_price: item.price,
+              name: item.name,
+              color: item.color,
+              size: item.size,
+            })),
+            content_type: "product",
+            content_name: orderData.orderItems.map((i) => i.name).join(", "),
+          }
+        );
 
-          console.log("🔥 Server CAPI Purchase Sent:", order.orderId);
-        } catch (error) {
-          console.error("Server CAPI Failed:", error);
-        }
-      };
+        console.log("🔥 Server CAPI Purchase Sent:", orderData.orderId);
+      } catch (error) {
+        console.error("Server CAPI Failed:", error);
+      }
+    };
 
-      sendServerEvent();
+    if (merchantTransactionId && orderId) {
+      verifyPayment();
+    } else {
+      setLoading(false);
     }
-  }, [order]);
+  }, [merchantTransactionId, orderId]);
 
   if (loading) {
     return (
