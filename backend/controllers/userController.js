@@ -26,53 +26,114 @@ const verifyTurnstile = async (token, ip) => {
   return data.success;
 };
 // ✅ Register User
-const registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password } = req.body;
+// const registerUser = catchAsyncErrors(async (req, res, next) => {
+//   const { name, email, number, password } = req.body;
 
-  // Validation
-  if (!name || !email || !password) {
-    return next(
-      new ErrorHandler("Please provide name, email, and password", 400)
-    );
+//   // Validation
+//   if (!name || !email || !password || !number) {
+//     return next(
+//       new ErrorHandler("Please provide name, email, number, and password", 400)
+//     );
+//   }
+//   const existUser = await User.findOne({ email });
+
+//   if (existUser) {
+//     return next(new ErrorHandler("User already exists. Please login.", 400));
+//   }
+//   // Create user
+//   const user = await User.create({ name, email,number, password });
+
+//   // Send welcome email
+//   const message = `
+//     Hi ${name},
+
+//     🎉 Welcome to Sohoz Point!
+
+//     Your account has been created successfully.
+//     You can now log in using your email: ${email} or ${number}.
+
+//     We're excited to have you on board. Explore our platform and enjoy the features we offer.
+
+//     If you have any questions, feel free to reply to this email.
+
+//     Regards,
+//     Sohoz Point Team
+//   `;
+
+//   try {
+//     await sendEmail({
+//       email: user.email,
+//       subject: "Welcome to Sohoz Point 🎉",
+//       message,
+//     });
+//   } catch (error) {
+//     console.error("Welcome email failed:", error);
+//     // no need to throw error, registration should still succeed
+//   }
+
+//   // Response
+//   res.status(201).json({
+//     success: true,
+//     message: "User registered successfully",
+//   });
+// });
+// Register User with OTP
+const registerUser = catchAsyncErrors(async (req, res, next) => {
+  const { name, email, number, password } = req.body;
+
+  if (!name || !email || !number || !password) {
+    return next(new ErrorHandler("Please fill all fields", 400));
   }
-  const existUser = await User.findOne({ email });
+
+  const existUser = await User.findOne({
+    $or: [{ email }, { number }],
+  });
 
   if (existUser) {
-    return next(new ErrorHandler("User already exists. Please login.", 400));
+    return next(new ErrorHandler("User already exists", 400));
   }
-  // Create user
-  const user = await User.create({ name, email, password });
 
-  // Send welcome email
+  // Create user but NOT verified
+  const user = await User.create({
+    name,
+    email,
+    number,
+    password,
+  });
+
+  // Generate OTP
+  const otp = crypto.randomInt(100000, 999999).toString();
+  user.twoFactorCode = otp;
+  user.twoFactorExpire = Date.now() + 5 * 60 * 1000;
+  await user.save();
+
   const message = `
-    Hi ${name},
+  Hi ${name},
 
     🎉 Welcome to Sohoz Point!
 
     Your account has been created successfully.
-    You can now log in using your email: ${email}
+    Your verification OTP is: ${otp}
+    It will expire in 5 minutes.
 
+    We're excited to have you on board. Explore our platform and enjoy the features we offer.
     If you have any questions, feel free to reply to this email.
 
     Regards,
     Sohoz Point Team
   `;
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: "Welcome to Sohoz Point 🎉",
-      message,
-    });
-  } catch (error) {
-    console.error("Welcome email failed:", error);
-    // no need to throw error, registration should still succeed
-  }
+  await sendEmail({
+    email: user.email,
+    subject: "Verify your Sohoz Point account",
+    message,
+  });
 
-  // Response
-  res.status(201).json({
+  res.status(200).json({
     success: true,
-    message: "User registered successfully",
+    message: "OTP sent to your email for verification",
+    twoFactorRequired: true,
+    userId: user._id,
   });
 });
 
@@ -89,10 +150,12 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (!email || !password) {
-    return next(new ErrorHandler("Please enter both email and password", 400));
+    return next(
+      new ErrorHandler("Please enter email or number and password", 400)
+    );
   }
-
-  const user = await User.findOne({ email }).select("+password");
+  const query = email.includes("@") ? { email: email } : { number: email };
+  const user = await User.findOne(query).select("+password");
 
   if (!user) {
     return next(

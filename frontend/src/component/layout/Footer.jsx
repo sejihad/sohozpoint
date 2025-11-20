@@ -62,7 +62,7 @@ const Footer = () => {
 
               {/* YouTube */}
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com/channel/UCM9vvQ8EMxReExCgafS2mbA"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-red-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1"
@@ -285,7 +285,7 @@ const Footer = () => {
                   />
                 </svg>
                 <span className="text-sm">
-                  1.73, NilerPara, Joydebpur; Gazipur Sadar, Bangladesh
+                  73, NilerPara, Joydebpur; Gazipur Sadar, Bangladesh
                 </span>
               </li>
               <li className="flex items-center">

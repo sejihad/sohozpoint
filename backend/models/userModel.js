@@ -13,11 +13,17 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
+    required: [true, "Please Enter Your Email"],
     unique: true,
     sparse: true,
     validate: [validator.isEmail, "Please enter a valid email"],
   },
-  number: String,
+  number: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
   country: {
     type: String,
     default: "Bangladesh",

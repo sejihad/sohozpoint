@@ -70,7 +70,7 @@ const PaymentSuccess = () => {
               content_name: contents.map((c) => c.name).join(", "),
               order_id: orderData._id,
               value: value,
-              currency: "USD",
+              currency: "BDT",
             },
             {
               eventID: orderData.orderId,
@@ -91,7 +91,7 @@ const PaymentSuccess = () => {
             email: orderData.userData.email,
             phone: orderData.userData.phone,
             value: Number(orderData.totalPrice),
-            currency: "USD",
+            currency: "BDT",
             eventID: orderData.orderId,
             order_id: orderData._id,
             contents: orderData.orderItems.map((item) => ({

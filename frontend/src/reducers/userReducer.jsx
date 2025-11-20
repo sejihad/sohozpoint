@@ -82,11 +82,14 @@ export const userReducer = (state = { user: {} }, action) => {
         isAuthenticated: true,
         otpPending: false,
         user: action.payload,
+        message: "OTP verified successfully",
       };
     case VERIFY_OTP_FAIL:
       return {
         ...state,
         loading: false,
+        otpPending: false,
+        otpMessage: null,
         error: action.payload,
       };
     case RESET_OTP_STATE:
@@ -117,6 +120,14 @@ export const userReducer = (state = { user: {} }, action) => {
         ...state,
         loading: true,
       };
+    case REGISTER_USER_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        otpRequired: true, // show OTP input
+        userId: action.payload.userId,
+        message: action.payload,
+      };
     case LOGIN_SUCCESS:
 
     case LOAD_USER_SUCCESS:
@@ -127,14 +138,14 @@ export const userReducer = (state = { user: {} }, action) => {
         isAuthenticated: true,
         user: action.payload,
       };
-    case REGISTER_USER_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: false,
-        user: null,
-        message: action.payload,
-      };
+    // case REGISTER_USER_SUCCESS:
+    //   return {
+    //     ...state,
+    //     loading: false,
+    //     isAuthenticated: false,
+    //     user: null,
+    //     message: action.payload,
+    //   };
     case TOGGLE_2FA_SUCCESS:
       return {
         ...state,

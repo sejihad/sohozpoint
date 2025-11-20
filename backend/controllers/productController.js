@@ -149,6 +149,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     "subCategory",
     "subsubCategory",
     "videoLink",
+    "source",
     "deliveryCharge",
   ];
 

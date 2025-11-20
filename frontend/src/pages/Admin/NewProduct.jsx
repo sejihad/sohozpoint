@@ -43,6 +43,7 @@ const NewProduct = () => {
     subCategory: "",
     subsubCategory: "",
     videoLink: "",
+    source: "",
   });
 
   const [images, setImages] = useState([]);
@@ -125,6 +126,7 @@ const NewProduct = () => {
       subCategory: "",
       subsubCategory: "",
       videoLink: "",
+      source: "",
     });
     setImages([]);
     setImagesPreview([]);
@@ -257,6 +259,7 @@ const NewProduct = () => {
 
     data.set("type", formData.type);
     data.set("brand", formData.brand);
+    data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
     if (formData.videoLink) data.set("videoLink", formData.videoLink);
     data.set("oldPrice", formData.oldPrice);
@@ -623,6 +626,19 @@ const NewProduct = () => {
                 </div>
 
                 {/* Video Link */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Source
+                  </label>
+                  <input
+                    type="text"
+                    name="source"
+                    placeholder="Enter Product Source"
+                    value={formData.source}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Video Link (Optional)

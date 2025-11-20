@@ -6,12 +6,14 @@ import {
   FiFilter,
   FiLayers,
   FiStar,
-  FiTag,
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getAdminCategory } from "../../actions/categoryAction";
 import { getProduct } from "../../actions/productAction";
+import { getAdminSubcategories } from "../../actions/subcategoryAction";
+import { getAdminSubsubcategories } from "../../actions/subsubcategoryAction";
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
 
@@ -23,57 +25,37 @@ const Shop = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, products } = useSelector((state) => state.products);
+  const { categories } = useSelector((state) => state.categories);
+  const { subcategories } = useSelector((state) => state.subcategories);
+  const { subsubcategories } = useSelector((state) => state.subsubcategories);
 
   const [searchTerm, setSearchTerm] = useState("");
-
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Filter states
   const [filters, setFilters] = useState({
-    categories: [],
-    subCategories: [],
-    subsubCategories: [],
-    brands: [],
-    types: [],
-
+    category: "",
+    subCategory: "",
+    subsubCategory: "",
     minPrice: "",
     maxPrice: "",
-
     ratings: [],
   });
 
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
-    subCategories: true,
-    subsubCategories: true,
+    subCategories: false,
+    subsubCategories: false,
     price: true,
     ratings: true,
-    brand: true,
-    type: true,
-    color: true,
   });
+
+  const [applyFilterClicked, setApplyFilterClicked] = useState(false);
 
   const query = useQuery();
   const location = useLocation();
-
-  // Extract unique values for filters - with proper null checks
-  const uniqueCategories = [
-    ...new Set(products?.map((p) => p.category).filter(Boolean)),
-  ];
-  const uniqueSubCategories = [
-    ...new Set(products?.map((p) => p.subCategory).filter(Boolean)),
-  ];
-  const uniqueSubSubCategories = [
-    ...new Set(products?.map((p) => p.subsubCategory).filter(Boolean)),
-  ];
-  const uniqueBrands = [
-    ...new Set(products?.map((p) => p.brand).filter(Boolean)),
-  ];
-  const uniqueTypes = [
-    ...new Set(products?.map((p) => p.type).filter(Boolean)),
-  ];
 
   // Calculate dynamic price range
   useEffect(() => {
@@ -95,8 +77,12 @@ const Shop = () => {
     }
   }, [products]);
 
+  // Fetch all data
   useEffect(() => {
     dispatch(getProduct());
+    dispatch(getAdminCategory());
+    dispatch(getAdminSubcategories());
+    dispatch(getAdminSubsubcategories());
   }, [dispatch]);
 
   useEffect(() => {
@@ -118,42 +104,50 @@ const Shop = () => {
         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.type?.toLowerCase().includes(searchTerm.toLowerCase());
+        (product.category?.name || product.category)
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
-      // Category filters
+      // Category filters - FIXED: Compare with category name instead of ID
+      const productCategoryName = product.category?.name || product.category;
+      const selectedCategoryName = categories?.find(
+        (c) => c._id === filters.category
+      )?.name;
+
       const matchesCategory =
-        filters.categories.length === 0 ||
-        filters.categories.includes(product.category);
+        !filters.category || productCategoryName === selectedCategoryName;
+
+      // Sub Category filter - FIXED: Compare with subcategory name
+      const productSubCategoryName =
+        product.subCategory?.name || product.subCategory;
+      const selectedSubCategoryName = subcategories?.find(
+        (s) => s._id === filters.subCategory
+      )?.name;
 
       const matchesSubCategory =
-        filters.subCategories.length === 0 ||
-        (product.subCategory &&
-          filters.subCategories.includes(product.subCategory));
+        !filters.subCategory ||
+        productSubCategoryName === selectedSubCategoryName;
+
+      // Sub Sub Category filter - FIXED: Compare with subsubcategory name
+      const productSubSubCategoryName =
+        product.subsubCategory?.name || product.subsubCategory;
+      const selectedSubSubCategoryName = subsubcategories?.find(
+        (s) => s._id === filters.subsubCategory
+      )?.name;
 
       const matchesSubSubCategory =
-        filters.subsubCategories.length === 0 ||
-        (product.subsubCategory &&
-          filters.subsubCategories.includes(product.subsubCategory));
+        !filters.subsubCategory ||
+        productSubSubCategoryName === selectedSubSubCategoryName;
 
-      // Brand filter
-      const matchesBrand =
-        filters.brands.length === 0 ||
-        (product.brand && filters.brands.includes(product.brand));
-
-      // Type filter
-      const matchesType =
-        filters.types.length === 0 ||
-        (product.type && filters.types.includes(product.type));
-
-      // Price filter
+      // Price filter - Only apply if applyFilterClicked is true
       const productPrice = product.salePrice || product.oldPrice || 0;
       const minPriceValue = parseInt(filters.minPrice) || priceRange.min;
       const maxPriceValue = parseInt(filters.maxPrice) || priceRange.max;
 
-      const matchesMinPrice = productPrice >= minPriceValue;
-      const matchesMaxPrice = productPrice <= maxPriceValue;
+      const matchesMinPrice =
+        !applyFilterClicked || productPrice >= minPriceValue;
+      const matchesMaxPrice =
+        !applyFilterClicked || productPrice <= maxPriceValue;
 
       // Ratings filter
       const matchesRating =
@@ -167,8 +161,6 @@ const Shop = () => {
         matchesCategory &&
         matchesSubCategory &&
         matchesSubSubCategory &&
-        matchesBrand &&
-        matchesType &&
         matchesMinPrice &&
         matchesMaxPrice &&
         matchesRating
@@ -176,7 +168,16 @@ const Shop = () => {
     });
 
     setFilteredProducts(filtered);
-  }, [products, searchTerm, filters, priceRange]);
+  }, [
+    products,
+    searchTerm,
+    filters,
+    priceRange,
+    applyFilterClicked,
+    categories,
+    subcategories,
+    subsubcategories,
+  ]);
 
   useEffect(() => {
     applyFilters();
@@ -193,10 +194,23 @@ const Shop = () => {
             : [...prev[filterType], value],
         };
       } else {
-        return {
-          ...prev,
-          [filterType]: value,
-        };
+        // For single select filters, reset dependent filters
+        const newFilters = { ...prev, [filterType]: value };
+
+        if (filterType === "category") {
+          newFilters.subCategory = "";
+          newFilters.subsubCategory = "";
+          setExpandedSections((prev) => ({
+            ...prev,
+            subCategories: true,
+            subsubCategories: false,
+          }));
+        } else if (filterType === "subCategory") {
+          newFilters.subsubCategory = "";
+          setExpandedSections((prev) => ({ ...prev, subsubCategories: true }));
+        }
+
+        return newFilters;
       }
     });
   };
@@ -209,19 +223,27 @@ const Shop = () => {
     }));
   };
 
+  const handleApplyFilters = () => {
+    setApplyFilterClicked(true);
+  };
+
   const clearAllFilters = () => {
     setFilters({
-      categories: [],
-      subCategories: [],
-      subsubCategories: [],
-      brands: [],
-      types: [],
-
+      category: "",
+      subCategory: "",
+      subsubCategory: "",
       minPrice: priceRange.min.toString(),
       maxPrice: priceRange.max.toString(),
-
       ratings: [],
     });
+    setExpandedSections({
+      categories: true,
+      subCategories: false,
+      subsubCategories: false,
+      price: true,
+      ratings: true,
+    });
+    setApplyFilterClicked(false);
     setSearchTerm("");
     navigate("/shop");
   };
@@ -233,49 +255,41 @@ const Shop = () => {
     }));
   };
 
-  // Get filtered subcategories based on selected categories
+  // Get filtered subcategories based on selected category
   const getFilteredSubCategories = () => {
-    if (filters.categories.length === 0) return uniqueSubCategories;
-    return uniqueSubCategories.filter((subCat) =>
-      products.some(
-        (product) =>
-          product.subCategory === subCat &&
-          filters.categories.includes(product.category)
-      )
+    if (!filters.category) return [];
+    return (
+      subcategories?.filter(
+        (subCat) => subCat.category?._id === filters.category
+      ) || []
     );
   };
 
-  // Get filtered subsubcategories based on selected categories and subcategories
+  // Get filtered subsubcategories based on selected category and subcategory
   const getFilteredSubSubCategories = () => {
-    if (filters.categories.length === 0 && filters.subCategories.length === 0)
-      return uniqueSubSubCategories;
-
-    return uniqueSubSubCategories.filter((subSubCat) =>
-      products.some(
-        (product) =>
-          product.subsubCategory === subSubCat &&
-          (filters.categories.length === 0 ||
-            filters.categories.includes(product.category)) &&
-          (filters.subCategories.length === 0 ||
-            filters.subCategories.includes(product.subCategory))
-      )
+    if (!filters.subCategory) return [];
+    return (
+      subsubcategories?.filter(
+        (subSubCat) => subSubCat.subcategory?._id === filters.subCategory
+      ) || []
     );
   };
 
   // Calculate active filters count for mobile button
   const getActiveFiltersCount = () => {
-    return Object.entries(filters).filter(([key, value]) => {
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      } else {
-        return (
-          value !== "all" &&
-          value !== "" &&
-          (key !== "minPrice" || value !== priceRange.min.toString()) &&
-          (key !== "maxPrice" || value !== priceRange.max.toString())
-        );
-      }
-    }).length;
+    return (
+      Object.entries(filters).filter(([key, value]) => {
+        if (Array.isArray(value)) {
+          return value.length > 0;
+        } else {
+          return (
+            value !== "" &&
+            (key !== "minPrice" || value !== priceRange.min.toString()) &&
+            (key !== "maxPrice" || value !== priceRange.max.toString())
+          );
+        }
+      }).length + (applyFilterClicked ? 1 : 0)
+    );
   };
 
   const showSearchInfo = searchTerm && filteredProducts.length > 0;
@@ -295,6 +309,132 @@ const Shop = () => {
       </div>
 
       <div className="space-y-6">
+        {/* Categories */}
+        {categories && categories.length > 0 && (
+          <div className="border-b border-gray-200 pb-6">
+            <button
+              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
+              onClick={() => toggleSection("categories")}
+            >
+              <span className="flex items-center gap-2">
+                <FiLayers className="w-4 h-4" />
+                Categories
+              </span>
+              {expandedSections.categories ? (
+                <FiChevronUp />
+              ) : (
+                <FiChevronDown />
+              )}
+            </button>
+
+            {expandedSections.categories && (
+              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                {categories.map((category) => (
+                  <label
+                    key={category._id}
+                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                  >
+                    <input
+                      type="radio"
+                      name="category"
+                      checked={filters.category === category._id}
+                      onChange={() =>
+                        handleFilterChange("category", category._id)
+                      }
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">{category.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sub Categories - Only show if category is selected */}
+        {filters.category && getFilteredSubCategories().length > 0 && (
+          <div className="border-b border-gray-200 pb-6">
+            <button
+              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
+              onClick={() => toggleSection("subCategories")}
+            >
+              <span className="flex items-center gap-2">
+                <FiBox className="w-4 h-4" />
+                Sub Categories
+              </span>
+              {expandedSections.subCategories ? (
+                <FiChevronUp />
+              ) : (
+                <FiChevronDown />
+              )}
+            </button>
+
+            {expandedSections.subCategories && (
+              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                {getFilteredSubCategories().map((subCategory) => (
+                  <label
+                    key={subCategory._id}
+                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                  >
+                    <input
+                      type="radio"
+                      name="subCategory"
+                      checked={filters.subCategory === subCategory._id}
+                      onChange={() =>
+                        handleFilterChange("subCategory", subCategory._id)
+                      }
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">{subCategory.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sub Sub Categories - Only show if subcategory is selected */}
+        {filters.subCategory && getFilteredSubSubCategories().length > 0 && (
+          <div className="border-b border-gray-200 pb-6">
+            <button
+              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
+              onClick={() => toggleSection("subsubCategories")}
+            >
+              <span className="flex items-center gap-2">
+                <FiLayers className="w-4 h-4" />
+                Sub Sub Categories
+              </span>
+              {expandedSections.subsubCategories ? (
+                <FiChevronUp />
+              ) : (
+                <FiChevronDown />
+              )}
+            </button>
+
+            {expandedSections.subsubCategories && (
+              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                {getFilteredSubSubCategories().map((subSubCategory) => (
+                  <label
+                    key={subSubCategory._id}
+                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                  >
+                    <input
+                      type="radio"
+                      name="subsubCategory"
+                      checked={filters.subsubCategory === subSubCategory._id}
+                      onChange={() =>
+                        handleFilterChange("subsubCategory", subSubCategory._id)
+                      }
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">{subSubCategory.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Price Range */}
         <div className="border-b border-gray-200 pb-6">
           <button
@@ -342,204 +482,15 @@ const Shop = () => {
               <div className="text-xs text-gray-500">
                 Range: ৳{priceRange.min} - ৳{priceRange.max}
               </div>
+              <button
+                onClick={handleApplyFilters}
+                className="w-full py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                Apply Price Filter
+              </button>
             </div>
           )}
         </div>
-
-        {/* Categories */}
-        {uniqueCategories.length > 0 && (
-          <div className="border-b border-gray-200 pb-6">
-            <button
-              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
-              onClick={() => toggleSection("categories")}
-            >
-              <span className="flex items-center gap-2">
-                <FiLayers className="w-4 h-4" />
-                Categories
-              </span>
-              {expandedSections.categories ? (
-                <FiChevronUp />
-              ) : (
-                <FiChevronDown />
-              )}
-            </button>
-
-            {expandedSections.categories && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {uniqueCategories.map((category) => (
-                  <label
-                    key={category}
-                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.categories.includes(category)}
-                      onChange={() =>
-                        handleFilterChange("categories", category)
-                      }
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-gray-700">{category}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Sub Categories */}
-        {getFilteredSubCategories().length > 0 && (
-          <div className="border-b border-gray-200 pb-6">
-            <button
-              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
-              onClick={() => toggleSection("subCategories")}
-            >
-              <span className="flex items-center gap-2">
-                <FiBox className="w-4 h-4" />
-                Sub Categories
-              </span>
-              {expandedSections.subCategories ? (
-                <FiChevronUp />
-              ) : (
-                <FiChevronDown />
-              )}
-            </button>
-
-            {expandedSections.subCategories && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {getFilteredSubCategories().map((subCategory) => (
-                  <label
-                    key={subCategory}
-                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.subCategories.includes(subCategory)}
-                      onChange={() =>
-                        handleFilterChange("subCategories", subCategory)
-                      }
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-gray-700">{subCategory}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Sub Sub Categories */}
-        {getFilteredSubSubCategories().length > 0 && (
-          <div className="border-b border-gray-200 pb-6">
-            <button
-              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
-              onClick={() => toggleSection("subsubCategories")}
-            >
-              <span className="flex items-center gap-2">
-                <FiLayers className="w-4 h-4" />
-                Sub Sub Categories
-              </span>
-              {expandedSections.subsubCategories ? (
-                <FiChevronUp />
-              ) : (
-                <FiChevronDown />
-              )}
-            </button>
-
-            {expandedSections.subsubCategories && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {getFilteredSubSubCategories().map((subSubCategory) => (
-                  <label
-                    key={subSubCategory}
-                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.subsubCategories.includes(
-                        subSubCategory
-                      )}
-                      onChange={() =>
-                        handleFilterChange("subsubCategories", subSubCategory)
-                      }
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-gray-700">{subSubCategory}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Brands */}
-        {uniqueBrands.length > 0 && (
-          <div className="border-b border-gray-200 pb-6">
-            <button
-              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
-              onClick={() => toggleSection("brand")}
-            >
-              <span className="flex items-center gap-2">
-                <FiTag className="w-4 h-4" />
-                Brands
-              </span>
-              {expandedSections.brand ? <FiChevronUp /> : <FiChevronDown />}
-            </button>
-
-            {expandedSections.brand && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {uniqueBrands.map((brand) => (
-                  <label
-                    key={brand}
-                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.brands.includes(brand)}
-                      onChange={() => handleFilterChange("brands", brand)}
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-gray-700">{brand}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Types */}
-        {uniqueTypes.length > 0 && (
-          <div className="border-b border-gray-200 pb-6">
-            <button
-              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
-              onClick={() => toggleSection("type")}
-            >
-              <span className="flex items-center gap-2">
-                <FiBox className="w-4 h-4" />
-                Types
-              </span>
-              {expandedSections.type ? <FiChevronUp /> : <FiChevronDown />}
-            </button>
-
-            {expandedSections.type && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {uniqueTypes.map((type) => (
-                  <label
-                    key={type}
-                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.types.includes(type)}
-                      onChange={() => handleFilterChange("types", type)}
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-gray-700">{type}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Ratings */}
         <div className="border-b border-gray-200 pb-6">
@@ -651,86 +602,55 @@ const Shop = () => {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {filters.categories.map((category) => (
-                    <span
-                      key={category}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                    >
-                      Category: {category}
+                  {filters.category && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      Category:{" "}
+                      {
+                        categories?.find((c) => c._id === filters.category)
+                          ?.name
+                      }
                       <button
-                        onClick={() =>
-                          handleFilterChange("categories", category)
-                        }
+                        onClick={() => handleFilterChange("category", "")}
                         className="hover:text-green-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
-                  ))}
+                  )}
 
-                  {filters.subCategories.map((subCategory) => (
-                    <span
-                      key={subCategory}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                    >
-                      Sub: {subCategory}
+                  {filters.subCategory && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      Sub:{" "}
+                      {
+                        subcategories?.find(
+                          (s) => s._id === filters.subCategory
+                        )?.name
+                      }
                       <button
-                        onClick={() =>
-                          handleFilterChange("subCategories", subCategory)
-                        }
+                        onClick={() => handleFilterChange("subCategory", "")}
                         className="hover:text-blue-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
-                  ))}
+                  )}
 
-                  {filters.subsubCategories.map((subSubCategory) => (
-                    <span
-                      key={subSubCategory}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
-                    >
-                      Sub Sub: {subSubCategory}
+                  {filters.subsubCategory && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                      Sub Sub:{" "}
+                      {
+                        subsubcategories?.find(
+                          (s) => s._id === filters.subsubCategory
+                        )?.name
+                      }
                       <button
-                        onClick={() =>
-                          handleFilterChange("subsubCategories", subSubCategory)
-                        }
+                        onClick={() => handleFilterChange("subsubCategory", "")}
                         className="hover:text-indigo-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
-                  ))}
-
-                  {filters.brands.map((brand) => (
-                    <span
-                      key={brand}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
-                    >
-                      Brand: {brand}
-                      <button
-                        onClick={() => handleFilterChange("brands", brand)}
-                        className="hover:text-purple-900"
-                      >
-                        <FiX className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-
-                  {filters.types.map((type) => (
-                    <span
-                      key={type}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm"
-                    >
-                      Type: {type}
-                      <button
-                        onClick={() => handleFilterChange("types", type)}
-                        className="hover:text-orange-900"
-                      >
-                        <FiX className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
+                  )}
 
                   {filters.ratings.map((rating) => (
                     <span
@@ -747,18 +667,11 @@ const Shop = () => {
                     </span>
                   ))}
 
-                  {(filters.minPrice !== priceRange.min.toString() ||
-                    filters.maxPrice !== priceRange.max.toString()) && (
+                  {applyFilterClicked && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
                       Price: ৳{filters.minPrice} - ৳{filters.maxPrice}
                       <button
-                        onClick={() => {
-                          setFilters((prev) => ({
-                            ...prev,
-                            minPrice: priceRange.min.toString(),
-                            maxPrice: priceRange.max.toString(),
-                          }));
-                        }}
+                        onClick={() => setApplyFilterClicked(false)}
                         className="hover:text-gray-900"
                       >
                         <FiX className="w-3 h-3" />

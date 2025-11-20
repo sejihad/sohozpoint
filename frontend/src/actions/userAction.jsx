@@ -149,6 +149,14 @@ export const register = (userData) => async (dispatch) => {
       config
     );
 
+    // OTP is required after registration
+    dispatch({
+      type: OTP_REQUIRED,
+      payload: {
+        userId: data.userId, // required for OTP verification
+      },
+    });
+
     dispatch({ type: REGISTER_USER_SUCCESS, payload: data.message });
   } catch (error) {
     dispatch({
@@ -157,6 +165,7 @@ export const register = (userData) => async (dispatch) => {
     });
   }
 };
+
 // loadUser
 export const loadUser = () => async (dispatch) => {
   try {

@@ -65,6 +65,7 @@ const UpdateProduct = () => {
     subCategory: "",
     subsubCategory: "",
     videoLink: "",
+    source: "",
   });
 
   const [existingImages, setExistingImages] = useState([]);
@@ -129,6 +130,7 @@ const UpdateProduct = () => {
         subCategory: product.subCategory || "",
         subsubCategory: product.subsubCategory || "",
         videoLink: product.videoLink || "",
+        source: product.source || "",
       });
 
       if (product.listItems && product.listItems.length > 0) {
@@ -278,6 +280,7 @@ const UpdateProduct = () => {
     data.set("description", formData.description);
     data.set("type", formData.type);
     data.set("brand", formData.brand);
+    data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
     data.set("oldPrice", formData.oldPrice);
     data.set("salePrice", formData.salePrice);
@@ -671,6 +674,20 @@ const UpdateProduct = () => {
                   </p>
                 </div>
 
+                {/* Product Source */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Source
+                  </label>
+                  <input
+                    type="text"
+                    name="source"
+                    placeholder="Enter Product Source "
+                    value={formData.source}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
                 {/* Video Link */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

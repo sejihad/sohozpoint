@@ -192,7 +192,7 @@ const SubsubcategoryManager = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen container bg-gray-50">
       <MetaData title="Manage Sub-subcategories" />
       <div className="flex flex-col md:flex-row">
         <Sidebar />

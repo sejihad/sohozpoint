@@ -25,6 +25,9 @@ const productSchema = new mongoose.Schema({
   brand: {
     type: String,
   },
+  source: {
+    type: String,
+  },
   videoLink: {
     type: String,
     default: null,

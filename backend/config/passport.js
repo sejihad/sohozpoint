@@ -14,6 +14,7 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails[0].value;
       const name = profile.displayName;
+      const number = null;
       let avatar = profile.photos[0].value;
       const googleId = profile.id;
       avatar = avatar.replace(/=s[0-9]+-c/, "=s400-c");
@@ -24,6 +25,7 @@ passport.use(
           user = await User.create({
             name,
             email,
+            number,
             avatar: { url: avatar },
             googleId,
             provider: "google",
@@ -50,7 +52,7 @@ passport.use(
         "name",
         "displayName",
         "picture.type(large)",
-      ], // email access এর জন্য
+      ],
     },
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails?.[0]?.value || `${profile.id}@facebook.com`; // fallback email

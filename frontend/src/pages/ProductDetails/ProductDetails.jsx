@@ -409,7 +409,7 @@ const ProductDetails = () => {
       return;
     }
     if (!user?.country || !user?.number) {
-      toast.info("First Complete Your Profile");
+      toast.info("Add Phone Number On Your Profile");
       navigate("/profile/update", {
         state: {
           from: "/checkout",
@@ -490,7 +490,7 @@ const ProductDetails = () => {
       return;
     }
     if (!user?.country || !user?.number) {
-      toast.info("First Complete Your Profile");
+      toast.info("Add Phone Number on  Your Profile");
       navigate("/profile/update", {
         state: {
           from: "/checkout",

@@ -36,6 +36,7 @@ const Login = () => {
 
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
+  const [registerNumber, setRegisterNumber] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerPasswordVisible, setRegisterPasswordVisible] = useState(false);
 
@@ -109,6 +110,7 @@ const Login = () => {
     const formData = new FormData();
     formData.set("name", registerName);
     formData.set("email", registerEmail);
+    formData.set("number", registerNumber);
     formData.set("password", registerPassword);
 
     dispatch(register(formData));
@@ -146,12 +148,35 @@ const Login = () => {
               <h1>Login</h1>
               <div className="input-box">
                 <input
-                  type="email"
-                  placeholder="Email"
+                  type="text"
+                  placeholder="Email or Phone"
                   required
                   value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Allow email OR number:
+                    // If only numbers → validate phone length
+                    if (/^\d*$/.test(value)) {
+                      // only numbers
+                      if (value.length <= 11) {
+                        setLoginEmail(value);
+                      }
+                    } else {
+                      // allow email typing
+                      setLoginEmail(value);
+                    }
+                  }}
                 />
+
+                {/* Phone number validation */}
+                {loginEmail &&
+                  /^\d+$/.test(loginEmail) &&
+                  loginEmail.length !== 11 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Phone number must be exactly 11 digits.
+                    </p>
+                  )}
               </div>
               <div className="input-box password-box">
                 <input
@@ -223,6 +248,27 @@ const Login = () => {
                 value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
               />
+            </div>
+            <div className="input-box">
+              <input
+                type="number"
+                placeholder="Phone Number"
+                required
+                value={registerNumber}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only digits and max 11 characters
+                  if (/^\d{0,11}$/.test(value)) {
+                    setRegisterNumber(value);
+                  }
+                }}
+                maxLength={11}
+              />
+              {registerNumber.length > 0 && registerNumber.length !== 11 && (
+                <p className="text-red-500 text-sm mt-1">
+                  Phone number must be exactly 11 digits.
+                </p>
+              )}
             </div>
             <div className="input-box password-box">
               <input
