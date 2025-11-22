@@ -12,8 +12,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import slugify from "slugify";
 import { getProduct } from "../../actions/productAction";
-import { getAdminSubcategories } from "../../actions/subcategoryAction";
-import { getAdminSubsubcategories } from "../../actions/subsubcategoryAction";
+import { getSubcategories } from "../../actions/subcategoryAction";
+import { getSubsubcategories } from "../../actions/subsubcategoryAction";
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
 
@@ -47,8 +47,8 @@ const CatProduct = () => {
 
   useEffect(() => {
     dispatch(getProduct());
-    dispatch(getAdminSubcategories());
-    dispatch(getAdminSubsubcategories());
+    dispatch(getSubcategories());
+    dispatch(getSubsubcategories());
   }, [dispatch]);
 
   const categoryProducts = useMemo(

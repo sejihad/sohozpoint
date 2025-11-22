@@ -10,10 +10,10 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getAdminCategory } from "../../actions/categoryAction";
+import { getCategory } from "../../actions/categoryAction";
 import { getProduct } from "../../actions/productAction";
-import { getAdminSubcategories } from "../../actions/subcategoryAction";
-import { getAdminSubsubcategories } from "../../actions/subsubcategoryAction";
+import { getSubcategories } from "../../actions/subcategoryAction";
+import { getSubsubcategories } from "../../actions/subsubcategoryAction";
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
 
@@ -80,9 +80,9 @@ const Shop = () => {
   // Fetch all data
   useEffect(() => {
     dispatch(getProduct());
-    dispatch(getAdminCategory());
-    dispatch(getAdminSubcategories());
-    dispatch(getAdminSubsubcategories());
+    dispatch(getCategory());
+    dispatch(getSubcategories());
+    dispatch(getSubsubcategories());
   }, [dispatch]);
 
   useEffect(() => {

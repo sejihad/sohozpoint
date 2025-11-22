@@ -58,6 +58,7 @@ import AllLogos from "./pages/Admin/AllLogos";
 import AllSubcategories from "./pages/Admin/AllSubcategories";
 import AllSubsubcategories from "./pages/Admin/AllSubsubcategories";
 import AllTypes from "./pages/Admin/AllTypes";
+import NewCustom from "./pages/Admin/newCustom";
 import NotificationManager from "./pages/Admin/NotificationManager";
 import Checkout from "./pages/Payment/Checkout";
 import PaymentCancel from "./pages/Payment/PaymentCancel";
@@ -394,6 +395,14 @@ const App = () => {
           element={
             <ProtectedRoute isAdmin={true}>
               <NewProduct />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/product/newcustom"
+          element={
+            <ProtectedRoute isAdmin={true}>
+              <NewCustom />
             </ProtectedRoute>
           }
         />
