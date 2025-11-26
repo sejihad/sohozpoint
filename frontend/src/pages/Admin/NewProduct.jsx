@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { FiPlus, FiTrash2, FiUpload, FiX } from "react-icons/fi";
+import { FiCheck, FiPlus, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
+import { getLogos } from "../../actions/logoAction";
 import { clearErrors, createProduct } from "../../actions/productAction";
 import { getSubcategories } from "../../actions/subcategoryAction";
 import { getSubsubcategories } from "../../actions/subsubcategoryAction";
@@ -21,6 +22,7 @@ const NewProduct = () => {
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
   const { types } = useSelector((state) => state.types);
   const { brands } = useSelector((state) => state.brands);
+  const { logos } = useSelector((state) => state.logos);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -44,16 +46,19 @@ const NewProduct = () => {
     subsubCategory: "",
     videoLink: "",
     source: "",
+    logos: [],
   });
 
   const [images, setImages] = useState([]);
   const [imagesPreview, setImagesPreview] = useState([]);
   const [customSizeInput, setCustomSizeInput] = useState("");
   const [selectedStandardSize, setSelectedStandardSize] = useState("");
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   const [listItems, setListItems] = useState([""]);
   const [listItemInput, setListItemInput] = useState("");
   const [colorInput, setColorInput] = useState(""); // Added for colors input
+
+  const [selectedLogos, setSelectedLogos] = useState([]); // Full logo objects for display
 
   // Standard size options
   const standardSizeOptions = [
@@ -82,6 +87,7 @@ const NewProduct = () => {
     dispatch(getSubsubcategories());
     dispatch(getTypes());
     dispatch(getBrands());
+    dispatch(getLogos());
 
     if (error) {
       toast.error(error);
@@ -94,15 +100,6 @@ const NewProduct = () => {
       resetForm();
     }
   }, [dispatch, error, success]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -127,6 +124,7 @@ const NewProduct = () => {
       subsubCategory: "",
       videoLink: "",
       source: "",
+      logos: [],
     });
     setImages([]);
     setImagesPreview([]);
@@ -135,22 +133,32 @@ const NewProduct = () => {
     setListItems([""]);
     setListItemInput("");
     setColorInput(""); // Reset color input
+    setSelectedLogos([]); // ✅ রিসেট
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "availability") {
-      // Fixed quantity logic based on availability
-      const newQuantity = value === "inStock" ? formData.quantity : "0";
+    if (name === "type") {
+      // ✅ Changed from "productType" to "type"
+      // ✅ Product type change হলে logo selection রিসেট
+      setFormData({
+        ...formData,
+        [name]: value,
+        logos: value === "custom" ? formData.logos : [],
+      });
 
+      if (value !== "custom") {
+        setSelectedLogos([]);
+      }
+    } else if (name === "availability") {
+      const newQuantity = value === "inStock" ? formData.quantity : "0";
       setFormData({
         ...formData,
         [name]: value,
         quantity: newQuantity,
       });
     } else if (name === "weight") {
-      // Allow only numbers and decimal point for weight
       if (value === "" || /^\d*\.?\d*$/.test(value)) {
         setFormData({
           ...formData,
@@ -165,6 +173,35 @@ const NewProduct = () => {
     }
   };
 
+  // ✅ Logo selection handlers - FIXED
+  const handleLogoSelect = (logoId) => {
+    setSelectedLogos((prev) => {
+      const newSelectedLogos = prev.includes(logoId)
+        ? prev.filter((id) => id !== logoId)
+        : [...prev, logoId];
+
+      // Update formData with logo IDs
+      setFormData({
+        ...formData,
+        logos: newSelectedLogos,
+      });
+
+      return newSelectedLogos;
+    });
+  };
+
+  // ✅ Remove logo from selection - FIXED
+  const removeLogoFromSelection = (logoId) => {
+    const newSelectedLogos = selectedLogos.filter((id) => id !== logoId);
+    setSelectedLogos(newSelectedLogos);
+
+    setFormData({
+      ...formData,
+      logos: newSelectedLogos,
+    });
+
+    toast.info("Logo removed from product");
+  };
   // Add standard size to the sizes array
   const addStandardSize = () => {
     if (
@@ -244,6 +281,10 @@ const NewProduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.type === "custom" && selectedLogos.length === 0) {
+      toast.error("Please select at least one logo for custom products");
+      return;
+    }
     const data = new FormData();
 
     data.set("name", formData.name);
@@ -285,7 +326,10 @@ const NewProduct = () => {
 
     data.set("weight", formData.weight);
     data.set("sold", formData.sold);
-
+    // ✅ Logo IDs append করুন
+    formData.logos.forEach((logoId) => {
+      data.append("logos", logoId);
+    });
     // Get category names
     const selectedCategory = categories.find(
       (cat) => cat._id === formData.category
@@ -466,6 +510,7 @@ const NewProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="">-- Select Product Type --</option>
+                    <option value="custom">Custom</option>
                     {types &&
                       types.map((type) => (
                         <option key={type._id} value={type.name}>
@@ -653,7 +698,102 @@ const NewProduct = () => {
                   />
                 </div>
               </div>
+              {/* Logo Selection Section - Only show when type is "custom" */}
+              {formData.type === "custom" && (
+                <div className="border-t pt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Select Logos for Custom Product{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
 
+                  {logos && logos.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {logos.map((logo) => (
+                          <div
+                            key={logo._id}
+                            className={`relative border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                              selectedLogos.includes(logo._id)
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-gray-300 hover:border-gray-400"
+                            }`}
+                            onClick={() => handleLogoSelect(logo._id)}
+                          >
+                            {logo.image && logo.image.url ? (
+                              <img
+                                src={logo.image.url}
+                                alt="Logo"
+                                className="w-full h-20 object-contain"
+                              />
+                            ) : (
+                              <div className="w-full h-20 flex items-center justify-center bg-gray-100 text-gray-400">
+                                No Image
+                              </div>
+                            )}
+
+                            {selectedLogos.includes(logo._id) && (
+                              <div className="absolute top-2 right-2 bg-indigo-500 text-white rounded-full p-1">
+                                <FiCheck size={12} />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Selected Logos Display */}
+                      {selectedLogos.length > 0 && (
+                        <div className="mt-6">
+                          <h3 className="font-medium text-gray-800 mb-3">
+                            Selected Logos ({selectedLogos.length}):
+                          </h3>
+                          <div className="flex flex-wrap gap-3">
+                            {selectedLogos.map((logoId) => {
+                              const logo = logos.find((l) => l._id === logoId);
+                              return (
+                                <div
+                                  key={logoId}
+                                  className="relative bg-white border border-gray-200 rounded-lg p-3 shadow-sm"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {/* Logo Image */}
+                                    {logo?.image?.url ? (
+                                      <img
+                                        src={logo.image.url}
+                                        alt="Selected Logo"
+                                        className="w-12 h-12 object-contain border border-gray-200 rounded"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 flex items-center justify-center bg-gray-100 text-gray-400 border border-gray-200 rounded">
+                                        <FiX size={16} />
+                                      </div>
+                                    )}
+
+                                    {/* Remove Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        removeLogoFromSelection(logoId)
+                                      }
+                                      className="text-red-500 hover:text-red-700 cursor-pointer p-1 hover:bg-red-50 rounded-full transition-colors"
+                                      title="Remove logo"
+                                    >
+                                      <FiX size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No logos available. Please add logos first.
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Size Selection Section */}
               <div className="border-t pt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-4">

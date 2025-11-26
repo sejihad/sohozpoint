@@ -58,14 +58,13 @@ import AllLogos from "./pages/Admin/AllLogos";
 import AllSubcategories from "./pages/Admin/AllSubcategories";
 import AllSubsubcategories from "./pages/Admin/AllSubsubcategories";
 import AllTypes from "./pages/Admin/AllTypes";
-import NewCustom from "./pages/Admin/newCustom";
+
 import NotificationManager from "./pages/Admin/NotificationManager";
 import Checkout from "./pages/Payment/Checkout";
 import PaymentCancel from "./pages/Payment/PaymentCancel";
 import PaymentFail from "./pages/Payment/PaymentFail";
 import PaymentSuccess from "./pages/Payment/PaymentSuccess";
 import PrivacyPolicy from "./pages/Privacy/PrivacyPolicy";
-import CustomProductDetails from "./pages/ProductDetails/CustomProductDetails";
 import ShippingPolicy from "./pages/ShippingPolicy/ShippingPolicy";
 import Shop from "./pages/Shop/Shop";
 import TermsConditions from "./pages/Terms/TermsAndConditions";
@@ -143,7 +142,7 @@ const App = () => {
 
         <Route path="/products/:category" element={<ProductPage />} />
         <Route path="/category/:category" element={<CatProduct />} />
-        <Route path="/custom-design/:slug" element={<CustomProductDetails />} />
+        {/* <Route path="/custom-design/:slug" element={<CustomProductDetails />} /> */}
         <Route path="/:category/:slug" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
 
@@ -398,14 +397,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/product/newcustom"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <NewCustom />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/admin/product/:id"
           element={

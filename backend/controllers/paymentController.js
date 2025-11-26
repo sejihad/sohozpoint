@@ -2,6 +2,7 @@
 const axios = require("axios");
 const crypto = require("crypto");
 const Order = require("../models/orderModel.js");
+const sendEmail = require("../utils/sendEmail");
 
 // EPS Credentials
 const {
@@ -98,6 +99,66 @@ const initializePayment = async (req, res) => {
       isPreOrder,
       coupon: coupon,
       orderStatus: "pending",
+    });
+    //---------------------------------------------------
+    // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
+    //---------------------------------------------------
+
+    let attachments = [];
+    let logoDetails = "";
+
+    // Loop through all order items
+    orderItems.forEach((item) => {
+      // If custom-product type
+      if (item.type === "custom-product") {
+        logoDetails += `\nProduct: ${item.name}\n`;
+
+        item.logos.forEach((logo) => {
+          logoDetails += `   Logo: ${logo.name}\n`;
+          logoDetails += `   Position: ${logo.position}\n`;
+
+          if (logo.isCustom) {
+            // CUSTOM LOGO → FILE ATTACHMENT
+            attachments.push({
+              filename: logo.name,
+              content: logo.image.url.split(";base64,").pop(),
+              encoding: "base64",
+            });
+            logoDetails += "   File: attached\n\n";
+          } else {
+            // DEFAULT LOGO → URL TEXT
+            logoDetails += `   URL: ${logo.image.url}\n\n`;
+          }
+        });
+      }
+    });
+
+    // Email body text
+    const emailMessage = `
+🛍 New Order Created
+
+Order ID: ${pendingOrder.orderId}
+Customer: ${shippingInfo.fullName}
+Phone: ${shippingInfo.phone}
+Email: ${shippingInfo.email}
+
+${
+  logoDetails
+    ? "---- LOGO DETAILS ----\n" + logoDetails
+    : "No custom logos selected."
+}
+
+Total Price: ৳${totalPrice}
+Paid: ৳${paymentInfo.amount}
+Remaining: ৳${cashOnDelivery}
+`;
+
+    // Send the email
+    await sendEmail({
+      email: process.env.SMTP_MAIL, // your admin email
+      subject: `New Order Created – #${pendingOrder.orderId}`,
+      message: emailMessage,
+      attachments: attachments,
     });
 
     // Step 2: Get EPS token (reuse if cached)

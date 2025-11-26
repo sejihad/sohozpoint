@@ -1,8 +1,10 @@
 const Product = require("../models/productModel");
+const Logo = require("../models/logoModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const slugify = require("slugify");
 const cloudinary = require("cloudinary");
+const mongoose = require("mongoose");
 
 const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
@@ -81,13 +83,44 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
       listItems = req.body.listItems.filter((item) => item);
     }
   }
+  // ✅ Process logos if provided
+  let logos = [];
+  if (req.body.logos) {
+    if (typeof req.body.logos === "string") {
+      try {
+        // Try to parse as JSON array first
+        logos = JSON.parse(req.body.logos);
+      } catch (e) {
+        // If not JSON, split by commas or handle as single value
+        logos = req.body.logos
+          .split(",")
+          .map((logoId) => logoId.trim())
+          .filter((logoId) => logoId);
+      }
+    } else if (Array.isArray(req.body.logos)) {
+      logos = req.body.logos.filter((logoId) => logoId);
+    }
 
+    // ✅ Validate that logo IDs are valid MongoDB ObjectIds
+    const validLogos = [];
+    for (const logoId of logos) {
+      if (mongoose.Types.ObjectId.isValid(logoId)) {
+        // ✅ Check if logo actually exists in database
+        const logoExists = await Logo.findById(logoId);
+        if (logoExists) {
+          validLogos.push(logoId);
+        }
+      }
+    }
+    logos = validLogos;
+  }
   // Create product
   const productData = {
     ...req.body,
     images,
     user: req.user.id,
     listItems,
+    logos,
   };
 
   // Convert numeric fields to numbers
@@ -173,6 +206,38 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
       updateData[field] = Number(req.body[field]);
     }
   });
+  // ✅ Handle logos update
+  if (req.body.logos !== undefined) {
+    let logos = [];
+
+    if (typeof req.body.logos === "string") {
+      try {
+        // Try to parse as JSON array first
+        logos = JSON.parse(req.body.logos);
+      } catch (e) {
+        // If not JSON, split by commas or handle as single value
+        logos = req.body.logos
+          .split(",")
+          .map((logoId) => logoId.trim())
+          .filter((logoId) => logoId);
+      }
+    } else if (Array.isArray(req.body.logos)) {
+      logos = req.body.logos.filter((logoId) => logoId);
+    }
+
+    // ✅ Validate that logo IDs are valid MongoDB ObjectIds
+    const validLogos = [];
+    for (const logoId of logos) {
+      if (mongoose.Types.ObjectId.isValid(logoId)) {
+        // ✅ Check if logo actually exists in database
+        const logoExists = await Logo.findById(logoId);
+        if (logoExists) {
+          validLogos.push(logoId);
+        }
+      }
+    }
+    updateData.logos = validLogos;
+  }
   if (req.body.listItems !== undefined) {
     let listItems = [];
     if (typeof req.body.listItems === "string") {
@@ -375,8 +440,11 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
 });
 
 // get single product
+
 const getProductDetails = catchAsyncErrors(async (req, res, next) => {
-  let product = await Product.findOne({ slug: req.params.slug });
+  let product = await Product.findOne({ slug: req.params.slug }).populate(
+    "logos"
+  ); // <-- Populate logos
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));

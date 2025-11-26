@@ -136,9 +136,15 @@ const ProductSection = ({
   loading,
   productType = "product",
   showViewAll = true,
-  productsPerRow,
+
   showCategory = true,
   showProductType = false,
+  productsPerRow = {
+    mobile: 2,
+    tablet: 2,
+    laptop: 3,
+    desktop: 5,
+  },
 }) => {
   const cols = {
     1: "grid-cols-1",

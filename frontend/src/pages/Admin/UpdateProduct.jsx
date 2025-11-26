@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   FiArrowLeft,
+  FiCheck,
   FiPlus,
   FiSave,
   FiTrash2,
@@ -12,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
+import { getLogos } from "../../actions/logoAction";
 import {
   clearErrors,
   getAdminProductDetails,
@@ -40,6 +42,7 @@ const UpdateProduct = () => {
 
   const { categories } = useSelector((state) => state.categories);
   const { subcategories } = useSelector((state) => state.subcategories);
+  const { logos } = useSelector((state) => state.logos);
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
   const { types } = useSelector((state) => state.types);
   const { brands } = useSelector((state) => state.brands);
@@ -66,12 +69,14 @@ const UpdateProduct = () => {
     subsubCategory: "",
     videoLink: "",
     source: "",
+    logos: [],
   });
 
   const [existingImages, setExistingImages] = useState([]);
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [newImagesPreview, setNewImagesPreview] = useState([]);
+  const [selectedLogos, setSelectedLogos] = useState([]);
   const [customSizeInput, setCustomSizeInput] = useState("");
   const [selectedStandardSize, setSelectedStandardSize] = useState("");
   const [listItems, setListItems] = useState([""]);
@@ -105,6 +110,7 @@ const UpdateProduct = () => {
     dispatch(getSubsubcategories());
     dispatch(getTypes());
     dispatch(getBrands());
+    dispatch(getLogos());
 
     if (product && product._id !== id) {
       dispatch(getAdminProductDetails(id));
@@ -131,8 +137,11 @@ const UpdateProduct = () => {
         subsubCategory: product.subsubCategory || "",
         videoLink: product.videoLink || "",
         source: product.source || "",
+        logos: product.logos || [],
       });
-
+      if (product.logos && product.logos.length > 0) {
+        setSelectedLogos(product.logos);
+      }
       if (product.listItems && product.listItems.length > 0) {
         setListItems(product.listItems);
       } else {
@@ -159,11 +168,50 @@ const UpdateProduct = () => {
       navigate("/admin/products");
     }
   }, [dispatch, error, updateError, isUpdated, id, product, navigate]);
+  // ✅ Logo selection handlers
+  const handleLogoSelect = (logoId) => {
+    setSelectedLogos((prev) => {
+      const newSelectedLogos = prev.includes(logoId)
+        ? prev.filter((id) => id !== logoId)
+        : [...prev, logoId];
+
+      // Update formData with logo IDs
+      setFormData({
+        ...formData,
+        logos: newSelectedLogos,
+      });
+
+      return newSelectedLogos;
+    });
+  };
+
+  // ✅ Remove logo from selection
+  const removeLogoFromSelection = (logoId) => {
+    const newSelectedLogos = selectedLogos.filter((id) => id !== logoId);
+    setSelectedLogos(newSelectedLogos);
+
+    setFormData({
+      ...formData,
+      logos: newSelectedLogos,
+    });
+
+    toast.info("Logo removed from product");
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === "type") {
+      // ✅ Product type change হলে logo selection রিসেট
+      setFormData({
+        ...formData,
+        [name]: value,
+        logos: value === "custom" ? formData.logos : [],
+      });
 
-    if (name === "availability") {
+      if (value !== "custom") {
+        setSelectedLogos([]);
+      }
+    } else if (name === "availability") {
       // FIXED: Use correct enum values
       const availabilityValue =
         value === "available"
@@ -272,6 +320,10 @@ const UpdateProduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.type === "custom" && selectedLogos.length === 0) {
+      toast.error("Please select at least one logo for custom products");
+      return;
+    }
     const data = new FormData();
 
     // Always send all required fields
@@ -286,7 +338,10 @@ const UpdateProduct = () => {
     data.set("salePrice", formData.salePrice);
     data.set("buyPrice", formData.buyPrice);
     data.set("sold", formData.sold);
-
+    // ✅ Logo IDs append করুন
+    formData.logos.forEach((logoId) => {
+      data.append("logos", logoId);
+    });
     // FIXED: Send listItems as array properly
     const validListItems = listItems.filter((item) => item.trim());
     validListItems.forEach((item) => {
@@ -500,7 +555,7 @@ const UpdateProduct = () => {
                   </select>
                 </div>
 
-                {/* Product Type */}
+                {/* Product Type Section */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Product Type
@@ -512,6 +567,7 @@ const UpdateProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="">-- Select Product Type --</option>
+                    <option value="custom">Custom</option>
                     {types &&
                       types.map((type) => (
                         <option key={type._id} value={type.name}>
@@ -703,7 +759,102 @@ const UpdateProduct = () => {
                   />
                 </div>
               </div>
+              {/* Logo Selection Section - Only show when type is "custom" */}
+              {formData.type === "custom" && (
+                <div className="border-t pt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Select Logos for Custom Product{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
 
+                  {logos && logos.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {logos.map((logo) => (
+                          <div
+                            key={logo._id}
+                            className={`relative border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                              selectedLogos.includes(logo._id)
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-gray-300 hover:border-gray-400"
+                            }`}
+                            onClick={() => handleLogoSelect(logo._id)}
+                          >
+                            {logo.image && logo.image.url ? (
+                              <img
+                                src={logo.image.url}
+                                alt="Logo"
+                                className="w-full h-20 object-contain"
+                              />
+                            ) : (
+                              <div className="w-full h-20 flex items-center justify-center bg-gray-100 text-gray-400">
+                                No Image
+                              </div>
+                            )}
+
+                            {selectedLogos.includes(logo._id) && (
+                              <div className="absolute top-2 right-2 bg-indigo-500 text-white rounded-full p-1">
+                                <FiCheck size={12} />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Selected Logos Display */}
+                      {selectedLogos.length > 0 && (
+                        <div className="mt-6">
+                          <h3 className="font-medium text-gray-800 mb-3">
+                            Selected Logos ({selectedLogos.length}):
+                          </h3>
+                          <div className="flex flex-wrap gap-3">
+                            {selectedLogos.map((logoId) => {
+                              const logo = logos.find((l) => l._id === logoId);
+                              return (
+                                <div
+                                  key={logoId}
+                                  className="relative bg-white border border-gray-200 rounded-lg p-3 shadow-sm"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {/* Logo Image */}
+                                    {logo?.image?.url ? (
+                                      <img
+                                        src={logo.image.url}
+                                        alt="Selected Logo"
+                                        className="w-12 h-12 object-contain border border-gray-200 rounded"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 flex items-center justify-center bg-gray-100 text-gray-400 border border-gray-200 rounded">
+                                        <FiX size={16} />
+                                      </div>
+                                    )}
+
+                                    {/* Remove Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        removeLogoFromSelection(logoId)
+                                      }
+                                      className="text-red-500 hover:text-red-700 cursor-pointer p-1 hover:bg-red-50 rounded-full transition-colors"
+                                      title="Remove logo"
+                                    >
+                                      <FiX size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No logos available. Please add logos first.
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Size Selection Section */}
               <div className="border-t pt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-4">

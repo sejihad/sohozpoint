@@ -1,4 +1,4 @@
-// ✅ Checkout.jsx (Final Fixed Version - All Issues Resolved)
+// ✅ Checkout.jsx (Preorder: 50% + Full Payment Options)
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import {
 } from "../../actions/couponAction";
 import { initializePayment } from "../../actions/paymentAction";
 import MetaData from "../../component/layout/MetaData";
+import Loader from "./Loader";
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -33,11 +34,7 @@ const Checkout = () => {
   } = useSelector((state) => state.payment);
 
   // Location state with defaults
-  const {
-    cartItems = [],
-
-    isPreOrder = false,
-  } = location.state || {};
+  const { cartItems = [], isPreOrder = false } = location.state || {};
 
   const [errors, setErrors] = useState({});
   // State variables
@@ -62,10 +59,13 @@ const Checkout = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Calculate total price and weight
-  const itemsPrice = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
+  const itemsPrice = cartItems.reduce((acc, item) => {
+    // If subtotal exists → use it
+    if (item.subtotal) return acc + Number(item.subtotal);
+
+    // Otherwise normal product price
+    return acc + item.price * item.quantity;
+  }, 0);
 
   const totalWeight = cartItems.reduce((acc, item) => {
     const itemWeight = parseFloat(item.weight) || 0;
@@ -126,7 +126,6 @@ const Checkout = () => {
   const baseDeliveryCharge = calculateBaseDeliveryCharge();
 
   // ✅ FIXED: Delivery discount logic - DELIVERY CHARGE ALWAYS PAYABLE
-  // ✅ FIXED: Delivery discount logic - EXACT WEIGHT BASED
   let deliveryDiscount = 0;
   let productDiscountFromFreeDelivery = 0;
 
@@ -140,8 +139,6 @@ const Checkout = () => {
       // ✅ FIX: Calculate delivery charge for free delivery products' total weight
       const freeDeliveryCharge =
         calculateItemDeliveryCharge(freeDeliveryWeight);
-
-      // ✅ FIX: Discount = free delivery products-এর exact delivery charge amount
       productDiscountFromFreeDelivery = freeDeliveryCharge;
     }
 
@@ -172,13 +169,17 @@ const Checkout = () => {
 
   if (paymentType === "delivery_only") {
     // COD: Pay delivery charge ALWAYS + product amount later
-    payableNow = payableDeliveryCharge; // ✅ ALWAYS pay delivery charge
+    payableNow = payableDeliveryCharge;
     remaining = finalProductTotal;
-  } else if (isPreOrder) {
-    // Preorder: Pay 50% product price + FULL delivery charge
+  } else if (paymentType === "preorder_50") {
+    // Preorder 50%: Pay 50% product price + FULL delivery charge
     const halfProductPrice = finalProductTotal * 0.5;
-    payableNow = halfProductPrice + payableDeliveryCharge; // ✅ Delivery charge FULL
+    payableNow = halfProductPrice + payableDeliveryCharge;
     remaining = finalProductTotal - halfProductPrice;
+  } else if (paymentType === "preorder_full") {
+    // Preorder Full: Pay full product price + delivery charge
+    payableNow = finalProductTotal + payableDeliveryCharge;
+    remaining = 0;
   } else {
     // Full payment: Pay everything including delivery charge
     payableNow = finalProductTotal + payableDeliveryCharge;
@@ -279,7 +280,6 @@ const Checkout = () => {
           "Tangail",
           "Thakurgaon",
         ];
-
         setDistricts(manualDistricts.sort());
       } catch (error) {
         console.error("Error loading districts:", error);
@@ -297,12 +297,14 @@ const Checkout = () => {
       dispatch(clearErrors());
     }
   }, [couponError, dispatch]);
+
   useEffect(() => {
     if (paymentError) {
       toast.error(paymentError);
       dispatch(clearErrors());
     }
   }, [paymentError, dispatch]);
+
   // Handle successful coupon application
   useEffect(() => {
     if (coupon && discountAmount && !couponError) {
@@ -313,12 +315,13 @@ const Checkout = () => {
   }, [coupon, discountAmount, couponError]);
 
   useEffect(() => {
-    if (isPreOrder) {
-      setPaymentType("preorder");
-      setPaymentMethod("full");
-    } else if (paymentMethod === "cod") {
+    if (isPreOrder && !paymentMethod) {
+      // Preorder এর জন্য default হিসেবে 50% payment সেট করুন
+      setPaymentMethod("preorder_50");
+      setPaymentType("preorder_50");
+    } else if (!isPreOrder && paymentMethod === "cod") {
       setPaymentType("delivery_only");
-    } else {
+    } else if (!isPreOrder && paymentMethod === "full") {
       setPaymentType("full");
     }
   }, [isPreOrder, paymentMethod]);
@@ -330,6 +333,7 @@ const Checkout = () => {
       }
     };
   }, [dispatch, isCouponApplied]);
+
   useEffect(() => {
     if (user) {
       setShippingInfo((prev) => ({
@@ -340,6 +344,7 @@ const Checkout = () => {
       }));
     }
   }, [user]);
+
   // Handlers
   const handleShippingChange = (e) => {
     const { name, value } = e.target;
@@ -348,7 +353,6 @@ const Checkout = () => {
       [name]: value,
     }));
 
-    // field change হলে error clear করো
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -357,6 +361,7 @@ const Checkout = () => {
 
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
+    setPaymentType(method);
   };
 
   // ✅ FIXED: Coupon Handlers
@@ -391,16 +396,10 @@ const Checkout = () => {
       newErrors.district = "Please select a district";
     if (!shippingInfo.thana.trim()) newErrors.thana = "Thana is required";
     if (!shippingInfo.address.trim()) newErrors.address = "Address is required";
+
     setErrors(newErrors);
-    if (
-      !shippingInfo.fullName ||
-      !shippingInfo.email ||
-      !shippingInfo.phone ||
-      !shippingInfo.district ||
-      !shippingInfo.thana ||
-      !shippingInfo.zipCode ||
-      !shippingInfo.address
-    ) {
+
+    if (Object.keys(newErrors).length > 0) {
       toast.error("Please fill all required shipping information");
       return;
     }
@@ -412,11 +411,6 @@ const Checkout = () => {
 
     if (!termsAccepted) {
       toast.error("Please accept Terms & Conditions before placing the order");
-      return;
-    }
-
-    if (isPreOrder && paymentMethod === "cod") {
-      toast.error("Cash on delivery not available for pre-orders");
       return;
     }
 
@@ -442,7 +436,6 @@ const Checkout = () => {
       couponDiscount: amounts.couponDiscount,
       totalPrice: amounts.finalTotal,
       cashOnDelivery: amounts.remaining > 0 ? amounts.remaining : 0,
-
       isPreOrder,
       coupon: isCouponApplied
         ? {
@@ -463,10 +456,14 @@ const Checkout = () => {
         return `Pay delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
         )}) now, product amount cash on delivery`;
-      case "preorder":
+      case "preorder_50":
         return `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
         )}) now, remaining 50% later`;
+      case "preorder_full":
+        return `Pay full product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
+          2
+        )}) now`;
       case "full":
         return `Pay full amount including delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
@@ -492,20 +489,23 @@ const Checkout = () => {
     );
   }
 
+  if (paymentLoading) {
+    return <Loader />;
+  }
+
   return (
     <>
       <MetaData title="Checkout - Complete Your Order" />
       <div className="min-h-screen bg-gray-50 py-4 md:py-8">
         <div className="container mx-auto px-3 md:px-4 max-w-6xl">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8 text-gray-800">
-            Checkout
+            Checkout {isPreOrder && "(Preorder)"}
           </h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Left Column - Shipping, Payment, Order Items */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
               {/* Shipping Information - Responsive */}
-
               <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-semibold mb-4">
                   Shipping Information
@@ -679,63 +679,109 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
+
               {/* Payment Method - Responsive */}
               <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-semibold mb-4">
                   Payment Method
                 </h2>
                 <div className="space-y-3">
-                  {!isPreOrder && (
-                    <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="cod"
-                        checked={paymentMethod === "cod"}
-                        onChange={(e) =>
-                          handlePaymentMethodChange(e.target.value)
-                        }
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
-                      />
-                      <div className="ml-3 flex-1 min-w-0">
-                        <span className="font-medium block text-sm md:text-base">
-                          Cash on Delivery
-                        </span>
-                        <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
-                          {`Pay ৳${amounts.payableDeliveryCharge.toFixed(
-                            2
-                          )} delivery charge now, product amount cash on delivery`}
-                        </p>
-                      </div>
-                    </label>
-                  )}
+                  {/* Preorder এর জন্য 50% + Full Payment দুইটা option */}
+                  {isPreOrder ? (
+                    <>
+                      <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="preorder_50"
+                          checked={paymentMethod === "preorder_50"}
+                          onChange={(e) =>
+                            handlePaymentMethodChange(e.target.value)
+                          }
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
+                        />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <span className="font-medium block text-sm md:text-base">
+                            50% Payment (Preorder)
+                          </span>
+                          <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
+                            Pay 50% product price + delivery charge now.
+                            Remaining 50% will be paid before delivery.
+                          </p>
+                        </div>
+                      </label>
 
-                  <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="full"
-                      checked={paymentMethod === "full"}
-                      onChange={(e) =>
-                        handlePaymentMethodChange(e.target.value)
-                      }
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
-                    />
-                    <div className="ml-3 flex-1 min-w-0">
-                      <span className="font-medium block text-sm md:text-base">
-                        Full Payment
-                      </span>
-                      <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
-                        {isPreOrder
-                          ? `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
+                      <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="preorder_full"
+                          checked={paymentMethod === "preorder_full"}
+                          onChange={(e) =>
+                            handlePaymentMethodChange(e.target.value)
+                          }
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
+                        />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <span className="font-medium block text-sm md:text-base">
+                            Full Payment (Preorder)
+                          </span>
+                          <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
+                            Pay full product price + delivery charge now.
+                          </p>
+                        </div>
+                      </label>
+                    </>
+                  ) : (
+                    // Regular order এর জন্য COD + Full Payment
+                    <>
+                      <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="cod"
+                          checked={paymentMethod === "cod"}
+                          onChange={(e) =>
+                            handlePaymentMethodChange(e.target.value)
+                          }
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
+                        />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <span className="font-medium block text-sm md:text-base">
+                            Cash on Delivery
+                          </span>
+                          <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
+                            {`Pay ৳${amounts.payableDeliveryCharge.toFixed(
                               2
-                            )}) now`
-                          : `Pay full amount including delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
+                            )} delivery charge now, product amount cash on delivery`}
+                          </p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-start p-3 md:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="full"
+                          checked={paymentMethod === "full"}
+                          onChange={(e) =>
+                            handlePaymentMethodChange(e.target.value)
+                          }
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 mt-1"
+                        />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <span className="font-medium block text-sm md:text-base">
+                            Full Payment
+                          </span>
+                          <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
+                            {`Pay full amount including delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
                               2
                             )})`}
-                      </p>
-                    </div>
-                  </label>
+                          </p>
+                        </div>
+                      </label>
+                    </>
+                  )}
                 </div>
 
                 {paymentType && (
@@ -746,6 +792,7 @@ const Checkout = () => {
                   </div>
                 )}
               </div>
+
               {/* Order Items - Responsive */}
               <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-semibold mb-4">
@@ -772,6 +819,11 @@ const Checkout = () => {
                             {item.color && <span>Color: {item.color} · </span>}
                             <span>Qty: {item.quantity}</span>
                           </div>
+                          {item.logoCharge > 0 && (
+                            <div className="text-xs text-blue-600 font-medium mt-1">
+                              Logo Charge: ৳{item.logoCharge}
+                            </div>
+                          )}
                           <div className="text-xs text-gray-600 mt-1">
                             {item.weight && (
                               <span>Weight: {item.weight}kg</span>
