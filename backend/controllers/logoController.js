@@ -3,6 +3,8 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
 const cloudinary = require("cloudinary");
+const uploadToS3 = require("../config/uploadToS3");
+const deleteFromS3 = require("../config/deleteFromS3");
 
 // ✅ Get All Logos (Public)
 const getAllLogos = catchAsyncErrors(async (req, res, next) => {
@@ -36,17 +38,14 @@ const createLogo = catchAsyncErrors(async (req, res, next) => {
     const file = req.files.image;
 
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-        { folder: "/product/logos" }
-      );
+      const uploaded = await uploadToS3(file, "product/logos");
 
       imageLink = {
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return res
         .status(500)
         .json({ success: false, message: "Image upload failed" });
@@ -85,30 +84,28 @@ const updateLogo = catchAsyncErrors(async (req, res, next) => {
 
   // Handle image update
   if (req.files?.image) {
-    // Delete old image if exists
+    const file = req.files.image;
+
+    // 1️⃣ Delete old image from S3
     if (logo.image?.public_id) {
       try {
-        await cloudinary.uploader.destroy(logo.image.public_id);
+        await deleteFromS3(logo.image.public_id);
       } catch (error) {
-        console.error("Cloudinary Deletion Error:", error);
+        console.error("S3 Deletion Error:", error);
+        // continue even if delete fails
       }
     }
 
-    // Upload new image
+    // 2️⃣ Upload new image to S3
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${
-          req.files.image.mimetype
-        };base64,${req.files.image.data.toString("base64")}`,
-        { folder: "/product/logos" }
-      );
+      const uploaded = await uploadToS3(file, "product/logos");
 
       logo.image = {
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -136,9 +133,9 @@ const deleteLogo = catchAsyncErrors(async (req, res, next) => {
 
   if (logo.image && logo.image.public_id) {
     try {
-      await cloudinary.uploader.destroy(logo.image.public_id);
+      await deleteFromS3(logo.image.public_id);
     } catch (error) {
-      console.error("Cloudinary Deletion Error:", error);
+      console.error("S3 Deletion Error:", error);
     }
   }
 

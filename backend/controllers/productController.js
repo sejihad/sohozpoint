@@ -5,6 +5,8 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const slugify = require("slugify");
 const cloudinary = require("cloudinary");
 const mongoose = require("mongoose");
+const uploadToS3 = require("../config/uploadToS3");
+const deleteFromS3 = require("../config/deleteFromS3");
 
 const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
@@ -44,19 +46,14 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
 
   for (const file of files) {
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-        {
-          folder: "/product/products",
-          resource_type: "image",
-        }
-      );
+      const uploaded = await uploadToS3(file, "product/products");
+
       images.push({
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       });
     } catch (error) {
-      console.error("Image upload error:", error);
+      console.error("S3 upload error:", error);
       return res.status(500).json({
         success: false,
         message: "Failed to upload product images",
@@ -133,17 +130,38 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
     : 0;
 
   // Process sizes if provided
-  if (req.body.sizes && typeof req.body.sizes === "string") {
-    productData.sizes = req.body.sizes
-      .split(",")
-      .map((size) => size.trim())
-      .filter((size) => size);
+  // Sizes
+  if (req.body.sizes) {
+    try {
+      const parsedSizes =
+        typeof req.body.sizes === "string"
+          ? JSON.parse(req.body.sizes)
+          : req.body.sizes;
+
+      productData.sizes = parsedSizes.map((item) => ({
+        name: item.name?.trim(),
+        price: Number(item.price) || 0,
+      }));
+    } catch (err) {
+      console.error("Sizes parsing error:", err);
+    }
   }
-  if (req.body.colors && typeof req.body.colors === "string") {
-    productData.colors = req.body.colors
-      .split(",")
-      .map((color) => color.trim())
-      .filter((color) => color);
+
+  // Colors
+  if (req.body.colors) {
+    try {
+      const parsedColors =
+        typeof req.body.colors === "string"
+          ? JSON.parse(req.body.colors)
+          : req.body.colors;
+
+      productData.colors = parsedColors.map((item) => ({
+        name: item.name?.trim(),
+        price: Number(item.price) || 0,
+      }));
+    } catch (err) {
+      console.error("Colors parsing error:", err);
+    }
   }
 
   const product = await Product.create(productData);
@@ -254,29 +272,37 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     }
     updateData.listItems = listItems;
   }
-  // Handle sizes
+  // Sizes Update
   if (req.body.sizes !== undefined) {
     try {
-      if (typeof req.body.sizes === "string") {
-        updateData.sizes = req.body.sizes.split(",").map((size) => size.trim());
-      } else if (Array.isArray(req.body.sizes)) {
-        updateData.sizes = req.body.sizes;
-      }
-    } catch (error) {
-      console.error("Error parsing sizes:", error);
+      const parsedSizes =
+        typeof req.body.sizes === "string"
+          ? JSON.parse(req.body.sizes)
+          : req.body.sizes;
+
+      updateData.sizes = parsedSizes.map((item) => ({
+        name: item.name?.trim(),
+        price: Number(item.price) || 0,
+      }));
+    } catch (err) {
+      console.error("Sizes update error:", err);
     }
   }
+
+  // Colors Update
   if (req.body.colors !== undefined) {
     try {
-      if (typeof req.body.colors === "string") {
-        updateData.colors = req.body.colors
-          .split(",")
-          .map((color) => color.trim());
-      } else if (Array.isArray(req.body.colors)) {
-        updateData.colors = req.body.colors;
-      }
-    } catch (error) {
-      console.error("Error parsing colors:", error);
+      const parsedColors =
+        typeof req.body.colors === "string"
+          ? JSON.parse(req.body.colors)
+          : req.body.colors;
+
+      updateData.colors = parsedColors.map((item) => ({
+        name: item.name?.trim(),
+        price: Number(item.price) || 0,
+      }));
+    } catch (err) {
+      console.error("Colors update error:", err);
     }
   }
 
@@ -288,46 +314,40 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
   // Handle images - only if images are being updated
   if (req.files && req.files.images) {
     try {
-      // Get images to delete from request
+      // 1️⃣ Parse imagesToDelete (যে ইমেজগুলো বাদ দিবে)
       const imagesToDelete = req.body.imagesToDelete
         ? JSON.parse(req.body.imagesToDelete)
         : [];
 
-      // Delete specified images from cloudinary
+      // 2️⃣ Delete from S3
       for (const img of imagesToDelete) {
         if (img.public_id) {
-          await cloudinary.uploader.destroy(img.public_id);
+          await deleteFromS3(img.public_id); // <-- DELETE FROM S3
         }
       }
 
-      // Upload new images
+      // 3️⃣ Upload new images
       const files = Array.isArray(req.files.images)
         ? req.files.images
         : [req.files.images];
 
       const newImages = [];
+
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(
-          `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-          {
-            folder: "/product/products",
-            resource_type: "image",
-          }
-        );
+        const uploaded = await uploadToS3(file, "product/products");
+
         newImages.push({
-          public_id: result.public_id,
-          url: result.secure_url,
+          public_id: uploaded.key,
+          url: uploaded.url,
         });
       }
 
-      // Combine remaining existing images with new images
+      // 4️⃣ Remaining old images (যেগুলো delete হয়নি)
       const remainingImages = product.images.filter(
-        (img) =>
-          !imagesToDelete.some(
-            (toDelete) => toDelete.public_id === img.public_id
-          )
+        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id)
       );
 
+      // 5️⃣ Final image array (old + new)
       updateData.images = [...remainingImages, ...newImages];
     } catch (error) {
       console.error("Images update error:", error);
@@ -336,30 +356,29 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
         message: "Failed to update product images",
       });
     }
-  } else if (req.body.imagesToDelete) {
-    // Handle case where only images are being deleted (no new images added)
+  }
+  //-----------------------------------------------------
+  else if (req.body.imagesToDelete) {
+    // ⭐ Case: শুধু ডিলিট করা, নতুন ছবি নাই
     try {
       const imagesToDelete = JSON.parse(req.body.imagesToDelete);
 
-      // Delete from cloudinary
+      // Delete from S3
       for (const img of imagesToDelete) {
         if (img.public_id) {
-          await cloudinary.uploader.destroy(img.public_id);
+          await deleteFromS3(img.public_id);
         }
       }
 
-      // Update images array by removing deleted images
+      // Remove from database array
       updateData.images = product.images.filter(
-        (img) =>
-          !imagesToDelete.some(
-            (toDelete) => toDelete.public_id === img.public_id
-          )
+        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id)
       );
     } catch (error) {
       console.error("Images deletion error:", error);
       return res.status(500).json({
         success: false,
-        message: "Failed to delete product images",
+        message: "Failed to delete images",
       });
     }
   }
@@ -417,7 +436,7 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
     if (product.images?.length > 0) {
       for (const img of product.images) {
         if (img.public_id) {
-          await cloudinary.uploader.destroy(img.public_id);
+          await deleteFromS3(img.public_id);
         }
       }
     }
@@ -453,7 +472,7 @@ const getProductDetails = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({ success: true, product });
 });
 const getAdminProductDetails = catchAsyncErrors(async (req, res, next) => {
-  let product = await Product.findById(req.params.id);
+  let product = await Product.findById(req.params.id).populate("logos");
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
@@ -717,7 +736,7 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
   });
 });
 const getOrderProductDetails = catchAsyncErrors(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id).populate("logos");
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));

@@ -91,12 +91,18 @@ const ProductPriceBox = ({
                 key={index}
                 onClick={() => setSelectedSize(size)}
                 className={`px-4 py-2 border rounded-md text-sm transition ${
-                  selectedSize === size
+                  selectedSize?.name === size.name
                     ? "border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200"
                     : "border-gray-300 hover:border-green-300 bg-white"
                 }`}
               >
-                {size}
+                {size.name}
+                {size.price > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {" "}
+                    (+৳{size.price})
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -115,12 +121,18 @@ const ProductPriceBox = ({
                 key={index}
                 onClick={() => setSelectedColor(color)}
                 className={`px-4 py-2 border rounded-md text-sm transition ${
-                  selectedColor === color
+                  selectedColor?.name === color.name
                     ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-200"
                     : "border-gray-300 hover:border-blue-300 bg-white"
                 }`}
               >
-                {color}
+                {color.name}
+                {color.price > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {" "}
+                    (+৳{color.price})
+                  </span>
+                )}
               </button>
             ))}
           </div>

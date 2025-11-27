@@ -52,8 +52,8 @@ const ProductDetails = () => {
   const [zoomImage, setZoomImage] = useState(null);
 
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
 
   // Logo system
   const [activeLogoId, setActiveLogoId] = useState(null);
@@ -216,6 +216,15 @@ const ProductDetails = () => {
       return total + Number(logo.price || 0);
     }, 0);
   };
+  const getSingleUnitPrice = () => {
+    let price = Number(product?.salePrice) || 0;
+
+    if (selectedSize?.price) price += Number(selectedSize.price);
+    if (selectedColor?.price) price += Number(selectedColor.price);
+    if (isCustomProduct) price += getTotalLogoPrice();
+
+    return price;
+  };
 
   /** -----------------------------
    *  IMAGE ZOOM
@@ -250,10 +259,21 @@ const ProductDetails = () => {
    *  PRICE CALCULATION
    * ----------------------------- */
   const calculateTotalPrice = () => {
-    const base = Number(product?.salePrice) || 0;
+    let base = Number(product?.salePrice) || 0;
 
+    // Size Price Add
+    if (selectedSize?.price) {
+      base += Number(selectedSize.price);
+    }
+
+    // Color Price Add
+    if (selectedColor?.price) {
+      base += Number(selectedColor.price);
+    }
+
+    // Logo price (custom only)
     if (isCustomProduct) {
-      return (base + getTotalLogoPrice()) * quantity;
+      base += getTotalLogoPrice();
     }
 
     return base * quantity;
@@ -292,7 +312,12 @@ const ProductDetails = () => {
     }
 
     dispatch(
-      addItemsToCart(product._id, quantity, selectedSize, selectedColor)
+      addItemsToCart(
+        product._id,
+        quantity,
+        selectedSize?.name || "",
+        selectedColor?.name || ""
+      )
     );
     toast.success("Product Added to Cart");
   };
@@ -314,16 +339,37 @@ const ProductDetails = () => {
       toast.error("Please select a color");
       return;
     }
+    const cartItems = [
+      {
+        id: product._id,
+        name: product.name,
+        price: getSingleUnitPrice(),
 
+        image: product.images[0]?.url,
+        weight: product.weight,
+        quantity,
+        size: selectedSize?.name,
+        color: selectedColor?.name,
+        deliveryCharge: product.deliveryCharge,
+      },
+    ];
     if (!user) {
       navigate("/login");
+      toast.error("Please Login First");
       return;
     }
 
     if (!user?.country || !user?.number) {
-      return navigate("/profile/update");
+      toast.info("Please Complete Your Profile First");
+      return navigate("/profile/update", {
+        state: {
+          from: "/checkout",
+          checkoutState: {
+            cartItems,
+          },
+        },
+      });
     }
-
     if (product.availability === "unavailable") {
       toast.error("Unavailable");
       return;
@@ -336,19 +382,7 @@ const ProductDetails = () => {
 
     navigate("/checkout", {
       state: {
-        cartItems: [
-          {
-            id: product._id,
-            name: product.name,
-            price: product.salePrice,
-            image: product.images[0]?.url,
-            weight: product.weight,
-            quantity,
-            size: selectedSize,
-            color: selectedColor,
-            deliveryCharge: product.deliveryCharge,
-          },
-        ],
+        cartItems,
         directCheckout: true,
       },
     });
@@ -374,7 +408,10 @@ const ProductDetails = () => {
       return;
     }
 
-    if (!user) return navigate("/login");
+    if (!user) {
+      toast.error("Please Login First");
+      return navigate("/login");
+    }
 
     /** -------------------------------------------
      * CALCULATE LOGO PRICES
@@ -393,9 +430,7 @@ const ProductDetails = () => {
      * CALCULATE SUBTOTAL
      * subtotal = (product base price + total logo price) * quantity
      * ------------------------------------------- */
-    const basePrice = Number(product.salePrice) || 0;
-    const subtotal = (basePrice + logoTotalPrice) * quantity;
-
+    const subtotal = getSingleUnitPrice() * quantity;
     /** -------------------------------------------
      * NOW CREATE THE FINAL PREORDER CART ITEM
      * ------------------------------------------- */
@@ -403,12 +438,13 @@ const ProductDetails = () => {
       id: product._id,
       name: product.name,
       image: product.images[0]?.url,
-      price: product.salePrice,
+      price: getSingleUnitPrice(),
+
       weight: product.weight,
 
       quantity,
-      size: selectedSize,
-      color: selectedColor,
+      size: selectedSize?.name,
+      color: selectedColor?.name,
 
       deliveryCharge: product.deliveryCharge,
       subtotal: subtotal.toFixed(2),
@@ -426,6 +462,7 @@ const ProductDetails = () => {
      * PROFILE CHECK
      * ------------------------------------------- */
     if (!user?.country || !user?.number) {
+      toast.info("Please Complete Your Profile First");
       return navigate("/profile/update", {
         state: {
           from: "/checkout",

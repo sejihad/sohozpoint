@@ -2,8 +2,9 @@ const Category = require("../models/categoryModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
-const cloudinary = require("cloudinary");
 const { default: slugify } = require("slugify");
+const uploadToS3 = require("../config/uploadToS3");
+const deleteFromS3 = require("../config/deleteFromS3");
 
 const getAllCategories = catchAsyncErrors(async (req, res, next) => {
   const categories = await Category.find();
@@ -33,17 +34,14 @@ const createCategory = catchAsyncErrors(async (req, res, next) => {
     const file = req.files.image;
 
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-        { folder: "/product/categories" }
-      );
+      const uploaded = await uploadToS3(file, "product/categories");
 
       imageLink = {
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return res
         .status(500)
         .json({ success: false, message: "Image upload failed" });
@@ -79,34 +77,28 @@ const updateCategory = catchAsyncErrors(async (req, res, next) => {
 
   // Handle image update if new image is provided
   if (req.files?.image) {
-    // Delete old image if exists
+    const file = req.files.image;
+
+    // 1️⃣ Delete old image from S3
     if (category.image?.public_id) {
       try {
-        await cloudinary.uploader.destroy(category.image.public_id);
+        await deleteFromS3(category.image.public_id);
       } catch (error) {
-        console.error("Cloudinary Deletion Error:", error);
-        // Continue with update even if deletion fails
+        console.error("S3 Deletion Error:", error);
+        // Continue even if deletion fails
       }
     }
 
-    // Upload new image
+    // 2️⃣ Upload new image to S3
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${
-          req.files.image.mimetype
-        };base64,${req.files.image.data.toString("base64")}`,
-        {
-          folder: "product/categories", // Removed leading slash for consistency
-        }
-      );
+      const uploaded = await uploadToS3(file, "product/categories");
 
       category.image = {
-        // Directly assign to category instead of req.body
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -135,9 +127,9 @@ const deleteCategory = catchAsyncErrors(async (req, res, next) => {
 
   if (category.image && category.image.public_id) {
     try {
-      await cloudinary.uploader.destroy(category.image.public_id);
+      await deleteFromS3(category.image.public_id);
     } catch (error) {
-      console.error("Cloudinary Deletion Error:", error);
+      console.error("S3 Deletion Error:", error);
     }
   }
 

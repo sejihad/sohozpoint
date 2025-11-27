@@ -1,0 +1,23 @@
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("./s3");
+
+async function uploadToS3(file, folder) {
+  const fileName = `${folder}/${Date.now()}-${file.name}`;
+
+  const params = {
+    Bucket: process.env.AWS_BUCKET,
+    Key: fileName,
+    Body: file.data,
+    ContentType: file.mimetype,
+    ACL: "public-read",
+  };
+
+  await s3.send(new PutObjectCommand(params));
+
+  return {
+    url: `https://${process.env.AWS_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
+    key: fileName,
+  };
+}
+
+module.exports = uploadToS3;

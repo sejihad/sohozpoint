@@ -249,7 +249,7 @@ const UpdateProduct = () => {
     ) {
       setFormData({
         ...formData,
-        sizes: [...formData.sizes, selectedStandardSize],
+        sizes: [...formData.sizes, { name: selectedStandardSize, price: 0 }],
       });
       setSelectedStandardSize("");
     }
@@ -263,7 +263,7 @@ const UpdateProduct = () => {
     ) {
       setFormData({
         ...formData,
-        sizes: [...formData.sizes, customSizeInput.trim()],
+        sizes: [...formData.sizes, { name: customSizeInput.trim(), price: 0 }],
       });
       setCustomSizeInput("");
     }
@@ -273,7 +273,7 @@ const UpdateProduct = () => {
   const removeSize = (sizeToRemove) => {
     setFormData({
       ...formData,
-      sizes: formData.sizes.filter((size) => size !== sizeToRemove),
+      sizes: formData.sizes.filter((s) => s.name !== sizeToRemove),
     });
   };
 
@@ -282,7 +282,7 @@ const UpdateProduct = () => {
     if (colorInput.trim() && !formData.colors.includes(colorInput.trim())) {
       setFormData({
         ...formData,
-        colors: [...formData.colors, colorInput.trim()],
+        colors: [...formData.colors, { name: colorInput.trim(), price: 0 }],
       });
       setColorInput("");
     }
@@ -292,7 +292,7 @@ const UpdateProduct = () => {
   const removeColor = (colorToRemove) => {
     setFormData({
       ...formData,
-      colors: formData.colors.filter((color) => color !== colorToRemove),
+      colors: formData.colors.filter((c) => c.name !== colorToRemove),
     });
   };
 
@@ -349,14 +349,10 @@ const UpdateProduct = () => {
     });
 
     // FIXED: Send sizes as array properly
-    formData.sizes.forEach((size) => {
-      data.append("sizes", size);
-    });
+    data.append("sizes", JSON.stringify(formData.sizes));
 
     // FIXED: Send colors as array properly
-    formData.colors.forEach((color) => {
-      data.append("colors", color);
-    });
+    data.append("colors", JSON.stringify(formData.colors));
 
     data.set("availability", formData.availability);
     data.set("quantity", formData.quantity);
@@ -926,27 +922,32 @@ const UpdateProduct = () => {
 
                 {/* Selected Sizes Display */}
                 {formData.sizes.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-medium text-gray-800 mb-3">
-                      Selected Sizes:
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.sizes.map((size, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs sm:text-sm"
-                        >
-                          {size}
-                          <button
-                            type="button"
-                            onClick={() => removeSize(size)}
-                            className="text-indigo-600 hover:text-indigo-800 cursor-pointer ml-1"
-                          >
-                            <FiTrash2 size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-3 mt-4">
+                    {formData.sizes.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 bg-indigo-100 px-3 py-1 rounded-lg"
+                      >
+                        <span className="font-semibold">{item.name}</span>
+
+                        <input
+                          type="number"
+                          value={item.price}
+                          placeholder="0"
+                          onChange={(e) => {
+                            const updatedSizes = [...formData.sizes];
+                            updatedSizes[index].price = Number(e.target.value);
+                            setFormData({ ...formData, sizes: updatedSizes });
+                          }}
+                          className="w-20 px-2 py-1 border border-gray-300 rounded"
+                        />
+
+                        <FiTrash2
+                          className="text-red-500 cursor-pointer"
+                          onClick={() => removeSize(item.name)}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -978,27 +979,37 @@ const UpdateProduct = () => {
 
                   {/* Selected Colors Display */}
                   {formData.colors.length > 0 && (
-                    <div>
-                      <h3 className="font-medium text-gray-800 mb-3">
-                        Selected Colors:
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.colors.map((color, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs sm:text-sm"
-                          >
-                            {color}
-                            <button
-                              type="button"
-                              onClick={() => removeColor(color)}
-                              className="text-purple-600 hover:text-purple-800 cursor-pointer ml-1"
-                            >
-                              <FiTrash2 size={12} />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      {formData.colors.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 bg-purple-100 px-3 py-1 rounded-lg"
+                        >
+                          <span className="font-semibold">{item.name}</span>
+
+                          <input
+                            type="number"
+                            value={item.price}
+                            placeholder="0"
+                            onChange={(e) => {
+                              const updatedColors = [...formData.colors];
+                              updatedColors[index].price = Number(
+                                e.target.value
+                              );
+                              setFormData({
+                                ...formData,
+                                colors: updatedColors,
+                              });
+                            }}
+                            className="w-20 px-2 py-1 border border-gray-300 rounded"
+                          />
+
+                          <FiTrash2
+                            className="text-red-500 cursor-pointer"
+                            onClick={() => removeColor(item.name)}
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -2,7 +2,8 @@ const Banner = require("../models/bannerModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
-const cloudinary = require("cloudinary");
+const uploadToS3 = require("../config/uploadToS3");
+const deleteFromS3 = require("../config/deleteFromS3");
 
 // ✅ Get All Banner (Public)
 const getAllBanners = catchAsyncErrors(async (req, res, next) => {
@@ -41,17 +42,16 @@ const createBanner = catchAsyncErrors(async (req, res, next) => {
   // Upload desktop banner (if provided)
   if (req.files && req.files.image) {
     const file = req.files.image;
+
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-        { folder: "/product/banners" }
-      );
+      const uploaded = await uploadToS3(file, "product/banners");
+
       imageLink = {
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return res.status(500).json({
         success: false,
         message: "Desktop image upload failed",
@@ -97,21 +97,33 @@ const updateBanner = catchAsyncErrors(async (req, res, next) => {
 
   // Update desktop image (if provided)
   if (req.files?.image) {
+    const file = req.files.image;
+
+    // 1️⃣ Delete old image from S3 if exists
     if (banner.image?.public_id) {
-      await cloudinary.uploader.destroy(banner.image.public_id);
+      try {
+        await deleteFromS3(banner.image.public_id);
+      } catch (err) {
+        console.error("S3 Deletion Error:", err);
+        // Continue even if deletion fails
+      }
     }
 
-    const result = await cloudinary.uploader.upload(
-      `data:${req.files.image.mimetype};base64,${req.files.image.data.toString(
-        "base64"
-      )}`,
-      { folder: "/product/banners" }
-    );
+    // 2️⃣ Upload new image to S3
+    try {
+      const uploaded = await uploadToS3(file, "product/banners");
 
-    banner.image = {
-      public_id: result.public_id,
-      url: result.secure_url,
-    };
+      banner.image = {
+        public_id: uploaded.key,
+        url: uploaded.url,
+      };
+    } catch (err) {
+      console.error("S3 Upload Error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Banner image upload failed",
+      });
+    }
   }
 
   // Update deviceType if changed
@@ -136,9 +148,9 @@ const deleteBanner = catchAsyncErrors(async (req, res, next) => {
   // Delete desktop image (if exists)
   if (banner.image?.public_id) {
     try {
-      await cloudinary.uploader.destroy(banner.image.public_id);
+      await deleteFromS3(banner.image.public_id);
     } catch (error) {
-      console.error("Cloudinary Deletion Error (desktop):", error);
+      console.error("S3 Deletion Error (desktop):", error);
     }
   }
 

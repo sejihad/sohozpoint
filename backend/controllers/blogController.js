@@ -2,7 +2,9 @@ const Blog = require("../models/blogModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const slugify = require("slugify");
-const cloudinary = require("cloudinary");
+
+const uploadToS3 = require("../config/uploadToS3");
+const deleteFromS3 = require("../config/deleteFromS3");
 const createBlog = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || !req.files.image) {
     return res.status(400).json({
@@ -16,17 +18,14 @@ const createBlog = catchAsyncErrors(async (req, res, next) => {
   let imageLink;
 
   try {
-    const result = await cloudinary.uploader.upload(
-      `data:${file.mimetype};base64,${file.data.toString("base64")}`,
-      { folder: "/book/blogs" }
-    );
+    const uploaded = await uploadToS3(file, "blogs");
 
     imageLink = {
-      public_id: result.public_id,
-      url: result.secure_url,
+      public_id: uploaded.key,
+      url: uploaded.url,
     };
   } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
+    console.error("S3 Upload Error:", error);
     return res
       .status(500)
       .json({ success: false, message: "Image upload failed" });
@@ -87,33 +86,28 @@ const updateBlog = catchAsyncErrors(async (req, res, next) => {
 
   // Handle image update if new image is provided
   if (req.files && req.files.image) {
-    // Delete old image if exists
+    const file = req.files.image;
+
+    // 1️⃣ Delete old image from S3
     if (blog.image && blog.image.public_id) {
       try {
-        await cloudinary.uploader.destroy(blog.image.public_id);
+        await deleteFromS3(blog.image.public_id);
       } catch (error) {
-        console.error("Cloudinary Deletion Error:", error);
-        // Don't return here, continue with update even if deletion fails
+        console.error("S3 Deletion Error:", error);
+        // Continue update even if deletion fails
       }
     }
 
-    // Upload new image
+    // 2️⃣ Upload new image to S3
     try {
-      const result = await cloudinary.uploader.upload(
-        `data:${
-          req.files.image.mimetype
-        };base64,${req.files.image.data.toString("base64")}`,
-        {
-          folder: "/book/blogs", // Removed leading slash for better compatibility
-        }
-      );
+      const uploaded = await uploadToS3(file, "blogs");
 
       blog.image = {
-        public_id: result.public_id,
-        url: result.secure_url,
+        public_id: uploaded.key,
+        url: uploaded.url,
       };
     } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
+      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -143,9 +137,9 @@ const deleteBlog = catchAsyncErrors(async (req, res, next) => {
 
   if (blog.image && blog.image.public_id) {
     try {
-      await cloudinary.uploader.destroy(blog.image.public_id);
+      await deleteFromS3(blog.image.public_id);
     } catch (error) {
-      console.error("Cloudinary Deletion Error:", error);
+      console.error("S3 Deletion Error:", error);
     }
   }
 

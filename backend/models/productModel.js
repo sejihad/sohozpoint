@@ -49,9 +49,20 @@ const productSchema = new mongoose.Schema({
     max: [99999999, "Price cannot exceed 8 digits"],
   },
 
-  sizes: {
-    type: [],
-  },
+  sizes: [
+    {
+      name: { type: String, required: true },
+      price: { type: Number, default: 0 },
+    },
+  ],
+
+  colors: [
+    {
+      name: { type: String, required: true },
+      price: { type: Number, default: 0 },
+    },
+  ],
+
   availability: {
     type: String,
     enum: ["inStock", "outOfStock", "unavailable"],
@@ -67,9 +78,6 @@ const productSchema = new mongoose.Schema({
   },
   weight: {
     type: Number,
-  },
-  colors: {
-    type: [],
   },
 
   images: [

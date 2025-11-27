@@ -73,6 +73,7 @@ import Profile from "./pages/User/Profile";
 import Setting from "./pages/User/Setting";
 import UpdatePassword from "./pages/User/UpdatePassword";
 import UpdateProfile from "./pages/User/UpdateProfile";
+
 const App = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);

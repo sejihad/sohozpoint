@@ -6,7 +6,9 @@ const User = require("../models/userModel");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-const cloudinary = require("cloudinary");
+const deleteFromS3 = require("../config/deleteFromS3");
+const uploadToS3 = require("../config/uploadToS3");
+
 //cloudflare verify
 const verifyTurnstile = async (token, ip) => {
   if (!token) return false;
@@ -407,25 +409,39 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
   }
+  function getMimeType(base64String) {
+    const match = base64String.match(/^data:(.+);base64,/);
+    return match ? match[1] : "image/jpeg"; // fallback
+  }
 
   // Avatar update
   if (avatar) {
+    // Old avatar delete
     if (user.avatar?.public_id) {
-      await cloudinary.uploader.destroy(user.avatar.public_id);
+      await deleteFromS3(user.avatar.public_id);
     }
 
-    const uploaded = await cloudinary.uploader.upload(
-      `data:image/jpeg;base64,${avatar}`,
-      {
-        folder: "book/avatars",
-        width: 150,
-        crop: "scale",
-      }
+    // Auto-detect PNG/JPG/WEBP mimetype
+    const mimeType = getMimeType(avatar);
+
+    // Remove "data:image/png;base64,"
+    const base64Data = Buffer.from(
+      avatar.replace(/^data:.+;base64,/, ""),
+      "base64"
     );
 
+    // Create fake file object for uploadToS3
+    const file = {
+      name: `avatar-${Date.now()}.${mimeType.split("/")[1]}`, // auto extension
+      data: base64Data,
+      mimetype: mimeType,
+    };
+
+    const uploaded = await uploadToS3(file, "avatars");
+
     newUserData.avatar = {
-      public_id: uploaded.public_id,
-      url: uploaded.secure_url,
+      public_id: uploaded.key,
+      url: uploaded.url,
     };
   }
 
@@ -473,9 +489,9 @@ const deleteUser = catchAsyncErrors(async (req, res, next) => {
 
   if (user.avatar && user.avatar.public_id) {
     try {
-      await cloudinary.uploader.destroy(user.avatar.public_id);
+      await deleteFromS3(user.avatar.public_id);
     } catch (err) {
-      console.error("Cloudinary Deletion Error:", err);
+      console.error("S3 Deletion Error:", err);
     }
   }
 

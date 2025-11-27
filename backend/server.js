@@ -1,10 +1,8 @@
 const dotenv = require("dotenv");
-const express = require("express");
+
 dotenv.config(); // ✅ Ensure environment variables are loaded first
 
 const app = require("./app");
-
-const cloudinary = require("cloudinary").v2;
 
 // Handling Uncaught Exception
 process.on("uncaughtException", (err) => {
@@ -15,13 +13,6 @@ process.on("uncaughtException", (err) => {
 
 // Database Connection
 require("./config/db");
-
-// ✅ Cloudinary Configuration (Check if ENV is loaded)
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const PORT = process.env.PORT || 3000;
 
