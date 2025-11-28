@@ -193,6 +193,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     "title",
     "description",
     "type",
+    "gender",
     "brand",
     "availability",
     "color",

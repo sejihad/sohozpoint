@@ -125,6 +125,16 @@ const Sidebar = () => {
         <span>Types</span>
       </Link>
 
+      <Link
+        to="/admin/genders"
+        className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(
+          "/admin/genders"
+        )}`}
+      >
+        <FiLayers className="mr-4 text-[1.2rem]" />
+        <span>Genders</span>
+      </Link>
+
       {/* <Link
         to="/admin/ships"
         className={`flex items-center font-normal text-base py-3 px-6 transition-all duration-300 rounded-lg ${getActiveStyles(

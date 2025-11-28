@@ -194,7 +194,7 @@ const NotificationManager = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, text: e.target.value })
                       }
-                      placeholder="Enter your notification message (e.g., Welcome to Mind Storm Book)"
+                      placeholder="Enter your notification message here..."
                       rows="3"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                       required

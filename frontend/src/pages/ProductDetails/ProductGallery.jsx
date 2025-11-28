@@ -64,7 +64,14 @@ const ProductGallery = ({
 
       {/* Thumbnail List */}
       {productImages.length > 1 && (
-        <div className="flex space-x-2 overflow-x-auto py-2 flex-shrink-0">
+        <div
+          className="
+      flex space-x-2 py-2 flex-shrink-0
+      overflow-x-auto
+      w-full
+      lg:w-[16rem]
+    "
+        >
           {productImages.map((img, index) => (
             <button
               key={index}

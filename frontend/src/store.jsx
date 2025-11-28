@@ -75,6 +75,12 @@ import {
   newCustomLogoChargeReducer,
 } from "./reducers/customLogoChargeReducer";
 import {
+  genderDetailsReducer,
+  genderReducer,
+  gendersReducer,
+  newGenderReducer,
+} from "./reducers/genderReducer";
+import {
   logoDetailsReducer,
   logoReducer,
   logosReducer,
@@ -177,6 +183,13 @@ const rootReducer = combineReducers({
   newType: newTypeReducer,
   type: typeReducer,
   typeDetails: typeDetailsReducer,
+
+  // Gender
+  genders: gendersReducer,
+  newGender: newGenderReducer,
+  gender: genderReducer,
+  genderDetails: genderDetailsReducer,
+
   //main sub-category
   newSubcategory: newSubcategoryReducer,
   subcategories: subcategoriesReducer,

@@ -18,6 +18,7 @@ import { NEW_REVIEW_RESET } from "../../constants/productContants";
 
 // Reusable Components
 import { FaRulerCombined, FaWeight } from "react-icons/fa";
+import { FiUsers } from "react-icons/fi";
 import ImageZoom from "./ImageZoom";
 import LogoSelector from "./LogoSelector";
 import ProductBreadcrumb from "./ProductBreadcrumb";
@@ -608,7 +609,7 @@ const ProductDetails = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-8 items-stretch">
           {/* LEFT — GALLERY */}
-          <div ref={leftColRef} className="md:col-span-1">
+          <div ref={leftColRef} className="order-1 md:order-none md:col-span-1">
             <ProductGallery
               productImages={productImages}
               productName={product.name}
@@ -668,6 +669,13 @@ const ProductDetails = () => {
                   </div>
                 )}
 
+                {product.gender && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiUsers className="mr-2" />
+                    <span>Gender: {product.gender}</span>
+                  </div>
+                )}
+
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Category:</span>{" "}
                   {product.category}
@@ -691,7 +699,10 @@ const ProductDetails = () => {
           </div>
 
           {/* MIDDLE — INFO */}
-          <div ref={middleColRef} className="md:col-span-1">
+          <div
+            ref={middleColRef}
+            className="order-3 md:order-none  md:col-span-1"
+          >
             <ProductInfo
               name={product.name}
               title={product.title}
@@ -704,7 +715,10 @@ const ProductDetails = () => {
           </div>
 
           {/* RIGHT — PRICE BOX */}
-          <div ref={rightColRef} className="md:col-span-1">
+          <div
+            ref={rightColRef}
+            className="order-2 md:order-none md:col-span-1"
+          >
             <ProductPriceBox
               product={product}
               productSizes={productSizes}

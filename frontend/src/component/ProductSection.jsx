@@ -145,6 +145,7 @@ const ProductSection = ({
     laptop: 3,
     desktop: 5,
   },
+  limitReached = { limitReached },
 }) => {
   const cols = {
     1: "grid-cols-1",
@@ -208,6 +209,16 @@ const ProductSection = ({
                   showProductType={showProductType}
                 />
               ))}
+            </div>
+          )}
+          {limitReached && (
+            <div className="text-center mt-6">
+              <Link
+                to="/shop"
+                className="px-5 py-2 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition"
+              >
+                Show More →
+              </Link>
             </div>
           )}
         </section>

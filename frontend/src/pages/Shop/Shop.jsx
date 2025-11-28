@@ -6,14 +6,17 @@ import {
   FiFilter,
   FiLayers,
   FiStar,
+  FiUsers,
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getCategory } from "../../actions/categoryAction";
+import { getGenders } from "../../actions/genderAction";
 import { getProduct } from "../../actions/productAction";
 import { getSubcategories } from "../../actions/subcategoryAction";
 import { getSubsubcategories } from "../../actions/subsubcategoryAction";
+
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
 
@@ -28,6 +31,7 @@ const Shop = () => {
   const { categories } = useSelector((state) => state.categories);
   const { subcategories } = useSelector((state) => state.subcategories);
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
+  const { genders } = useSelector((state) => state.genders);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -35,6 +39,7 @@ const Shop = () => {
 
   // Filter states
   const [filters, setFilters] = useState({
+    gender: "",
     category: "",
     subCategory: "",
     subsubCategory: "",
@@ -46,6 +51,7 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
+    gender: true,
     subCategories: false,
     subsubCategories: false,
     price: true,
@@ -83,6 +89,7 @@ const Shop = () => {
     dispatch(getCategory());
     dispatch(getSubcategories());
     dispatch(getSubsubcategories());
+    dispatch(getGenders());
   }, [dispatch]);
 
   useEffect(() => {
@@ -108,6 +115,14 @@ const Shop = () => {
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase());
 
+      // Gender filter
+      const productGenderName = product.gender?.name || product.gender;
+      const selectedGenderName = genders?.find(
+        (g) => g._id === filters.gender
+      )?.name;
+
+      const matchesGender =
+        !filters.gender || productGenderName === selectedGenderName;
       // Category filters - FIXED: Compare with category name instead of ID
       const productCategoryName = product.category?.name || product.category;
       const selectedCategoryName = categories?.find(
@@ -159,6 +174,7 @@ const Shop = () => {
       return (
         matchesSearch &&
         matchesCategory &&
+        matchesGender &&
         matchesSubCategory &&
         matchesSubSubCategory &&
         matchesMinPrice &&
@@ -435,6 +451,42 @@ const Shop = () => {
           </div>
         )}
 
+        {/* gender filter */}
+        {genders && genders.length > 0 && (
+          <div className="border-b border-gray-200 pb-6">
+            <button
+              className="flex justify-between items-center w-full text-left font-medium text-gray-900"
+              onClick={() => toggleSection("gender")}
+            >
+              <span className="flex items-center gap-2">
+                <FiUsers className="w-4 h-4" />
+                Gender
+              </span>
+              {expandedSections.gender ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+
+            {expandedSections.gender && (
+              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                {genders.map((gender) => (
+                  <label
+                    key={gender._id}
+                    className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                  >
+                    <input
+                      type="radio"
+                      name="gender"
+                      checked={filters.gender === gender._id}
+                      onChange={() => handleFilterChange("gender", gender._id)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">{gender.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Price Range */}
         <div className="border-b border-gray-200 pb-6">
           <button
@@ -646,6 +698,18 @@ const Shop = () => {
                       <button
                         onClick={() => handleFilterChange("subsubCategory", "")}
                         className="hover:text-indigo-900"
+                      >
+                        <FiX className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+                  {filters.gender && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">
+                      Gender:{" "}
+                      {genders?.find((g) => g._id === filters.gender)?.name}
+                      <button
+                        onClick={() => handleFilterChange("gender", "")}
+                        className="hover:text-pink-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>

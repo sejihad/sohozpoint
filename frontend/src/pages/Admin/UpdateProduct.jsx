@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
+import { getGenders } from "../../actions/genderAction";
 import { getLogos } from "../../actions/logoAction";
 import {
   clearErrors,
@@ -46,6 +47,7 @@ const UpdateProduct = () => {
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
   const { types } = useSelector((state) => state.types);
   const { brands } = useSelector((state) => state.brands);
+  const { genders } = useSelector((state) => state.genders);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,6 +56,7 @@ const UpdateProduct = () => {
     listItems: [],
     type: "",
     brand: "",
+    gender: "",
     deliveryCharge: "",
     oldPrice: "",
     salePrice: "",
@@ -110,6 +113,7 @@ const UpdateProduct = () => {
     dispatch(getSubsubcategories());
     dispatch(getTypes());
     dispatch(getBrands());
+    dispatch(getGenders());
     dispatch(getLogos());
 
     if (product && product._id !== id) {
@@ -122,6 +126,7 @@ const UpdateProduct = () => {
         description: product.description || "",
         type: product.type || "",
         brand: product.brand || "",
+        gender: product.gender || "",
         deliveryCharge: product.deliveryCharge || "",
         oldPrice: product.oldPrice || "",
         salePrice: product.salePrice || "",
@@ -332,6 +337,7 @@ const UpdateProduct = () => {
     data.set("description", formData.description);
     data.set("type", formData.type);
     data.set("brand", formData.brand);
+    data.set("gender", formData.gender);
     data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
     data.set("oldPrice", formData.oldPrice);
@@ -589,6 +595,27 @@ const UpdateProduct = () => {
                       brands.map((brand) => (
                         <option key={brand._id} value={brand.name}>
                           {brand.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Product Gender */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">-- Select Product Gender --</option>
+                    {genders &&
+                      genders.map((gender) => (
+                        <option key={gender._id} value={gender.name}>
+                          {gender.name}
                         </option>
                       ))}
                   </select>

@@ -11,18 +11,44 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const [randomProducts, setRandomProducts] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(20); // প্রথমে 20 টা দেখাবে
+  const [limitReached, setLimitReached] = useState(false); // 100 টা হলে true
 
+  // API থেকে প্রোডাক্ট লোড
   useEffect(() => {
     dispatch(getProduct());
   }, [dispatch]);
 
-  // Randomly select 20 products whenever products array changes
+  // প্রোডাক্ট shuffle করে সংরক্ষণ
   useEffect(() => {
     if (products && products.length > 0) {
       const shuffled = [...products].sort(() => Math.random() - 0.5);
-      setRandomProducts(shuffled.slice(0, 20));
+      setRandomProducts(shuffled);
     }
   }, [products]);
+
+  // Infinite Scroll Handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (limitReached) return; // 100 হলে আর লোড হবে না
+
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200
+      ) {
+        setVisibleCount((prev) => {
+          if (prev >= 100) {
+            setLimitReached(true);
+            return 100;
+          }
+          return prev + 20; // Scroll করলে 20 করে বাড়বে
+        });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [limitReached]);
 
   return (
     <>
@@ -37,8 +63,9 @@ const Home = () => {
           desktop: 5,
         }}
         title="Latest"
-        products={randomProducts}
+        products={randomProducts.slice(0, visibleCount)}
         loading={loading}
+        limitReached={limitReached}
       />
     </>
   );
