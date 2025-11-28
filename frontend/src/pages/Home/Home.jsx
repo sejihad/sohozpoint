@@ -11,15 +11,14 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const [randomProducts, setRandomProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(20); // প্রথমে 20 টা দেখাবে
-  const [limitReached, setLimitReached] = useState(false); // 100 টা হলে true
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [limitReached, setLimitReached] = useState(false);
+  const [scrollLoading, setScrollLoading] = useState(false); // NEW
 
-  // API থেকে প্রোডাক্ট লোড
   useEffect(() => {
     dispatch(getProduct());
   }, [dispatch]);
 
-  // প্রোডাক্ট shuffle করে সংরক্ষণ
   useEffect(() => {
     if (products && products.length > 0) {
       const shuffled = [...products].sort(() => Math.random() - 0.5);
@@ -27,28 +26,34 @@ const Home = () => {
     }
   }, [products]);
 
-  // Infinite Scroll Handler
+  // Infinite Scroll + Loading Effect
   useEffect(() => {
     const handleScroll = () => {
-      if (limitReached) return; // 100 হলে আর লোড হবে না
+      if (limitReached || scrollLoading) return;
 
       if (
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 200
       ) {
-        setVisibleCount((prev) => {
-          if (prev >= 100) {
-            setLimitReached(true);
-            return 100;
-          }
-          return prev + 20; // Scroll করলে 20 করে বাড়বে
-        });
+        setScrollLoading(true);
+
+        setTimeout(() => {
+          setVisibleCount((prev) => {
+            if (prev >= 100) {
+              setLimitReached(true);
+              return 100;
+            }
+            return prev + 20;
+          });
+
+          setScrollLoading(false);
+        }, 800); // smooth loading delay
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [limitReached]);
+  }, [limitReached, scrollLoading]);
 
   return (
     <>
@@ -65,6 +70,7 @@ const Home = () => {
         title="Latest"
         products={randomProducts.slice(0, visibleCount)}
         loading={loading}
+        scrollLoading={scrollLoading} // send scrollLoading
         limitReached={limitReached}
       />
     </>

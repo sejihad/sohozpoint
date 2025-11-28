@@ -211,6 +211,19 @@ const ProductSection = ({
               ))}
             </div>
           )}
+          {scrollLoading && !limitReached && (
+            <div className="w-full flex justify-center py-8">
+              <div className="flex flex-col items-center gap-3">
+                {/* Professional Circular Loader */}
+                <div className="relative w-10 h-10">
+                  <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+
+                  <div className="absolute inset-0 rounded-full border-4 border-green-600 border-t-transparent animate-spin"></div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {limitReached && (
             <div className="text-center mt-6">
               <Link
