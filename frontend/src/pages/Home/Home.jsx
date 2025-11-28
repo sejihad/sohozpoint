@@ -11,49 +11,18 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const [randomProducts, setRandomProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(20);
-  const [limitReached, setLimitReached] = useState(false);
-  const [scrollLoading, setScrollLoading] = useState(false); // NEW
 
   useEffect(() => {
     dispatch(getProduct());
   }, [dispatch]);
 
+  // Randomly select 20 products whenever products array changes
   useEffect(() => {
     if (products && products.length > 0) {
       const shuffled = [...products].sort(() => Math.random() - 0.5);
-      setRandomProducts(shuffled);
+      setRandomProducts(shuffled.slice(0, 20));
     }
   }, [products]);
-
-  // Infinite Scroll + Loading Effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (limitReached || scrollLoading) return;
-
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 200
-      ) {
-        setScrollLoading(true);
-
-        setTimeout(() => {
-          setVisibleCount((prev) => {
-            if (prev >= 100) {
-              setLimitReached(true);
-              return 100;
-            }
-            return prev + 20;
-          });
-
-          setScrollLoading(false);
-        }, 800); // smooth loading delay
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [limitReached, scrollLoading]);
 
   return (
     <>
@@ -68,10 +37,8 @@ const Home = () => {
           desktop: 5,
         }}
         title="Latest"
-        products={randomProducts.slice(0, visibleCount)}
+        products={randomProducts}
         loading={loading}
-        scrollLoading={scrollLoading} // send scrollLoading
-        limitReached={limitReached}
       />
     </>
   );

@@ -145,7 +145,6 @@ const ProductSection = ({
     laptop: 3,
     desktop: 5,
   },
-  limitReached = { limitReached },
 }) => {
   const cols = {
     1: "grid-cols-1",
@@ -209,29 +208,6 @@ const ProductSection = ({
                   showProductType={showProductType}
                 />
               ))}
-            </div>
-          )}
-          {scrollLoading && !limitReached && (
-            <div className="w-full flex justify-center py-8">
-              <div className="flex flex-col items-center gap-3">
-                {/* Professional Circular Loader */}
-                <div className="relative w-10 h-10">
-                  <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-
-                  <div className="absolute inset-0 rounded-full border-4 border-green-600 border-t-transparent animate-spin"></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {limitReached && (
-            <div className="text-center mt-6">
-              <Link
-                to="/shop"
-                className="px-5 py-2 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition"
-              >
-                Show More →
-              </Link>
             </div>
           )}
         </section>
