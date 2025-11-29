@@ -55,15 +55,12 @@ const Home = () => {
         loading={loading}
       />
 
-      {/* Show "Show More" button if we have loaded 100 products */}
-      {hasMore && !loading && (
+      {/* Show "Show More" button if no more products to load */}
+      {!hasMore && (
         <div className="text-center py-6">
-          <button
-            onClick={showMoreProducts}
-            className="text-green-600 text-lg font-semibold"
-          >
+          <Link to="/shop" className="text-green-600 text-lg font-semibold">
             Show More →
-          </button>
+          </Link>
         </div>
       )}
     </>
