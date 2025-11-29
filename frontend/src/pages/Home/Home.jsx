@@ -5,57 +5,38 @@ import { getProduct } from "../../actions/productAction";
 import Categories from "../../component/Categories";
 import Hero from "../../component/Hero";
 import ProductSection from "../../component/ProductSection";
-import Loader from "../../component/layout/Loader/Loader";
 
 const Home = () => {
   const { loading, products } = useSelector((state) => state.products);
   const dispatch = useDispatch();
 
   const [randomProducts, setRandomProducts] = useState([]);
-  const [page, setPage] = useState(1); // Track the current page
   const [hasMore, setHasMore] = useState(true); // Track if there are more products to load
 
-  // Fetch all products initially
   useEffect(() => {
-    dispatch(getProduct()); // Fetch all products
+    dispatch(getProduct()); // Fetch all products initially
   }, [dispatch]);
 
-  // Randomly select 20 products whenever products array changes
+  // Randomly select products whenever the products array changes
   useEffect(() => {
     if (products && products.length > 0) {
       const shuffled = [...products].sort(() => Math.random() - 0.5);
-      setRandomProducts(shuffled.slice(0, 20)); // Initially show 20 products
+      setRandomProducts(shuffled.slice(0, 100)); // Initially show 100 products
     }
   }, [products]);
 
-  // Function to load more products when scrolling reaches the bottom
-  const loadMoreProducts = () => {
-    if (!loading && hasMore) {
-      setPage((prevPage) => prevPage + 1); // Increase the page number to load the next set
+  // Show more products when clicked
+  const showMoreProducts = () => {
+    if (products && products.length > randomProducts.length) {
+      const moreProducts = [
+        ...randomProducts,
+        ...products.slice(randomProducts.length, randomProducts.length + 100),
+      ];
+      setRandomProducts(moreProducts);
+    } else {
+      setHasMore(false); // No more products to load
     }
   };
-
-  // Detect when user scrolls to the bottom of the page
-  useEffect(() => {
-    const handleScroll = () => {
-      const bottom =
-        window.innerHeight + document.documentElement.scrollTop ===
-        document.documentElement.offsetHeight;
-      if (bottom) {
-        loadMoreProducts();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [loading, hasMore]);
-
-  // Check if we have reached 100 products
-  useEffect(() => {
-    if (randomProducts.length >= 100) {
-      setHasMore(false); // Stop loading more products after 100
-    }
-  }, [randomProducts]);
 
   return (
     <>
@@ -74,15 +55,15 @@ const Home = () => {
         loading={loading}
       />
 
-      {/* Show a loading spinner if there are more products to load */}
-      {loading && hasMore && <Loader />}
-
       {/* Show "Show More" button if we have loaded 100 products */}
-      {!hasMore && (
+      {hasMore && !loading && (
         <div className="text-center py-6">
-          <a href="/shop" className="text-green-600 text-lg font-semibold">
+          <button
+            onClick={showMoreProducts}
+            className="text-green-600 text-lg font-semibold"
+          >
             Show More →
-          </a>
+          </button>
         </div>
       )}
     </>
