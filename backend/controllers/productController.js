@@ -404,19 +404,13 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
 
 // get all prodcuts
 const getAllProducts = catchAsyncErrors(async (req, res, next) => {
-  // Pagination implementation: fetching 20 products at a time
-  const page = Number(req.query.page) || 1;
-  const limit = 20;
-  const skip = (page - 1) * limit;
-
-  const products = await Product.find().skip(skip).limit(limit);
+  const products = await Product.find();
 
   res.status(200).json({
     success: true,
     products,
   });
 });
-
 // Get All Product (Admin)
 const getAdminProducts = catchAsyncErrors(async (req, res, next) => {
   const products = await Product.find();

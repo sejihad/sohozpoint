@@ -12,29 +12,30 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const [randomProducts, setRandomProducts] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1); // Track the current page
   const [hasMore, setHasMore] = useState(true); // Track if there are more products to load
 
+  // Fetch all products initially
   useEffect(() => {
-    dispatch(getProduct(page)); // Fetch products for the current page
-  }, [dispatch, page]);
+    dispatch(getProduct()); // Fetch all products
+  }, [dispatch]);
 
   // Randomly select 20 products whenever products array changes
   useEffect(() => {
     if (products && products.length > 0) {
       const shuffled = [...products].sort(() => Math.random() - 0.5);
-      setRandomProducts(shuffled.slice(0, 20));
+      setRandomProducts(shuffled.slice(0, 20)); // Initially show 20 products
     }
   }, [products]);
 
-  // Function to load more products when scroll reaches the bottom
+  // Function to load more products when scrolling reaches the bottom
   const loadMoreProducts = () => {
     if (!loading && hasMore) {
       setPage((prevPage) => prevPage + 1); // Increase the page number to load the next set
     }
   };
 
-  // Detect when user scrolls to bottom of the page
+  // Detect when user scrolls to the bottom of the page
   useEffect(() => {
     const handleScroll = () => {
       const bottom =
@@ -73,10 +74,10 @@ const Home = () => {
         loading={loading}
       />
 
-      {/* If there are more products, show a loading spinner */}
+      {/* Show a loading spinner if there are more products to load */}
       {loading && hasMore && <Loader />}
 
-      {/* If we have loaded 100 products, show a "Show More" button */}
+      {/* Show "Show More" button if we have loaded 100 products */}
       {!hasMore && (
         <div className="text-center py-6">
           <a href="/shop" className="text-green-600 text-lg font-semibold">
