@@ -7,10 +7,14 @@ import {
   clearErrors,
   getAdminOrderDetails,
   updateOrder,
+  updatePaymentStatus,
 } from "../../actions/orderAction";
 import logo from "../../assets/invoice.png";
 import Loader from "../../component/layout/Loader/Loader";
-import { UPDATE_ORDER_RESET } from "../../constants/orderContants";
+import {
+  UPDATE_ORDER_RESET,
+  UPDATE_PAYMENT_STATUS_RESET,
+} from "../../constants/orderContants";
 import Sidebar from "./Sidebar";
 const AdminOrderDetails = () => {
   const dispatch = useDispatch();
@@ -23,6 +27,7 @@ const AdminOrderDetails = () => {
     loading: updateLoading,
     isUpdated,
     error: updateError,
+    paymentStatusUpdated,
   } = useSelector((state) => state.order);
 
   useEffect(() => {
@@ -41,9 +46,13 @@ const AdminOrderDetails = () => {
       dispatch({ type: UPDATE_ORDER_RESET });
       dispatch(getAdminOrderDetails(id));
     }
-
+    if (paymentStatusUpdated) {
+      toast.success("Payment status updated successfully!");
+      dispatch({ type: UPDATE_PAYMENT_STATUS_RESET });
+      dispatch(getAdminOrderDetails(id)); // Refresh order data
+    }
     dispatch(getAdminOrderDetails(id));
-  }, [dispatch, id, error, updateError, isUpdated]);
+  }, [dispatch, id, error, updateError, isUpdated, paymentStatusUpdated]);
 
   useEffect(() => {
     if (order && order.orderStatus) {
@@ -64,7 +73,14 @@ const AdminOrderDetails = () => {
 
     dispatch(updateOrder(id, myForm));
   };
+  const updatePaymentStatusHandler = (newStatus) => {
+    if (!order?._id) {
+      toast.error("Order ID not found");
+      return;
+    }
 
+    dispatch(updatePaymentStatus(order._id, newStatus));
+  };
   // ✅ Download PDF Function - Fixed version
   const downloadPDF = () => {
     try {
@@ -764,7 +780,51 @@ const AdminOrderDetails = () => {
                   )}
                 </div>
               </div>
+              {/* Payment Status Update Section */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Update Payment Status
+                </h3>
 
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Current Payment Status:
+                    </p>
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                        order.paymentInfo?.status === "paid"
+                          ? "bg-green-100 text-green-800 border border-green-200"
+                          : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                      }`}
+                    >
+                      {order.paymentInfo?.status || "pending"}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updatePaymentStatusHandler("paid")}
+                      disabled={
+                        order.paymentInfo?.status === "paid" || updateLoading
+                      }
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                    >
+                      Mark Paid
+                    </button>
+
+                    <button
+                      onClick={() => updatePaymentStatusHandler("pending")}
+                      disabled={
+                        order.paymentInfo?.status === "pending" || updateLoading
+                      }
+                      className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                    >
+                      Mark Pending
+                    </button>
+                  </div>
+                </div>
+              </div>
               {/* Two Column Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Customer Information */}

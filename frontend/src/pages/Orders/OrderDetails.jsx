@@ -771,7 +771,7 @@ const OrderDetails = () => {
                         ৳{formatPrice(item.price)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Subtotal: ৳{formatPrice(item.subtotal)}
+                        Subtotal: ৳{formatPrice(item.price * item.quantity)}
                       </p>
 
                       {canReview() && productDetails[item.id] && (

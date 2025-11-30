@@ -2,17 +2,7 @@ import StarRating from "./StarRating";
 
 const ProductReviews = ({ productReviews }) => {
   if (!productReviews || productReviews.length === 0) {
-    return (
-      <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 mx-2 md:mx-0">
-        <div className="text-3xl md:text-4xl mb-3">💬</div>
-        <p className="text-gray-500 text-base md:text-lg mb-2">
-          No reviews yet
-        </p>
-        <p className="text-gray-400 text-xs md:text-sm px-4">
-          Be the first to share your thoughts about this product!
-        </p>
-      </div>
-    );
+    return "";
   }
 
   return (

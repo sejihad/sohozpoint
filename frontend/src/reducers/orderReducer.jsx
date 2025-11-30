@@ -27,6 +27,10 @@ import {
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_RESET,
   UPDATE_ORDER_SUCCESS,
+  UPDATE_PAYMENT_STATUS_FAIL,
+  UPDATE_PAYMENT_STATUS_REQUEST,
+  UPDATE_PAYMENT_STATUS_RESET,
+  UPDATE_PAYMENT_STATUS_SUCCESS,
 } from "../constants/orderContants";
 // Create Order Reducer
 
@@ -134,6 +138,7 @@ export const orderReducer = (state = {}, action) => {
   switch (action.type) {
     case UPDATE_ORDER_REQUEST:
     case DELETE_ORDER_REQUEST:
+    case UPDATE_PAYMENT_STATUS_REQUEST:
       return {
         ...state,
         loading: true,
@@ -145,7 +150,12 @@ export const orderReducer = (state = {}, action) => {
         loading: false,
         isUpdated: action.payload,
       };
-
+    case UPDATE_PAYMENT_STATUS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        paymentStatusUpdated: true, // ⬅️ Payment status update done
+      };
     case DELETE_ORDER_SUCCESS:
       return {
         ...state,
@@ -155,6 +165,7 @@ export const orderReducer = (state = {}, action) => {
 
     case UPDATE_ORDER_FAIL:
     case DELETE_ORDER_FAIL:
+    case UPDATE_PAYMENT_STATUS_FAIL:
       return {
         ...state,
         loading: false,
@@ -166,6 +177,11 @@ export const orderReducer = (state = {}, action) => {
         isUpdated: false,
       };
 
+    case UPDATE_PAYMENT_STATUS_RESET:
+      return {
+        ...state,
+        paymentStatusUpdated: false,
+      };
     case DELETE_ORDER_RESET:
       return {
         ...state,

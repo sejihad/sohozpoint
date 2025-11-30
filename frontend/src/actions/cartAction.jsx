@@ -14,7 +14,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 // ➕ Add or replace item in cart
 export const addItemsToCart =
-  (productId, quantity, size, color) => async (dispatch) => {
+  (productId, quantity, size, color, selectedImageUrl) => async (dispatch) => {
     try {
       dispatch({ type: ADD_TO_CART_REQUEST });
 
@@ -23,7 +23,7 @@ export const addItemsToCart =
 
       const { data } = await axios.post(
         `${API_URL}/api/v1/cart/add`,
-        { productId, quantity, size, color },
+        { productId, quantity, size, color, selectedImageUrl },
         config
       );
 

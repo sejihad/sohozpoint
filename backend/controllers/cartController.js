@@ -27,7 +27,7 @@ function getExtraPrice(product, size, color) {
  * 🛒 ADD TO CART
  * --------------------------------------------------------- */
 const addToCart = catchAsyncErrors(async (req, res, next) => {
-  const { productId, quantity = 1, size, color } = req.body;
+  const { productId, quantity = 1, size, color, selectedImageUrl } = req.body;
 
   const product = await Product.findById(productId);
   if (!product) return next(new ErrorHandler("Product not found", 404));
@@ -80,7 +80,7 @@ const addToCart = catchAsyncErrors(async (req, res, next) => {
     cart.items.push({
       product: product._id,
       name: product.name,
-      image: product.images?.[0]?.url,
+      image: selectedImageUrl,
       price: finalUnitPrice,
       deliveryCharge,
       quantity: quantityToAdd,

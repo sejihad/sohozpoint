@@ -493,7 +493,36 @@ const requestRefund = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Get single order (আপনার existing function এ correction)
+const updatePaymentStatus = catchAsyncErrors(async (req, res, next) => {
+  const { status } = req.body; // "paid" or "pending"
 
+  // Validate request
+  if (!status || !["paid", "pending"].includes(status)) {
+    return next(new ErrorHandler("Invalid payment status", 400));
+  }
+
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return next(new ErrorHandler("Order not found with this Id", 404));
+  }
+
+  // Update Payment Info
+  order.paymentInfo.status = status;
+
+  // If paid → expiresAt = null
+  if (status === "paid") {
+    order.expiresAt = null;
+  }
+
+  await order.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: `Payment status updated to ${status}`,
+    order,
+  });
+});
 module.exports = {
   myOrders,
   getSingleOrder,
@@ -504,4 +533,5 @@ module.exports = {
   requestRefund,
   cancelOrder,
   createOrder,
+  updatePaymentStatus,
 };

@@ -317,7 +317,8 @@ const ProductDetails = () => {
         product._id,
         quantity,
         selectedSize?.name || "",
-        selectedColor?.name || ""
+        selectedColor?.name || "",
+        selectedImageUrl
       )
     );
     toast.success("Product Added to Cart");
@@ -346,7 +347,7 @@ const ProductDetails = () => {
         name: product.name,
         price: getSingleUnitPrice(),
 
-        image: product.images[0]?.url,
+        image: selectedImageUrl,
         weight: product.weight,
         quantity,
         size: selectedSize?.name,
@@ -438,7 +439,7 @@ const ProductDetails = () => {
     const cartItem = {
       id: product._id,
       name: product.name,
-      image: product.images[0]?.url,
+      image: selectedImageUrl,
       price: getSingleUnitPrice(),
 
       weight: product.weight,
@@ -549,6 +550,7 @@ const ProductDetails = () => {
    *  PRODUCT DATA EXTRACTIONS
    * ----------------------------- */
   const productImages = product?.images || [];
+  const selectedImageUrl = productImages[selectedImage]?.url;
   const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
   const productColors = Array.isArray(product.colors) ? product.colors : [];
   const productReviews = product?.reviews || [];
@@ -558,7 +560,7 @@ const ProductDetails = () => {
     .filter(
       (p) => p && p._id !== product._id && p.category === product.category
     )
-    .slice(0, 5);
+    .slice(0, 20);
 
   const hasReviewed = product?.reviews?.some((r) => r.user === user?._id);
   const hasCompletedOrder = orders?.some((order) =>
@@ -764,23 +766,26 @@ const ProductDetails = () => {
         )}
 
         {/* Customer Reviews */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Customer Reviews
-          </h2>
+        {(user && hasCompletedOrder && !hasReviewed) ||
+        productReviews.length > 0 ? (
+          <div className="mt-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Customer Reviews
+            </h2>
 
-          {user && hasCompletedOrder && !hasReviewed && (
-            <ReviewForm
-              review={review}
-              setReview={setReview}
-              submitReview={submitReview}
-              removeReviewImage={removeReviewImage}
-              handleReviewImagesChange={handleReviewImagesChange}
-            />
-          )}
+            {user && hasCompletedOrder && !hasReviewed && (
+              <ReviewForm
+                review={review}
+                setReview={setReview}
+                submitReview={submitReview}
+                removeReviewImage={removeReviewImage}
+                handleReviewImagesChange={handleReviewImagesChange}
+              />
+            )}
 
-          <ProductReviews productReviews={productReviews} />
-        </div>
+            <ProductReviews productReviews={productReviews} />
+          </div>
+        ) : null}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

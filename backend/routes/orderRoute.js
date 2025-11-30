@@ -8,6 +8,7 @@ const {
   getSingleAdminOrder,
   cancelOrder,
   requestRefund,
+  updatePaymentStatus,
 } = require("../controllers/orderController");
 const router = express.Router();
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
@@ -30,5 +31,10 @@ router
   .get(isAuthenticator, authorizeRoles("admin"), getSingleAdminOrder)
   .put(isAuthenticator, authorizeRoles("admin"), updateOrder)
   .delete(isAuthenticator, authorizeRoles("admin"), deleteOrder);
+
+// ✅ New Admin Payment Update Route
+router
+  .route("/admin/payment/:id")
+  .put(isAuthenticator, authorizeRoles("admin"), updatePaymentStatus);
 
 module.exports = router;

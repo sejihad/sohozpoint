@@ -21,6 +21,9 @@ import {
   UPDATE_ORDER_FAIL,
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_SUCCESS,
+  UPDATE_PAYMENT_STATUS_FAIL,
+  UPDATE_PAYMENT_STATUS_REQUEST,
+  UPDATE_PAYMENT_STATUS_SUCCESS,
 } from "../constants/orderContants";
 
 import axios from "axios";
@@ -264,6 +267,36 @@ export const requestRefund = (orderId, reason) => async (dispatch) => {
   }
 };
 
+// payment status update by admin
+export const updatePaymentStatus = (id, status) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_PAYMENT_STATUS_REQUEST });
+
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.put(
+      `${API_URL}/api/v1/admin/payment/${id}`,
+      { status }, // "paid" or "pending"
+      config
+    );
+
+    dispatch({
+      type: UPDATE_PAYMENT_STATUS_SUCCESS,
+      payload: data.success,
+    });
+  } catch (error) {
+    dispatch({
+      type: UPDATE_PAYMENT_STATUS_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
 // Clearing Errors
 export const clearErrors = () => async (dispatch) => {
   dispatch({ type: CLEAR_ERRORS });
