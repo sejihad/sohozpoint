@@ -6,6 +6,9 @@ import {
   CANCEL_ORDER_REQUEST,
   CANCEL_ORDER_SUCCESS,
   CLEAR_ERRORS,
+  CREATE_ORDER_FAIL,
+  CREATE_ORDER_REQUEST,
+  CREATE_ORDER_SUCCESS,
   DELETE_ORDER_FAIL,
   DELETE_ORDER_REQUEST,
   DELETE_ORDER_SUCCESS,
@@ -43,17 +46,10 @@ export const createOrder = (orderData) => async (dispatch) => {
 
     // ১️⃣ EPS Initialize API কল
     const { data } = await axios.post(
-      `${API_URL}/api/v1/payment/initialize`,
+      `${API_URL}/api/v1/order/new`,
       orderData,
       config
     );
-
-    // ২️⃣ EPS থেকে RedirectURL পাবে
-    if (data?.RedirectURL) {
-      window.location.href = data.RedirectURL; // EPS payment page এ পাঠিয়ে দাও
-    } else {
-      throw new Error("Failed to get payment link");
-    }
 
     dispatch({
       type: CREATE_ORDER_SUCCESS,

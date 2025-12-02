@@ -696,6 +696,15 @@ const OrderDetails = () => {
                     </div>
                   </div>
                   <div className="flex items-center">
+                    <FaPhone className="text-gray-400 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {order.shippingInfo?.phone2 || "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-500">Phone 2nd</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
                     <FaEnvelope className="text-gray-400 mr-3" size={20} />
                     <div>
                       <p className="font-medium text-gray-900">

@@ -47,9 +47,8 @@ export const newOrderReducer = (state = {}, action) => {
       return {
         loading: false,
         success: true,
-        // EPS initialize এর সময় order নয়, বরং Redirect URL থাকবে
-        paymentData: action.payload,
-        message: action.payload?.message || "Payment initialized successfully",
+        order: action.payload.order, // <-- Direct order object
+        message: action.payload?.message || "Order created successfully",
       };
 
     case CREATE_ORDER_FAIL:

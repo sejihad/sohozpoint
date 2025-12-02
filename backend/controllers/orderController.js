@@ -3,45 +3,126 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
-const createOrder = catchAsyncErrors(async (req, res, next) => {
-  const {
-    orderItems,
-    shippingInfo,
-    paymentInfo,
-    itemsPrice,
-    deliveryPrice,
-    discount,
-    totalPrice,
-    isPreOrder,
-    coupon,
-  } = req.body;
 
-  const order = await Order.create({
-    orderItems,
-    shippingInfo,
-    paymentInfo: {
-      ...paymentInfo,
-      paidAt: paymentInfo.method !== "cod" ? Date.now() : undefined,
-    },
-    itemsPrice,
-    deliveryPrice,
-    discount,
-    totalPrice,
-    isPreOrder,
-    coupon: coupon || null,
-    user: req.user._id,
-    orderStatus: isPreOrder ? "preorder" : "processing",
-  });
-
-  res.status(201).json({
-    success: true,
-    message: "Order created successfully",
-    order,
-  });
-});
 const Coupon = require("../models/couponModel");
 const steadfastService = require("../services/steadfastService");
 const sendEmail = require("../utils/sendEmail");
+// create order
+const createOrder = async (req, res) => {
+  const {
+    shippingInfo,
+    paymentInfo,
+    orderItems,
+    itemsPrice,
+    deliveryPrice,
+    productDiscount,
+    deliveryDiscount,
+    couponDiscount,
+    totalPrice,
+    cashOnDelivery,
+    coupon,
+    isPreOrder,
+  } = req.body;
+
+  try {
+    // Step 1: Create pending order
+    const pendingOrder = await Order.create({
+      userData: {
+        userId: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        phone: req.user.number,
+        userCode: req.user.userCode,
+      },
+      orderItems,
+      shippingInfo,
+      paymentInfo,
+      itemsPrice,
+      deliveryPrice,
+      productDiscount,
+      deliveryDiscount,
+      couponDiscount,
+      totalPrice,
+      cashOnDelivery,
+      isPreOrder,
+      coupon: coupon,
+      orderStatus: "pending",
+      expiresAt: null,
+    });
+    //---------------------------------------------------
+    // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
+    //---------------------------------------------------
+
+    let attachments = [];
+    let logoDetails = "";
+
+    // Loop through all order items
+    orderItems.forEach((item) => {
+      // If custom-product type
+      if (item.type === "custom-product") {
+        logoDetails += `\nProduct: ${item.name}\n`;
+
+        item.logos.forEach((logo) => {
+          logoDetails += `   Logo: ${logo.name}\n`;
+          logoDetails += `   Position: ${logo.position}\n`;
+
+          if (logo.isCustom) {
+            // CUSTOM LOGO → FILE ATTACHMENT
+            attachments.push({
+              filename: logo.name,
+              content: logo.image.url.split(";base64,").pop(),
+              encoding: "base64",
+            });
+            logoDetails += "   File: attached\n\n";
+          } else {
+            // DEFAULT LOGO → URL TEXT
+            logoDetails += `   URL: ${logo.image.url}\n\n`;
+          }
+        });
+      }
+    });
+
+    // Email body text
+    const emailMessage = `
+🛍 New Order Created
+
+Order ID: ${pendingOrder.orderId}
+Customer: ${shippingInfo.fullName}
+Phone: ${shippingInfo.phone}
+Email: ${shippingInfo.email}
+
+${
+  logoDetails
+    ? "---- LOGO DETAILS ----\n" + logoDetails
+    : "No custom logos selected."
+}
+
+Total Price: ৳${totalPrice}
+Remaining: ৳${cashOnDelivery}
+`;
+
+    // Send the email
+    await sendEmail({
+      email: process.env.SMTP_MAIL, // your admin email
+      subject: `New Order Created – #${pendingOrder.orderId}`,
+      message: emailMessage,
+      attachments: attachments,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      order: pendingOrder,
+    });
+  } catch (error) {
+    console.error("Order Creation Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create order",
+      error: error.message,
+    });
+  }
+};
 // get Single Order
 const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
@@ -534,4 +615,5 @@ module.exports = {
   cancelOrder,
   createOrder,
   updatePaymentStatus,
+  createOrder,
 };

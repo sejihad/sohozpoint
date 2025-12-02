@@ -115,6 +115,11 @@ const productSchema = new mongoose.Schema({
     enum: ["yes", "no"],
     default: "yes",
   },
+  show: {
+    type: String,
+    enum: ["yes", "no"],
+    default: "yes",
+  },
   numOfReviews: {
     type: Number,
     default: 0,

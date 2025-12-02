@@ -9,10 +9,12 @@ const {
   cancelOrder,
   requestRefund,
   updatePaymentStatus,
+  createOrder,
 } = require("../controllers/orderController");
 const router = express.Router();
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
 
+router.post("/order/new", isAuthenticator, createOrder);
 router.get("/order/:id", isAuthenticator, getSingleOrder);
 router.route("/order/:id/cancel").put(isAuthenticator, cancelOrder);
 

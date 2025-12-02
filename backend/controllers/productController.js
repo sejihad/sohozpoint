@@ -12,7 +12,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
   const requiredFields = [
     "name",
-
+    "show",
     "description",
     "oldPrice",
     "salePrice",
@@ -203,6 +203,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     "videoLink",
     "source",
     "deliveryCharge",
+    "show",
   ];
 
   textFields.forEach((field) => {
@@ -404,7 +405,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
 
 // get all prodcuts
 const getAllProducts = catchAsyncErrors(async (req, res, next) => {
-  const products = await Product.find();
+  const products = await Product.find({ show: "yes" });
 
   res.status(200).json({
     success: true,

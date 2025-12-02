@@ -9,8 +9,10 @@ import {
   clearCoupon,
   clearErrors,
 } from "../../actions/couponAction";
+import { createOrder } from "../../actions/orderAction";
 import { initializePayment } from "../../actions/paymentAction";
 import MetaData from "../../component/layout/MetaData";
+import { CREATE_ORDER_RESET } from "../../constants/orderContants";
 import Loader from "./Loader";
 
 const Checkout = () => {
@@ -21,6 +23,11 @@ const Checkout = () => {
   // Redux states
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const { charge } = useSelector((state) => state.charge);
+  const {
+    success,
+    error: orderError,
+    loading: orderLoading,
+  } = useSelector((state) => state.newOrder);
   const {
     coupon,
     loading: couponLoading,
@@ -42,6 +49,7 @@ const Checkout = () => {
     fullName: user?.name || "",
     email: user?.email || "",
     phone: user?.number || "",
+    phone2: "",
     zipCode: "",
     district: "",
     thana: "",
@@ -52,6 +60,7 @@ const Checkout = () => {
 
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentType, setPaymentType] = useState("");
+
   const [couponCode, setCouponCode] = useState("");
   const [isCouponApplied, setIsCouponApplied] = useState(false);
   const [districts, setDistricts] = useState([]);
@@ -169,8 +178,9 @@ const Checkout = () => {
 
   if (paymentType === "delivery_only") {
     // COD: Pay delivery charge ALWAYS + product amount later
-    payableNow = payableDeliveryCharge;
-    remaining = finalProductTotal;
+    // payableNow = payableDeliveryCharge;
+    payableNow = 0;
+    remaining = finalProductTotal + payableDeliveryCharge;
   } else if (paymentType === "preorder_50") {
     // Preorder 50%: Pay 50% product price + FULL delivery charge
     const halfProductPrice = finalProductTotal * 0.5;
@@ -211,7 +221,17 @@ const Checkout = () => {
     }
 
     dispatch(getCharge());
+    if (success) {
+      toast.success("Order placed successfully!");
+      navigate("/orders");
+      // যদি দরকার হয়, Redux state reset করতে পারেন
+      dispatch({ type: CREATE_ORDER_RESET });
+    }
 
+    if (orderError) {
+      toast.error(orderError);
+      dispatch(clearErrors());
+    }
     const loadDistricts = () => {
       try {
         const manualDistricts = [
@@ -287,7 +307,7 @@ const Checkout = () => {
     };
 
     loadDistricts();
-  }, [dispatch, isAuthenticated, navigate]);
+  }, [dispatch, isAuthenticated, navigate, orderError, success]);
 
   // Effects for coupon handling
   useEffect(() => {
@@ -415,10 +435,10 @@ const Checkout = () => {
     }
 
     // ✅ STRICT VALIDATION: Delivery charge must be paid
-    if (payableDeliveryCharge > 0 && payableNow < payableDeliveryCharge) {
-      toast.error("Delivery charge must be paid to place order");
-      return;
-    }
+    // if (payableDeliveryCharge > 0 && payableNow < payableDeliveryCharge) {
+    //   toast.error("Delivery charge must be paid to place order");
+    //   return;
+    // }
 
     const orderData = {
       orderItems: cartItems,
@@ -447,15 +467,19 @@ const Checkout = () => {
         : null,
     };
 
-    dispatch(initializePayment(orderData));
+    if (paymentMethod === "cod" || paymentType === "delivery_only") {
+      // COD এর ক্ষেত্রে direct order create করো
+      dispatch(createOrder(orderData));
+    } else {
+      // অন্যান্য payment method এর জন্য payment initialize করো
+      dispatch(initializePayment(orderData));
+    }
   };
 
   const getPaymentDescription = () => {
     switch (paymentType) {
       case "delivery_only":
-        return `Pay delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
-          2
-        )}) now, product amount cash on delivery`;
+        return `full cash on delivery`;
       case "preorder_50":
         return `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
           2
@@ -572,6 +596,20 @@ const Checkout = () => {
                         {errors.phone}
                       </p>
                     )}
+                  </div>
+                  {/* 2nd Phone Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      2nd Phone Number (optional)
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone2"
+                      value={shippingInfo.phone2}
+                      onChange={handleShippingChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm md:text-base"
+                      placeholder="Enter your phone number"
+                    />
                   </div>
 
                   {/* Zip Code */}
@@ -751,9 +789,7 @@ const Checkout = () => {
                             Cash on Delivery
                           </span>
                           <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
-                            {`Pay ৳${amounts.payableDeliveryCharge.toFixed(
-                              2
-                            )} delivery charge now, product amount cash on delivery`}
+                            {``}
                           </p>
                         </div>
                       </label>
@@ -1056,7 +1092,7 @@ const Checkout = () => {
                   disabled={loading || !paymentMethod || !termsAccepted}
                   className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm md:text-base"
                 >
-                  {loading
+                  {loading || orderLoading
                     ? "Placing Order..."
                     : `Place Order - ৳${amounts.payableNow.toFixed(2)}`}
                 </button>

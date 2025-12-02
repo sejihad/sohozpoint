@@ -58,6 +58,7 @@ const UpdateProduct = () => {
     brand: "",
     gender: "",
     deliveryCharge: "",
+    show: "",
     oldPrice: "",
     salePrice: "",
     buyPrice: "",
@@ -128,6 +129,7 @@ const UpdateProduct = () => {
         brand: product.brand || "",
         gender: product.gender || "",
         deliveryCharge: product.deliveryCharge || "",
+        show: product.show || "",
         oldPrice: product.oldPrice || "",
         salePrice: product.salePrice || "",
         buyPrice: product.buyPrice || "",
@@ -340,6 +342,7 @@ const UpdateProduct = () => {
     data.set("gender", formData.gender);
     data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
+    data.set("show", formData.show);
     data.set("oldPrice", formData.oldPrice);
     data.set("salePrice", formData.salePrice);
     data.set("buyPrice", formData.buyPrice);
@@ -678,6 +681,22 @@ const UpdateProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="">-- Select Delivery Option --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Show <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="show"
+                    value={formData.show}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">-- Select Show Option --</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>

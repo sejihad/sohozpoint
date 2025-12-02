@@ -35,6 +35,7 @@ const NewProduct = () => {
     gender: "",
     brand: "",
     deliveryCharge: "",
+    show: "",
     oldPrice: "",
     salePrice: "",
     buyPrice: "",
@@ -115,6 +116,7 @@ const NewProduct = () => {
       gender: "",
       brand: "",
       deliveryCharge: "",
+      show: "",
       oldPrice: "",
       salePrice: "",
       buyPrice: "",
@@ -310,6 +312,7 @@ const NewProduct = () => {
     data.set("brand", formData.brand);
     data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
+    data.set("show", formData.show);
     if (formData.videoLink) data.set("videoLink", formData.videoLink);
     data.set("oldPrice", formData.oldPrice);
     data.set("salePrice", formData.salePrice);
@@ -623,6 +626,22 @@ const NewProduct = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="">-- Select Delivery Option --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Show<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="show"
+                    value={formData.show}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">-- Select Show Option --</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>

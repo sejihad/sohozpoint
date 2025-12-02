@@ -149,7 +149,6 @@ ${
 }
 
 Total Price: ৳${totalPrice}
-Paid: ৳${paymentInfo.amount}
 Remaining: ৳${cashOnDelivery}
 `;
 

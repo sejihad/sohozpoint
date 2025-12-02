@@ -23,6 +23,7 @@ const AdminOrderDetails = () => {
   const pdfRef = useRef();
 
   const { order, loading, error } = useSelector((state) => state.orderDetails);
+
   const {
     loading: updateLoading,
     isUpdated,
@@ -431,6 +432,7 @@ const AdminOrderDetails = () => {
                     <p style={{ margin: "0 0 0.25rem 0" }}>
                       <strong>Phone:</strong> {order.shippingInfo?.phone}
                     </p>
+
                     <p style={{ margin: "0 0 0.25rem 0" }}>
                       <strong>Email:</strong> {order.shippingInfo?.email}
                     </p>
@@ -867,6 +869,12 @@ const AdminOrderDetails = () => {
                     <div>
                       <p className="text-sm text-gray-600">Phone</p>
                       <p className="font-medium">{order.shippingInfo?.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone 2nd</p>
+                      <p className="font-medium">
+                        {order.shippingInfo?.phone2}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Email</p>
