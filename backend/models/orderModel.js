@@ -60,7 +60,7 @@ const orderSchema = new mongoose.Schema(
     // 🕐 TTL: 60 মিনিটে পেমেন্ট না হলে অর্ডার ডিলিট
     expiresAt: {
       type: Date,
-      default: () => Date.now() + 60 * 60 * 1000, // 1 hour from creation
+      default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hour from creation
       index: { expireAfterSeconds: 0 }, // TTL index
     },
 

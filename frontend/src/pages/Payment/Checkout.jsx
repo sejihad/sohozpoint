@@ -1094,7 +1094,11 @@ const Checkout = () => {
                 >
                   {loading || orderLoading
                     ? "Placing Order..."
-                    : `Place Order - ৳${amounts.payableNow.toFixed(2)}`}
+                    : `Place Order ${
+                        amounts.payableNow === 0
+                          ? ""
+                          : `-৳${amounts.payableNow.toFixed(2)}`
+                      }`}
                 </button>
 
                 <p className="text-xs text-gray-500 text-center mt-3">
