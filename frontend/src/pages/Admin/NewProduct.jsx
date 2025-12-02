@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
+import { getGenders } from "../../actions/genderAction";
 import { getLogos } from "../../actions/logoAction";
 import { clearErrors, createProduct } from "../../actions/productAction";
 import { getSubcategories } from "../../actions/subcategoryAction";
