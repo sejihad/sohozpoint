@@ -203,7 +203,7 @@ const Header = () => {
                   src={logo}
                   alt="Sohoz Point"
                   loading="eager"
-                  className="h-8 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"
+                  className="h-12 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"
                 />
               </Link>
             </div>

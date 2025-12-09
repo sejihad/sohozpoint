@@ -30,6 +30,10 @@ passport.use(
             googleId,
             provider: "google",
           });
+
+          user.isNewUser = true; // ⭐ Mark new user
+        } else {
+          user.isNewUser = false; // ⭐ Existing user
         }
 
         return done(null, user);

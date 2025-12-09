@@ -165,36 +165,38 @@ export const deleteCoupon = (id) => async (dispatch) => {
 // -------------------- User Action --------------------
 
 // ✅ Apply Coupon (User)
-export const applyCoupon = (code, amount) => async (dispatch) => {
-  try {
-    dispatch({ type: APPLY_COUPON_REQUEST });
+export const applyCoupon =
+  (code, amount, productIds = []) =>
+  async (dispatch) => {
+    try {
+      dispatch({ type: APPLY_COUPON_REQUEST });
 
-    const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
-    const { data } = await axios.post(
-      `${API_URL}/api/v1/coupon/apply`,
-      { code, amount },
-      config
-    );
+      const { data } = await axios.post(
+        `${API_URL}/api/v1/coupon/apply`,
+        { code, amount, productIds },
+        config
+      );
 
-    dispatch({
-      type: APPLY_COUPON_SUCCESS,
-      payload: data,
-    });
-  } catch (error) {
-    console.log(error);
-    dispatch({
-      type: APPLY_COUPON_FAIL,
-      payload: error.response?.data?.message || "Something went wrong",
-    });
-  }
-};
+      dispatch({
+        type: APPLY_COUPON_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      console.log(error);
+      dispatch({
+        type: APPLY_COUPON_FAIL,
+        payload: error.response?.data?.message || "Something went wrong",
+      });
+    }
+  };
 // ✅ Clear Coupon (User)
 export const clearCoupon = () => async (dispatch) => {
   try {

@@ -243,65 +243,50 @@ const Cart = () => {
               return (
                 <div
                   key={itemId}
-                  className={`grid grid-cols-1 md:grid-cols-7 gap-4 p-4 items-center transition-colors ${
+                  className={`p-4 border-b bg-white md:grid md:grid-cols-7 md:items-center transition-colors ${
                     isSelected
                       ? "bg-green-50 border-l-4 border-l-green-500"
                       : ""
                   }`}
                 >
-                  {/* ✅ Selection Checkbox */}
-                  <div className="col-span-1 flex justify-center">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleItemSelection(itemId)}
-                      className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-                    />
-                  </div>
-
-                  {/* 🖼️ Image */}
-                  <div className="col-span-1 flex justify-center">
-                    <Link
-                      to={`/${safeSlugify(
-                        item.product?.category || "product"
-                      )}/${safeSlugify(item.name)}`}
-                    >
-                      <img
-                        src={item.image || "/images/placeholder-product.jpg"}
-                        alt={item.name}
-                        className="w-20 h-24 md:w-24 md:h-28 object-cover rounded-lg border hover:opacity-90 transition-opacity"
+                  {/* 🌟 Mobile Layout */}
+                  <div className="flex md:hidden gap-3">
+                    {/* Checkbox + Image */}
+                    <div className="flex flex-col items-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleItemSelection(itemId)}
+                        className="w-5 h-5 text-green-600 rounded mb-2"
                       />
-                    </Link>
-                  </div>
 
-                  {/* 🏷️ Product Info */}
-                  <div className="col-span-2">
-                    <Link
-                      to={`/${safeSlugify(
-                        item.product?.category || "product"
-                      )}/${safeSlugify(item.name)}`}
-                      className="hover:text-green-600 transition-colors"
-                    >
-                      <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-2">
-                        {item.name}
-                      </h3>
-                    </Link>
-                    <p className="text-green-600 text-sm md:text-base">
-                      ৳{item.price}
-                    </p>
-                    <div className="text-xs md:text-sm text-gray-600 mt-1">
-                      {item.deliveryCharge === "no" ? (
-                        <span className="text-green-500 font-medium">
-                          Free Delivery
-                        </span>
-                      ) : (
-                        ""
-                      )}
+                      <Link
+                        to={`/${safeSlugify(
+                          item.product?.category || "product"
+                        )}/${safeSlugify(item.name)}`}
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-24 object-cover rounded-lg"
+                        />
+                      </Link>
                     </div>
 
-                    {/* Product Attributes */}
-                    <div className="text-xs text-gray-600 mt-1 space-y-1">
-                      <div className="flex flex-wrap gap-2">
+                    {/* Right side info */}
+                    <div className="flex-1 flex flex-col justify-between">
+                      <Link
+                        to={`/${safeSlugify(
+                          item.product?.category || "product"
+                        )}/${safeSlugify(item.name)}`}
+                      >
+                        <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+                          {item.name}
+                        </h3>
+                      </Link>
+
+                      {/* Size, Color, Weight */}
+                      <div className="text-xs text-gray-600 flex flex-wrap gap-2 mt-1">
                         {item.size && (
                           <span className="bg-gray-100 px-2 py-1 rounded">
                             Size: {item.size}
@@ -314,47 +299,160 @@ const Cart = () => {
                         )}
                         {item.weight && (
                           <span className="bg-gray-100 px-2 py-1 rounded">
-                            Weight: {item.weight} kg
+                            Weight: {item.weight}kg
                           </span>
                         )}
+                      </div>
+
+                      {/* Quantity + Price + Delete */}
+                      <div className="flex items-center justify-between mt-3">
+                        {/* Quantity Buttons */}
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() =>
+                              updateQuantity(item, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                            className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center"
+                          >
+                            -
+                          </button>
+                          <span className="font-semibold w-6 text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(item, item.quantity + 1)
+                            }
+                            className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <span className="font-bold text-green-600 text-base">
+                          ৳
+                          {(
+                            item.subtotal || item.price * item.quantity
+                          ).toFixed(0)}
+                        </span>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleRemove(item)}
+                          className="text-red-500 text-lg"
+                        >
+                          <FaTrash />
+                        </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* 🔢 Quantity */}
-                  <div className="col-span-2 md:col-span-1 flex items-center justify-start md:justify-center space-x-3">
-                    <button
-                      onClick={() => updateQuantity(item, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 transition-colors"
-                    >
-                      <span className="text-lg">-</span>
-                    </button>
-                    <span className="font-semibold text-sm md:text-base w-6 text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => updateQuantity(item, item.quantity + 1)}
-                      className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-                    >
-                      <span className="text-lg">+</span>
-                    </button>
-                  </div>
+                  {/* 🖥️ Desktop Layout */}
+                  <div className="hidden md:contents">
+                    {/* Checkbox */}
+                    <div className="md:col-span-1 flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleItemSelection(itemId)}
+                        className="w-5 h-5 text-green-600 rounded"
+                      />
+                    </div>
 
-                  {/* 💰 Subtotal */}
-                  <div className="col-span-1 text-right font-semibold text-sm md:text-base">
-                    ৳{(item.subtotal || item.price * item.quantity).toFixed(2)}
-                  </div>
+                    {/* Product Image & Name */}
+                    <div className="md:col-span-3 flex items-center space-x-4">
+                      <Link
+                        to={`/${safeSlugify(
+                          item.product?.category || "product"
+                        )}/${safeSlugify(item.name)}`}
+                        className="flex items-center space-x-4"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-24 object-cover rounded-lg"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900 line-clamp-2">
+                            {item.name}
+                          </h3>
+                          {/* Size, Color, Weight - Desktop */}
+                          <div className="text-sm text-gray-600 flex flex-wrap gap-2 mt-1">
+                            {item.size && (
+                              <span className="bg-gray-100 px-2 py-1 rounded">
+                                Size: {item.size}
+                              </span>
+                            )}
+                            {item.color && (
+                              <span className="bg-gray-100 px-2 py-1 rounded">
+                                Color: {item.color}
+                              </span>
+                            )}
+                            {item.weight && (
+                              <span className="bg-gray-100 px-2 py-1 rounded">
+                                Weight: {item.weight}kg
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
 
-                  {/* 🗑️ Remove */}
-                  <div className="col-span-1 flex justify-end md:text-right">
-                    <button
-                      onClick={() => handleRemove(item)}
-                      className="text-red-500 hover:text-red-700 transition-colors p-2 md:p-2 rounded-full hover:bg-red-50 flex items-center justify-center"
-                      title="Remove item"
-                    >
-                      <FaTrash className="text-sm md:text-base" />
-                    </button>
+                    {/* Price */}
+                    <div className="md:col-span-1 flex items-center justify-center">
+                      <span className="font-semibold text-gray-700">
+                        ৳{item.price.toFixed(0)}
+                      </span>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="md:col-span-1 flex items-center justify-center">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() =>
+                            updateQuantity(item, item.quantity - 1)
+                          }
+                          disabled={item.quantity <= 1}
+                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                        >
+                          -
+                        </button>
+                        <span className="font-semibold w-8 text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item, item.quantity + 1)
+                          }
+                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className="md:col-span-1 flex items-center justify-center">
+                      <span className="font-bold text-green-600">
+                        ৳
+                        {(item.subtotal || item.price * item.quantity).toFixed(
+                          0
+                        )}
+                      </span>
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="md:col-span-1 flex items-center justify-center">
+                      <button
+                        onClick={() => handleRemove(item)}
+                        className="text-red-500 hover:text-red-700 p-2"
+                        title="Remove item"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

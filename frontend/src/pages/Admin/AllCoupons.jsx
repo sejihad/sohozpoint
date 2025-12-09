@@ -4,7 +4,9 @@ import {
   FiEdit2,
   FiPercent,
   FiPlus,
+  FiSearch,
   FiTrash2,
+  FiUser,
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +19,8 @@ import {
   getAdminCoupons,
   updateCoupon,
 } from "../../actions/couponAction";
+import { getAdminProduct } from "../../actions/productAction";
+import { getAllUsers } from "../../actions/userAction";
 import MetaData from "../../component/layout/MetaData";
 
 import {
@@ -45,6 +49,8 @@ const AllCoupons = () => {
     isUpdated,
     loading: updateDeleteLoading,
   } = useSelector((state) => state.coupon);
+  const { products } = useSelector((state) => state.products);
+  const { users } = useSelector((state) => state.allUsers);
 
   const [formData, setFormData] = useState({
     code: "",
@@ -54,15 +60,27 @@ const AllCoupons = () => {
     minimumPurchase: "",
     usageLimit: "",
     isActive: true,
+    appliesTo: "all",
+    products: [],
+    allowedUsersType: "all",
+    allowedUsers: [],
   });
   const [formErrors, setFormErrors] = useState({});
   const [editId, setEditId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  // Search States
+  const [productSearch, setProductSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+
   const loading = newCouponLoading || updateDeleteLoading;
 
   useEffect(() => {
     dispatch(getAdminCoupons());
+    dispatch(getAdminProduct());
+    dispatch(getAllUsers());
 
     if (error || updateDeleteError) {
       toast.error(error || updateDeleteError);
@@ -92,6 +110,40 @@ const AllCoupons = () => {
     }
   }, [dispatch, error, success, isDeleted, isUpdated, updateDeleteError]);
 
+  // Filter products based on search
+  useEffect(() => {
+    if (productSearch.trim() === "") {
+      setFilteredProducts(products?.slice(0, 10) || []);
+    } else {
+      const filtered = products
+        ?.filter(
+          (product) =>
+            product.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
+            product._id?.includes(productSearch)
+        )
+        .slice(0, 10);
+      setFilteredProducts(filtered || []);
+    }
+  }, [productSearch, products]);
+
+  // Filter users based on search
+  useEffect(() => {
+    if (userSearch.trim() === "") {
+      setFilteredUsers(users?.slice(0, 10) || []);
+    } else {
+      const filtered = users
+        ?.filter(
+          (user) =>
+            user.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+            user.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
+            (user.userCode && user.userCode.includes(userSearch)) || // ✅ userCode দিয়ে search
+            user._id?.includes(userSearch)
+        )
+        .slice(0, 10);
+      setFilteredUsers(filtered || []);
+    }
+  }, [userSearch, users]);
+
   const resetForm = () => {
     setEditId(null);
     setFormData({
@@ -102,8 +154,14 @@ const AllCoupons = () => {
       minimumPurchase: "",
       usageLimit: "",
       isActive: true,
+      appliesTo: "all",
+      products: [],
+      allowedUsersType: "all",
+      allowedUsers: [],
     });
     setFormErrors({});
+    setProductSearch("");
+    setUserSearch("");
   };
 
   const validateForm = () => {
@@ -136,6 +194,19 @@ const AllCoupons = () => {
 
     if (formData.usageLimit && formData.usageLimit < 0) {
       errors.usageLimit = "Usage limit cannot be negative";
+    }
+
+    // Validate specific products
+    if (formData.appliesTo === "specific" && formData.products.length === 0) {
+      errors.products = "Please select at least one product";
+    }
+
+    // Validate specific users
+    if (
+      formData.allowedUsersType === "specific" &&
+      formData.allowedUsers.length === 0
+    ) {
+      errors.allowedUsers = "Please select at least one user";
     }
 
     setFormErrors(errors);
@@ -178,6 +249,10 @@ const AllCoupons = () => {
         : "",
       usageLimit: coupon.usageLimit ? coupon.usageLimit.toString() : "",
       isActive: coupon.isActive,
+      appliesTo: coupon.appliesTo || "all",
+      products: coupon.products || [],
+      allowedUsersType: coupon.allowedUsersType || "all",
+      allowedUsers: coupon.allowedUsers || [],
     });
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -191,6 +266,57 @@ const AllCoupons = () => {
     ) {
       dispatch(deleteCoupon(id));
     }
+  };
+
+  // Product Handlers
+  const handleAddProduct = (product) => {
+    if (formData.products.some((p) => p._id === product._id)) {
+      toast.info("Product already added");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      products: [...prev.products, { _id: product._id, name: product.name }],
+    }));
+    setProductSearch("");
+  };
+
+  const handleRemoveProduct = (productId) => {
+    setFormData((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => p._id !== productId),
+    }));
+  };
+
+  // User Handlers
+  // User Handlers
+  const handleAddUser = (user) => {
+    if (formData.allowedUsers.some((u) => u._id === user._id)) {
+      toast.info("User already added");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      allowedUsers: [
+        ...prev.allowedUsers,
+        {
+          _id: user._id, // ✅ Backend এ এটি যাবে
+          name: user.name,
+          email: user.email,
+          userCode: user.userCode, // ✅ UI তে দেখানোর জন্য
+        },
+      ],
+    }));
+    setUserSearch("");
+  };
+
+  const handleRemoveUser = (userCode) => {
+    setFormData((prev) => ({
+      ...prev,
+      allowedUsers: prev.allowedUsers.filter((u) => u._id !== userCode),
+    }));
   };
 
   const getStatusColor = (coupon) => {
@@ -477,6 +603,278 @@ const AllCoupons = () => {
                     </div>
                   </div>
 
+                  {/* Products Section */}
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4">
+                      Products Restriction
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="all"
+                            checked={formData.appliesTo === "all"}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                appliesTo: e.target.value,
+                                products:
+                                  e.target.value === "all" ? [] : prev.products,
+                              }))
+                            }
+                            className="text-green-600"
+                          />
+                          <span>All Products</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="specific"
+                            checked={formData.appliesTo === "specific"}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                appliesTo: e.target.value,
+                              }))
+                            }
+                            className="text-green-600"
+                          />
+                          <span>Specific Products Only</span>
+                        </label>
+                      </div>
+
+                      {formData.appliesTo === "specific" && (
+                        <div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Search Products
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiSearch className="text-gray-400" />
+                              </div>
+                              <input
+                                type="text"
+                                value={productSearch}
+                                onChange={(e) =>
+                                  setProductSearch(e.target.value)
+                                }
+                                className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Search by product name or ID..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Search Results */}
+                          {productSearch && filteredProducts.length > 0 && (
+                            <div className="mb-4 border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                              {filteredProducts.map((product) => (
+                                <div
+                                  key={product._id}
+                                  className="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer flex justify-between items-center"
+                                  onClick={() => handleAddProduct(product)}
+                                >
+                                  <div>
+                                    <p className="font-medium text-gray-800">
+                                      {product.name}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      ID: {product._id}
+                                    </p>
+                                  </div>
+                                  <span className="text-green-600 text-sm">
+                                    Add
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Selected Products */}
+                          {formData.products.length > 0 && (
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Selected Products ({formData.products.length})
+                              </label>
+                              <div className="space-y-2">
+                                {formData.products.map((product) => (
+                                  <div
+                                    key={product._id}
+                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                                  >
+                                    <div>
+                                      <p className="font-medium text-gray-800">
+                                        {product.name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        ID: {product._id}
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveProduct(product._id)
+                                      }
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <FiX size={18} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {formErrors.products && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {formErrors.products}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Users Section */}
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4">
+                      Users Restriction
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="all"
+                            checked={formData.allowedUsersType === "all"}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                allowedUsersType: e.target.value,
+                                allowedUsers:
+                                  e.target.value === "all"
+                                    ? []
+                                    : prev.allowedUsers,
+                              }))
+                            }
+                            className="text-green-600"
+                          />
+                          <span>All Users</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            value="specific"
+                            checked={formData.allowedUsersType === "specific"}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                allowedUsersType: e.target.value,
+                              }))
+                            }
+                            className="text-green-600"
+                          />
+                          <span>Specific Users Only</span>
+                        </label>
+                      </div>
+
+                      {formData.allowedUsersType === "specific" && (
+                        <div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Search Users
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiUser className="text-gray-400" />
+                              </div>
+                              <input
+                                type="text"
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Search by name, email or ID..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Search Results */}
+                          {userSearch && filteredUsers.length > 0 && (
+                            <div className="mb-4 border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                              {filteredUsers.map((user) => (
+                                <div
+                                  key={user._id}
+                                  className="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer flex justify-between items-center"
+                                  onClick={() => handleAddUser(user)}
+                                >
+                                  <div>
+                                    <p className="font-medium text-gray-800">
+                                      {user.name}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      {user.email}
+                                    </p>
+                                    {/* ✅ Show userCode if available, otherwise show _id */}
+                                    <p className="text-xs text-gray-400">
+                                      User ID: {user.userCode || user._id}
+                                    </p>
+                                  </div>
+                                  <span className="text-green-600 text-sm">
+                                    Add
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Selected Users */}
+                          {formData.allowedUsers.length > 0 && (
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Selected Users ({formData.allowedUsers.length})
+                              </label>
+                              <div className="space-y-2">
+                                {formData.allowedUsers.map((user) => (
+                                  <div
+                                    key={user._id}
+                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                                  >
+                                    <div>
+                                      <p className="font-medium text-gray-800">
+                                        {user.name}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {user.email}
+                                      </p>
+                                      {/* ✅ Show userCode if available */}
+                                      <p className="text-xs text-gray-400">
+                                        User ID: {user.userCode}
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveUser(user._id)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <FiX size={18} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {formErrors.allowedUsers && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {formErrors.allowedUsers}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Active Checkbox */}
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <input
@@ -572,6 +970,26 @@ const AllCoupons = () => {
                             ? `${coupon.discountValue}% OFF`
                             : `৳${coupon.discountValue} OFF`}
                         </p>
+
+                        {/* Products Info */}
+                        {coupon.appliesTo === "specific" &&
+                          coupon.products?.length > 0 && (
+                            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                              <p className="font-medium">
+                                Specific Products ({coupon.products.length})
+                              </p>
+                            </div>
+                          )}
+
+                        {/* Users Info */}
+                        {coupon.allowedUsersType === "specific" &&
+                          coupon.allowedUsers?.length > 0 && (
+                            <div className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                              <p className="font-medium">
+                                Specific Users ({coupon.allowedUsers.length})
+                              </p>
+                            </div>
+                          )}
 
                         {coupon.minimumPurchase > 0 && (
                           <p className="text-sm text-gray-600">

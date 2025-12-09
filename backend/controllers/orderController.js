@@ -255,7 +255,7 @@ Sohoz Point Team
         message: emailMessage,
       });
     } else {
-      console.error("Steadfast parcel creation failed:", parcelResult.error);
+     
 
       // Send email without tracking code if Steadfast fails
       const emailSubject = `🎉 Your Order #${order.orderId} has been confirmed!`;

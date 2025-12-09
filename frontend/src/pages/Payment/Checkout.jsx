@@ -11,6 +11,7 @@ import {
 } from "../../actions/couponAction";
 import { createOrder } from "../../actions/orderAction";
 import { initializePayment } from "../../actions/paymentAction";
+import { getShips } from "../../actions/shipAction"; // ✅ ships এর action import
 import MetaData from "../../component/layout/MetaData";
 import { CREATE_ORDER_RESET } from "../../constants/orderContants";
 import Loader from "./Loader";
@@ -22,6 +23,7 @@ const Checkout = () => {
 
   // Redux states
   const { user, isAuthenticated } = useSelector((state) => state.user);
+  const { ships, loading: shipsLoading } = useSelector((state) => state.ships); // ✅ ships state
   const { charge } = useSelector((state) => state.charge);
   const {
     success,
@@ -67,8 +69,64 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  // ✅ New state for updated cart items
+  const [updatedCartItems, setUpdatedCartItems] = useState(cartItems);
+
+  // ✅ Ship rules checking functions
+  const checkShipRulesForDistrict = (district) => {
+    if (!district || !ships || ships.length === 0) return null;
+
+    const districtRules = ships.filter(
+      (ship) => ship.district.toLowerCase() === district.toLowerCase()
+    );
+
+    return districtRules.length > 0 ? districtRules[0] : null;
+  };
+
+  const isUserEligibleForShipRule = (shipRule) => {
+    if (!shipRule || !user) return false;
+
+    if (shipRule.allowedUsersType === "all") {
+      return true;
+    }
+
+    if (shipRule.allowedUsersType === "specific") {
+      const currentUserId = user?._id || user?.id;
+
+      return shipRule.allowedUsers?.some(
+        (allowedUser) =>
+          allowedUser._id === currentUserId || allowedUser.id === currentUserId
+      );
+    }
+
+    return false;
+  };
+
+  const getEligibleProductsForShipRule = (shipRule, items) => {
+    if (!shipRule || !items || items.length === 0) return [];
+
+    if (shipRule.appliesTo === "all") {
+      return items.map((item) => item.id || item._id);
+    }
+
+    if (shipRule.appliesTo === "specific" && shipRule.products) {
+      const eligibleProductIds = shipRule.products.map((p) => p._id || p.id);
+
+      return items
+        .filter((item) => eligibleProductIds.includes(item.id || item._id))
+        .map((item) => item.id || item._id);
+    }
+
+    return [];
+  };
+
+  // ✅ Initialize cart items
+  useEffect(() => {
+    setUpdatedCartItems(cartItems);
+  }, [cartItems]);
+
   // Calculate total price and weight
-  const itemsPrice = cartItems.reduce((acc, item) => {
+  const itemsPrice = updatedCartItems.reduce((acc, item) => {
     // If subtotal exists → use it
     if (item.subtotal) return acc + Number(item.subtotal);
 
@@ -76,16 +134,16 @@ const Checkout = () => {
     return acc + item.price * item.quantity;
   }, 0);
 
-  const totalWeight = cartItems.reduce((acc, item) => {
+  const totalWeight = updatedCartItems.reduce((acc, item) => {
     const itemWeight = parseFloat(item.weight) || 0;
     return acc + itemWeight * item.quantity;
   }, 0);
 
   // Which products have free/paid delivery
-  const productsWithFreeDelivery = cartItems.filter(
+  const productsWithFreeDelivery = updatedCartItems.filter(
     (item) => item.deliveryCharge === "no"
   );
-  const productsWithPaidDelivery = cartItems.filter(
+  const productsWithPaidDelivery = updatedCartItems.filter(
     (item) => item.deliveryCharge !== "no"
   );
 
@@ -219,7 +277,7 @@ const Checkout = () => {
       navigate("/login", { state: { from: "/checkout" } });
       return;
     }
-
+    dispatch(getShips()); // ✅ Load ships data
     dispatch(getCharge());
     if (success) {
       toast.success("Order placed successfully!");
@@ -373,6 +431,41 @@ const Checkout = () => {
       [name]: value,
     }));
 
+    // ✅ District select করলে deliveryCharge update
+    if (name === "district") {
+      const shipRule = checkShipRulesForDistrict(value);
+
+      if (shipRule) {
+        const userEligible = isUserEligibleForShipRule(shipRule);
+
+        if (userEligible) {
+          const eligibleProductIds = getEligibleProductsForShipRule(
+            shipRule,
+            updatedCartItems
+          );
+
+          if (eligibleProductIds.length > 0) {
+            // ✅ Eligible products এর deliveryCharge "no" করুন
+            const newCartItems = updatedCartItems.map((item) => {
+              const productId = item.id || item._id;
+              if (eligibleProductIds.includes(productId)) {
+                return {
+                  ...item,
+                  deliveryCharge: "no",
+                };
+              }
+              return item;
+            });
+
+            setUpdatedCartItems(newCartItems);
+            toast.success(
+              `${eligibleProductIds.length} products now have free delivery for ${value}`
+            );
+          }
+        }
+      }
+    }
+
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -390,8 +483,17 @@ const Checkout = () => {
       toast.error("Please enter coupon code");
       return;
     }
+
+    // ✅ Product IDs বের করুন
+    const productIds = updatedCartItems.map((item) => item.id);
+
+    // ✅ Amount (product total)
+    const productTotal = itemsPrice; // অথবা আপনার calculation অনুযায়ী
+
     dispatch(clearErrors());
-    dispatch(applyCoupon(couponCode, itemsPrice));
+
+    // ✅ productIds সহ dispatch করুন
+    dispatch(applyCoupon(couponCode, productTotal, productIds));
   };
 
   const handleCouponRemove = () => {
@@ -434,14 +536,8 @@ const Checkout = () => {
       return;
     }
 
-    // ✅ STRICT VALIDATION: Delivery charge must be paid
-    // if (payableDeliveryCharge > 0 && payableNow < payableDeliveryCharge) {
-    //   toast.error("Delivery charge must be paid to place order");
-    //   return;
-    // }
-
     const orderData = {
-      orderItems: cartItems,
+      orderItems: updatedCartItems, // ✅ Updated cart items ব্যবহার
       shippingInfo,
       paymentInfo: {
         method: paymentMethod,
@@ -497,7 +593,7 @@ const Checkout = () => {
     }
   };
 
-  if (!cartItems.length) {
+  if (!updatedCartItems.length) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
@@ -835,7 +931,7 @@ const Checkout = () => {
                   Order Items (Details)
                 </h2>
                 <div className="space-y-3">
-                  {cartItems.map((item, index) => (
+                  {updatedCartItems.map((item, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between gap-3 border-b pb-3"
@@ -1001,7 +1097,7 @@ const Checkout = () => {
                 {/* Price Breakdown - Responsive */}
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm md:text-base">
-                    <span>Subtotal ({cartItems.length} items)</span>
+                    <span>Subtotal ({updatedCartItems.length} items)</span>
                     <span>৳{amounts.subtotal.toFixed(2)}</span>
                   </div>
 

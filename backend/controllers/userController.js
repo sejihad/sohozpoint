@@ -265,7 +265,31 @@ const googleLoginCallback = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Google authentication failed. Please try again.", 401)
     );
   }
+  if (user.isNewUser) {
+    const message = `
+      Hi ${user.name},
 
+      🎉 Welcome to Sohoz Point!
+
+      Your Google account has been created successfully.
+      You can now log in anytime using Google Login.
+
+      We're excited to have you on board!
+
+      Regards,
+      Sohoz Point Team
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Account Created🎉",
+        message,
+      });
+    } catch (err) {
+      console.error("Welcome email failed:", err);
+    }
+  }
   const token = user.getJWTToken();
 
   // Cookie set করা

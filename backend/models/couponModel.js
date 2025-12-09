@@ -8,50 +8,77 @@ const couponSchema = new mongoose.Schema({
     trim: true,
     uppercase: true,
   },
+
   discountType: {
     type: String,
     enum: ["percentage", "fixed"],
     required: true,
   },
+
   discountValue: {
     type: Number,
     required: [true, "Please provide discount value"],
   },
+
   expiryDate: {
     type: Date,
     required: [true, "Please provide an expiry date"],
   },
+
   minimumPurchase: {
     type: Number,
-    default: 0, // 0 means no minimum purchase requirement
+    default: 0,
   },
+
   usageLimit: {
     type: Number,
-    default: 0, // 0 = unlimited usage
+    default: 0,
   },
+
   usedCount: {
     type: Number,
-    default: 0, // tracks how many times coupon has been used
+    default: 0,
   },
+
   isActive: {
     type: Boolean,
     default: true,
   },
+
   createdAt: {
     type: Date,
     default: Date.now,
   },
-});
 
-// Optional: helper method to check if coupon can still be used
-couponSchema.methods.canBeUsed = function (cartTotal) {
-  const notExpired = this.expiryDate > new Date();
-  const withinUsageLimit =
-    this.usageLimit === 0 || this.usedCount < this.usageLimit;
-  const meetsMinimumPurchase = cartTotal >= this.minimumPurchase;
-  return (
-    this.isActive && notExpired && withinUsageLimit && meetsMinimumPurchase
-  );
-};
+  // -------------------------
+  // ⭐ NEW FEATURE 1: Products
+  // -------------------------
+  appliesTo: {
+    type: String,
+    enum: ["all", "specific"],
+    default: "all",
+  },
+  products: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+  ],
+
+  // -------------------------
+  // ⭐ NEW FEATURE 2: Users
+  // -------------------------
+  allowedUsersType: {
+    type: String,
+    enum: ["all", "specific"],
+    default: "all",
+  },
+  allowedUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+});
 
 module.exports = mongoose.model("Coupon", couponSchema);

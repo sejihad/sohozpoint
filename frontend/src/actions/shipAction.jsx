@@ -89,7 +89,7 @@ export const createShip = (shipData) => async (dispatch) => {
     const token = localStorage.getItem("token");
     const config = {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     };
@@ -147,7 +147,7 @@ export const updateShip = (id, shipData) => async (dispatch) => {
     const token = localStorage.getItem("token");
     const config = {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     };

@@ -3,7 +3,10 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
 const getAllShip = catchAsyncErrors(async (req, res, next) => {
-  const ships = await Ship.find();
+  const ships = await Ship.find()
+    .populate("products", "name ")
+    .populate("allowedUsers", "name email userCode")
+    .sort({ createdAt: -1 });
 
   res.status(200).json({
     success: true,
@@ -12,7 +15,10 @@ const getAllShip = catchAsyncErrors(async (req, res, next) => {
 });
 
 const getAdminShip = catchAsyncErrors(async (req, res, next) => {
-  const ships = await Ship.find();
+  const ships = await Ship.find()
+    .populate("products", "name ")
+    .populate("allowedUsers", "name email userCode")
+    .sort({ createdAt: -1 });
 
   res.status(200).json({
     success: true,
@@ -21,7 +27,7 @@ const getAdminShip = catchAsyncErrors(async (req, res, next) => {
 });
 const createShip = catchAsyncErrors(async (req, res, next) => {
   const ship = await Ship.create(req.body);
-
+  console.log("Created Ship:", ship.allowedUsers);
   res.status(201).json({
     success: true,
     ship,
@@ -44,9 +50,14 @@ const updateShip = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Shipped not found", 404));
   }
 
-  const updatedData = {};
-  if (req.body.country) updatedData.country = req.body.country;
-  if (req.body.charge) updatedData.charge = req.body.charge;
+  const updatedData = {
+    district: req.body.district,
+    appliesTo: req.body.appliesTo,
+    products: req.body.products,
+    allowedUsersType: req.body.allowedUsersType,
+    allowedUsers: req.body.allowedUsers,
+  };
+
   ship = await Ship.findByIdAndUpdate(req.params.id, updatedData, {
     new: true,
     runValidators: true,
