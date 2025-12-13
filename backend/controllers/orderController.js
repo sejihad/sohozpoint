@@ -49,6 +49,16 @@ const createOrder = async (req, res) => {
       orderStatus: "pending",
       expiresAt: null,
     });
+
+    // ----------------------------------------------------
+    // ✅ UPDATE COUPON USED COUNT (IF COUPON APPLIED)
+    // ----------------------------------------------------
+    if (pendingOrder.coupon && pendingOrder.coupon.code) {
+      await Coupon.findOneAndUpdate(
+        { code: pendingOrder.coupon.code },
+        { $inc: { usedCount: 1 } }
+      );
+    }
     //---------------------------------------------------
     // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
     //---------------------------------------------------
@@ -208,7 +218,42 @@ const updateOrder = catchAsyncErrors(async (req, res, next) => {
   order.orderStatus = newStatus;
 
   // Handle status-specific actions
+  // Confirm Only → Just send email
   if (newStatus === "confirm" && oldStatus !== "confirm") {
+    const emailSubject = `🎉 Your Order #${order.orderId} has been confirmed!`;
+
+    let emailMessage = `
+Dear ${order.userData.name},
+
+Great news! Your order has been confirmed and is being processed.
+
+📦 Order Details:
+Order ID: #${order.orderId}
+Order Date: ${new Date(order.createdAt).toLocaleDateString()}
+Total Amount: ৳${order.totalPrice}
+
+🚚 Shipping Information:
+Name: ${order.shippingInfo.fullName}
+Phone: ${order.shippingInfo.phone}
+Address: ${order.shippingInfo.address}, ${order.shippingInfo.thana}, ${
+      order.shippingInfo.district
+    }, ${order.shippingInfo.zipCode}
+
+Thank you for shopping with us!
+
+If you have any questions, please contact our customer support.
+
+Best regards,
+Sohoz Point Team
+  `;
+
+    await sendEmail({
+      email: order.userData.email,
+      subject: emailSubject,
+      message: emailMessage,
+    });
+  }
+  if (newStatus === "delivering" && oldStatus !== "delivering") {
     // ✅ 1. Create parcel in Steadfast
     const parcelResult = await steadfastService.createParcel(order);
 
@@ -218,13 +263,13 @@ const updateOrder = catchAsyncErrors(async (req, res, next) => {
         tracking_code: parcelResult.data.consignment.tracking_code,
       };
 
-      // ✅ 2. Send confirmation email with tracking code
-      const emailSubject = `🎉 Your Order #${order.orderId} has been confirmed!`;
+      // ✅ 2. Send email with tracking code
+      const emailSubject = `🚚 Your Order #${order.orderId} is now out for delivery!`;
 
       let emailMessage = `
 Dear ${order.userData.name},
 
-Great news! Your order has been confirmed and is being processed.
+Good news! Your order is now **out for delivery** and will reach you soon.
 
 📦 Order Details:
 Order ID: #${order.orderId}
@@ -239,15 +284,13 @@ Address: ${order.shippingInfo.address}, ${order.shippingInfo.thana}, ${
       }, ${order.shippingInfo.zipCode}
 
 📮 Tracking Code: ${parcelResult.data.consignment.tracking_code}
-You can track your order using this tracking code.
+You can track your package using this tracking code.
 
 Thank you for shopping with us!
 
-If you have any questions, please contact our customer support.
-
 Best regards,
 Sohoz Point Team
-      `;
+    `;
 
       await sendEmail({
         email: order.userData.email,
@@ -255,15 +298,13 @@ Sohoz Point Team
         message: emailMessage,
       });
     } else {
-     
-
-      // Send email without tracking code if Steadfast fails
-      const emailSubject = `🎉 Your Order #${order.orderId} has been confirmed!`;
+      // ❌ Steadfast failed → send email without tracking
+      const emailSubject = `🚚 Your Order #${order.orderId} is now out for delivery!`;
 
       let emailMessage = `
 Dear ${order.userData.name},
 
-Great news! Your order has been confirmed and is being processed.
+Good news! Your order is now **out for delivery** and will reach you soon.
 
 📦 Order Details:
 Order ID: #${order.orderId}
@@ -279,11 +320,9 @@ Address: ${order.shippingInfo.address}, ${order.shippingInfo.thana}, ${
 
 Thank you for shopping with us!
 
-If you have any questions, please contact our customer support.
-
 Best regards,
 Sohoz Point Team
-      `;
+    `;
 
       await sendEmail({
         email: order.userData.email,
@@ -291,14 +330,42 @@ Sohoz Point Team
         message: emailMessage,
       });
     }
+  }
 
-    // ✅ 3. Update coupon used count if coupon was used
-    if (order.coupon && order.coupon.code) {
-      await Coupon.findOneAndUpdate(
-        { code: order.coupon.code },
-        { $inc: { usedCount: 1 } }
-      );
-    }
+  // processing email
+  if (newStatus === "processing" && oldStatus !== "processing") {
+    const emailSubject = `⏳ Your Order #${order.orderId} is now Processing`;
+
+    const emailMessage = `
+Dear ${order.userData.name},
+
+Your order is now being processed. We will notify you once it is confirmed and ready to ship.
+
+📦 Order Details:
+Order ID: #${order.orderId}
+Order Date: ${new Date(order.createdAt).toLocaleDateString()}
+Total Amount: ৳${order.totalPrice}
+
+🚚 Shipping Information:
+Name: ${order.shippingInfo.fullName}
+Phone: ${order.shippingInfo.phone}
+Address: ${order.shippingInfo.address}, ${order.shippingInfo.thana}, ${
+      order.shippingInfo.district
+    }, ${order.shippingInfo.zipCode}
+
+Thank you for shopping with us!
+
+If you have any questions, please contact our customer support.
+
+Best regards,
+Sohoz Point Team
+`;
+
+    await sendEmail({
+      email: order.userData.email,
+      subject: emailSubject,
+      message: emailMessage,
+    });
   }
 
   // ✅ 4. Handle stock update when order is delivered
@@ -306,7 +373,7 @@ Sohoz Point Team
     for (const item of order.orderItems) {
       const productId = item?.id;
       const product = await Product.findById(productId);
-      console.log(productId, product);
+
       if (product) {
         // ✅ Check if this is a preorder product
         if (order.isPreOrder) {

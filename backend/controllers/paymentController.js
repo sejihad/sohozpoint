@@ -3,6 +3,7 @@ const axios = require("axios");
 const crypto = require("crypto");
 const Order = require("../models/orderModel.js");
 const sendEmail = require("../utils/sendEmail");
+const Coupon = require("../models/couponModel.js");
 
 // EPS Credentials
 const {
@@ -100,6 +101,15 @@ const initializePayment = async (req, res) => {
       coupon: coupon,
       orderStatus: "pending",
     });
+    // ----------------------------------------------------
+    // ✅ Update Coupon Used Count (if coupon exists)
+    // ----------------------------------------------------
+    if (pendingOrder.coupon && pendingOrder.coupon.code) {
+      await Coupon.findOneAndUpdate(
+        { code: pendingOrder.coupon.code },
+        { $inc: { usedCount: 1 } }
+      );
+    }
     //---------------------------------------------------
     // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
     //---------------------------------------------------
