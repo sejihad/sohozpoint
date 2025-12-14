@@ -216,10 +216,11 @@ const Checkout = () => {
   const payableDeliveryCharge = baseDeliveryCharge; // ALWAYS full amount
 
   // ✅ FIXED: Product total after discounts (delivery discount applied to product price)
-  const afterProductDiscount = Math.max(
-    0,
-    itemsPrice - productDiscountFromFreeDelivery - deliveryDiscount
-  );
+  // const afterProductDiscount = Math.max(
+  //   0,
+  //   itemsPrice - productDiscountFromFreeDelivery - deliveryDiscount
+  // );
+  const afterProductDiscount = Math.max(0, itemsPrice);
 
   // ✅ FIXED: Coupon discount
   let couponDiscount = 0;
@@ -228,7 +229,11 @@ const Checkout = () => {
   }
 
   const finalProductTotal = Math.max(0, afterProductDiscount - couponDiscount);
-  const finalTotal = finalProductTotal + payableDeliveryCharge;
+  const finalTotal =
+    finalProductTotal +
+    payableDeliveryCharge -
+    productDiscountFromFreeDelivery -
+    deliveryDiscount;
 
   // ✅ FIXED: Payment calculations - DELIVERY CHARGE ALWAYS PAID
   let payableNow = 0;
@@ -238,19 +243,35 @@ const Checkout = () => {
     // COD: Pay delivery charge ALWAYS + product amount later
     // payableNow = payableDeliveryCharge;
     payableNow = 0;
-    remaining = finalProductTotal + payableDeliveryCharge;
+    remaining =
+      finalProductTotal +
+      payableDeliveryCharge -
+      productDiscountFromFreeDelivery -
+      deliveryDiscount;
   } else if (paymentType === "preorder_50") {
     // Preorder 50%: Pay 50% product price + FULL delivery charge
     const halfProductPrice = finalProductTotal * 0.5;
-    payableNow = halfProductPrice + payableDeliveryCharge;
+    payableNow =
+      halfProductPrice +
+      payableDeliveryCharge -
+      productDiscountFromFreeDelivery -
+      deliveryDiscount;
     remaining = finalProductTotal - halfProductPrice;
   } else if (paymentType === "preorder_full") {
     // Preorder Full: Pay full product price + delivery charge
-    payableNow = finalProductTotal + payableDeliveryCharge;
+    payableNow =
+      finalProductTotal +
+      payableDeliveryCharge -
+      productDiscountFromFreeDelivery -
+      deliveryDiscount;
     remaining = 0;
   } else {
     // Full payment: Pay everything including delivery charge
-    payableNow = finalProductTotal + payableDeliveryCharge;
+    payableNow =
+      finalProductTotal +
+      payableDeliveryCharge -
+      productDiscountFromFreeDelivery -
+      deliveryDiscount;
     remaining = 0;
   }
 
@@ -1101,19 +1122,10 @@ const Checkout = () => {
                     <span>৳{amounts.subtotal.toFixed(2)}</span>
                   </div>
 
-                  {amounts.productDiscountFromFreeDelivery > 0 && (
+                  {isCouponApplied && coupon && (
                     <div className="flex justify-between text-green-600 text-sm md:text-base">
-                      <span>Free Delivery Product Discount</span>
-                      <span>
-                        -৳{amounts.productDiscountFromFreeDelivery.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {amounts.deliveryDiscount > 0 && (
-                    <div className="flex justify-between text-green-600 text-sm md:text-base">
-                      <span>Delivery Discount</span>
-                      <span>-৳{amounts.deliveryDiscount.toFixed(2)}</span>
+                      <span>Coupon Discount</span>
+                      <span>-৳{amounts.couponDiscount.toFixed(2)}</span>
                     </div>
                   )}
 
@@ -1125,11 +1137,19 @@ const Checkout = () => {
                       </div>
                     </div>
                   </div>
-
-                  {isCouponApplied && coupon && (
+                  {amounts.productDiscountFromFreeDelivery > 0 && (
                     <div className="flex justify-between text-green-600 text-sm md:text-base">
-                      <span>Coupon Discount</span>
-                      <span>-৳{amounts.couponDiscount.toFixed(2)}</span>
+                      <span>Free Delivery Discount</span>
+                      <span>
+                        -৳{amounts.productDiscountFromFreeDelivery.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {amounts.deliveryDiscount > 0 && (
+                    <div className="flex justify-between text-green-600 text-sm md:text-base">
+                      <span>Delivery Discount</span>
+                      <span>-৳{amounts.deliveryDiscount.toFixed(2)}</span>
                     </div>
                   )}
 

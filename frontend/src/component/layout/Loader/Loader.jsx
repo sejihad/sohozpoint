@@ -3,7 +3,7 @@ import "./Loader.css";
 
 const Loader = () => {
   return (
-    <div className="absolute inset-0 bg-transparent bg-opacity-90 z-50 flex items-center justify-center">
+    <div className=" bg-white inset-0 min-h-100 bg-opacity-90 z-50 flex items-center justify-center">
       <div className="loader">
         <div className="outer"></div>
         <div className="middle"></div>

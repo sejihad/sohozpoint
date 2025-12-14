@@ -853,13 +853,12 @@ const OrderDetails = () => {
                   </div>
                 </div>
 
-                {order.paymentInfo?.method === "cod" &&
-                  order.cashOnDelivery > 0 && (
-                    <div className="flex justify-between text-orange-600 font-medium">
-                      <span>Cash on Delivery:</span>
-                      <span>৳{formatPrice(order.cashOnDelivery)}</span>
-                    </div>
-                  )}
+                {order.paymentInfo && order.cashOnDelivery > 0 && (
+                  <div className="flex justify-between text-orange-600 font-medium">
+                    <span>Cash on Delivery:</span>
+                    <span>৳{formatPrice(order.cashOnDelivery)}</span>
+                  </div>
+                )}
               </div>
             </div>
 

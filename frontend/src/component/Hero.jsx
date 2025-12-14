@@ -49,6 +49,7 @@ const Hero = () => {
   }));
 
   // ✅ Loading State
+
   if (loading) {
     return (
       <section className="relative w-full h-[250px] flex items-center justify-center bg-gray-100">

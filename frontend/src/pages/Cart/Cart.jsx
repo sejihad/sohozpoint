@@ -302,6 +302,11 @@ const Cart = () => {
                             Weight: {item.weight}kg
                           </span>
                         )}
+                        {item.deliveryCharge === "no" && (
+                          <span className="ml-2 text-green-600 font-medium">
+                            · Free Delivery
+                          </span>
+                        )}
                       </div>
 
                       {/* Quantity + Price + Delete */}
@@ -393,6 +398,11 @@ const Cart = () => {
                             {item.weight && (
                               <span className="bg-gray-100 px-2 py-1 rounded">
                                 Weight: {item.weight}kg
+                              </span>
+                            )}
+                            {item.deliveryCharge === "no" && (
+                              <span className="ml-2 text-green-600 font-medium">
+                                · Free Delivery
                               </span>
                             )}
                           </div>
