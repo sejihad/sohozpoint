@@ -1,46 +1,60 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const {
-  getAdminCoupons, // admin
-  createCoupon, // admin
-  updateCoupon, // admin update
-  deleteCoupon, // admin delete
-  getCouponDetails, // admin details
+  getAdminCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  getCouponDetails,
   applyCoupon,
-  clearCoupon, // user
+  clearCoupon,
 } = require("../controllers/couponController");
 
 const router = express.Router();
 
-// -------------------- Admin routes --------------------
+/* ======================
+   SUPER-ADMIN ONLY
+====================== */
+
 router.get(
   "/admin/coupons",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
   getAdminCoupons
 );
 
 router.post(
   "/admin/coupon/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
   createCoupon
 );
 
 router
   .route("/admin/coupon/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateCoupon)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteCoupon);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    updateCoupon
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    deleteCoupon
+  );
 
 router.get(
   "/admin/coupon/:id",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
   getCouponDetails
 );
 
-// -------------------- User route --------------------
+/* ======================
+   USER ROUTES
+====================== */
 
 router.post("/coupon/apply", isAuthenticator, applyCoupon);
 router.post("/coupon/clear", isAuthenticator, clearCoupon);

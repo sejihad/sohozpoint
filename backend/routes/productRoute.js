@@ -16,43 +16,63 @@ const {
 } = require("../controllers/productController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const router = express.Router();
 
-// 📚 Public Routes
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All products (public)
 router.get("/products", getAllProducts);
 router.get("/products/:id", getProductCart);
-
 router.get("/product/:slug", getProductDetails);
 router.get("/product/id/:id", getOrderProductDetails);
 
-// 🔐 Admin Routes
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.get(
   "/admin/products",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   getAdminProducts
 );
 
 router.post(
   "/admin/product/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createProduct
 );
 
 router
   .route("/admin/product/:id")
-  .get(isAuthenticator, authorizeRoles("admin"), getAdminProductDetails)
-  .put(isAuthenticator, authorizeRoles("admin"), updateProduct)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteProduct);
+  .get(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    getAdminProductDetails
+  )
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateProduct
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteProduct
+  );
 
-// ⭐️ Review Routes
+/* ======================
+   REVIEWS (AUTH USERS)
+====================== */
+
 router.put("/review", isAuthenticator, createReview);
 router.put("/review/:reviewId", isAuthenticator, updateReview);
-router.route("/reviews/:id").get(isAuthenticator, getReviews);
-router
-  .route("/review/:productId/:reviewId")
-  .delete(isAuthenticator, deleteReview);
+router.get("/reviews/:id", isAuthenticator, getReviews);
+router.delete("/review/:productId/:reviewId", isAuthenticator, deleteReview);
 
 module.exports = router;

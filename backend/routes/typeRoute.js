@@ -1,5 +1,7 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
+
 const {
   getAllTypes,
   getAdminTypes,
@@ -11,30 +13,45 @@ const {
 
 const router = express.Router();
 
-// Public route - all types
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All types (public)
 router.get("/types", getAllTypes);
 
-// Admin routes
+// Single type details (public)
+router.get("/type/:id", getTypeDetails);
+
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.get(
   "/admin/types",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   getAdminTypes
 );
 
 router.post(
   "/admin/type/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createType
 );
 
 router
   .route("/admin/type/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateType)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteType);
-
-// Single type details (public)
-router.get("/type/:id", getTypeDetails);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateType
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteType
+  );
 
 module.exports = router;

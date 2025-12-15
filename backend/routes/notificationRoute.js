@@ -5,20 +5,41 @@ const {
   getNotification,
   updateNotification,
 } = require("../controllers/notificationController.js");
-const { authorizeRoles, isAuthenticator } = require("../middleware/auth.js");
+
+const { isAuthenticator, authorizeRoles } = require("../middleware/auth.js");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const router = express.Router();
 
-// Public route - get active notification
-router.route("/notification").get(getNotification);
+/* ======================
+   PUBLIC ROUTE
+====================== */
 
-// Admin routes
-router
-  .route("/admin/notification")
-  .post(isAuthenticator, authorizeRoles("admin"), createNotification);
+// Get active notification (public)
+router.get("/notification", getNotification);
+
+/* ======================
+   SUPER-ADMIN ONLY
+====================== */
+
+router.post(
+  "/admin/notification",
+  isAuthenticator,
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  createNotification
+);
 
 router
   .route("/admin/notification/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateNotification)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteNotification);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    updateNotification
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    deleteNotification
+  );
+
 module.exports = router;

@@ -526,6 +526,42 @@ const deleteUser = catchAsyncErrors(async (req, res, next) => {
     message: "User Deleted Successfully",
   });
 });
+const updateUser = catchAsyncErrors(async (req, res, next) => {
+  const { role, status, reason } = req.body;
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(
+      new ErrorHandler(`User does not exist with Id: ${req.params.id}`, 400)
+    );
+  }
+
+  // role update (যদি পাঠানো হয়)
+  if (role) {
+    user.role = role;
+  }
+
+  // status update (active / suspended)
+  if (status) {
+    user.status = status;
+
+    // যদি suspended হয়, reason সেট করা হবে
+    if (status === "suspended") {
+      user.reason = reason || "Violation of rules";
+    } else {
+      user.reason = null; // active হলে reason clear
+    }
+  }
+
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: "User Updated Successfully",
+    user,
+  });
+});
 
 const getAllUser = catchAsyncErrors(async (req, res, next) => {
   const users = await User.find();
@@ -606,4 +642,5 @@ module.exports = {
   verifyOtp,
   deleteUserRequest,
   deleteUser,
+  updateUser,
 };

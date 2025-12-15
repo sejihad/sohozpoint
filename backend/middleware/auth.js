@@ -3,40 +3,47 @@ const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
-// Authentication Middleware to verify the token
+// Authentication Middleware
 const isAuthenticator = catchAsyncErrors(async (req, res, next) => {
-  const { authorization } = req.headers; // Get token from Authorization header
+  const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith("Bearer ")) {
-    return next(new ErrorHandler("Please Login to access this resource", 401)); // Unauthorized
+    return next(new ErrorHandler("Please login to access this resource", 401));
   }
 
-  const token = authorization.split(" ")[1]; // Extract token from 'Bearer <token>'
+  const token = authorization.split(" ")[1];
 
-  // Verify token
-  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  let decodedData;
+  try {
+    decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid or expired token", 401));
+  }
 
-  // Attach user to request
-  req.user = await User.findById(decodedData.id); // Get user from DB
+  const user = await User.findById(decodedData.id);
 
-  next(); // Proceed to next middleware or route handler
+  if (!user) {
+    return next(new ErrorHandler("User no longer exists", 401));
+  }
+
+  req.user = user;
+  next();
 });
 
-// Authorization Middleware to check user roles
+// Authorization Middleware
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      // Check if the user role is authorized
       return next(
         new ErrorHandler(
-          `Role: ${req.user.role} is not allowed to access this resource`,
-          403 // Forbidden access
+          `Role (${req.user.role}) is not allowed to access this resource`,
+          403
         )
       );
     }
 
-    next(); // Proceed to next middleware or route handler
+    next();
   };
 };
 
-module.exports = { authorizeRoles, isAuthenticator };
+module.exports = { isAuthenticator, authorizeRoles };

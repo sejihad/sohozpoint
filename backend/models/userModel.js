@@ -68,10 +68,25 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",
   },
-
+  status: {
+    type: String,
+    enum: ["active", "suspended"],
+    default: "active",
+  },
+  reason: {
+    type: String,
+    default: null,
+  },
   role: {
     type: String,
-    enum: ["user", "admin", "reseller", "affiliate"],
+    enum: [
+      "user",
+      "moderator",
+      "admin",
+      "super-admin",
+      "reseller",
+      "affiliate",
+    ],
     default: "user",
   },
 

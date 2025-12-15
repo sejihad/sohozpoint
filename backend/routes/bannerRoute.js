@@ -1,5 +1,6 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const {
   getAllBanners,
@@ -12,28 +13,45 @@ const {
 
 const router = express.Router();
 
-// Public routes
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All banners (public)
 router.get("/banners", getAllBanners);
+
+// Single banner details (public)
 router.get("/banner/:id", getBannerDetails);
 
-// Admin routes
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.get(
   "/admin/banners",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   getAdminBanners
 );
 
 router.post(
   "/admin/banner/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createBanner
 );
 
 router
   .route("/admin/banner/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateBanner)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteBanner);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateBanner
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteBanner
+  );
 
 module.exports = router;

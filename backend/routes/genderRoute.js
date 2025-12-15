@@ -1,5 +1,7 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
+
 const {
   getAllGenders,
   getAdminGenders,
@@ -11,30 +13,45 @@ const {
 
 const router = express.Router();
 
-// Public route - all genders
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All genders (public)
 router.get("/genders", getAllGenders);
 
-// Admin routes
+// Single gender details (public)
+router.get("/gender/:id", getGenderDetails);
+
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.get(
   "/admin/genders",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   getAdminGenders
 );
 
 router.post(
   "/admin/gender/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createGender
 );
 
 router
   .route("/admin/gender/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateGender)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteGender);
-
-// Single gender details (public)
-router.get("/gender/:id", getGenderDetails);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateGender
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteGender
+  );
 
 module.exports = router;

@@ -1,5 +1,7 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
+
 const {
   createSubcategory,
   getAllSubcategories,
@@ -11,22 +13,38 @@ const {
 
 const router = express.Router();
 
-// Public routes
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All subcategories (public)
 router.get("/subcategories", getAllSubcategories);
 
+// Single subcategory details (public)
 router.get("/subcategory/:id", getSubcategoryDetails);
 
-// Admin routes
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.post(
   "/admin/subcategory/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createSubcategory
 );
 
 router
   .route("/admin/subcategory/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateSubcategory)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteSubcategory);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateSubcategory
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteSubcategory
+  );
 
 module.exports = router;

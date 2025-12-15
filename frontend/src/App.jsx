@@ -19,6 +19,7 @@ import AllReviews from "./pages/Admin/AllReviews";
 import AllShips from "./pages/Admin/AllShips";
 import AllUsers from "./pages/Admin/AllUsers";
 import Dashboard from "./pages/Admin/Dashboard";
+import Messages from "./pages/Admin/Messages.jsx";
 import NewBlog from "./pages/Admin/NewBlog";
 import NewProduct from "./pages/Admin/NewProduct";
 
@@ -59,6 +60,7 @@ import AllSubcategories from "./pages/Admin/AllSubcategories";
 import AllSubsubcategories from "./pages/Admin/AllSubsubcategories";
 import AllTypes from "./pages/Admin/AllTypes";
 
+import { ROLE_GROUPS } from "./constants/roles.jsx";
 import AllGenders from "./pages/Admin/AllGenders";
 import NotificationManager from "./pages/Admin/NotificationManager";
 import Checkout from "./pages/Payment/Checkout";
@@ -68,6 +70,7 @@ import PaymentSuccess from "./pages/Payment/PaymentSuccess";
 import PrivacyPolicy from "./pages/Privacy/PrivacyPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy/ShippingPolicy";
 import Shop from "./pages/Shop/Shop";
+import SuspendedAccount from "./pages/Suspend/SuspendedAccount";
 import TermsConditions from "./pages/Terms/TermsAndConditions";
 import Delete from "./pages/User/Delete";
 import Profile from "./pages/User/Profile";
@@ -78,9 +81,9 @@ import UpdateProfile from "./pages/User/UpdateProfile";
 const App = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
-  useEffect(() => {
-    // enableContentProtection();
-  }, []);
+  // useEffect(() => {
+  //   enableContentProtection();
+  // }, []);
   useEffect(() => {
     const eventID = "pv-" + Date.now();
 
@@ -132,6 +135,7 @@ const App = () => {
       <ScrollToTop />
       <NotificationBanner />
       <Routes>
+        {/* public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog/:slug" element={<BlogDetails />} />
@@ -141,13 +145,12 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/terms&conditions" element={<TermsConditions />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
-
         <Route path="/products/:category" element={<ProductPage />} />
         <Route path="/category/:category" element={<CatProduct />} />
         {/* <Route path="/custom-design/:slug" element={<CustomProductDetails />} /> */}
         <Route path="/:category/:slug" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
-
+        <Route path="/suspended" element={<SuspendedAccount />} />
         <Route path="/google-success" element={<GoogleSuccess />} />
         <Route path="/facebook-success" element={<GoogleSuccess />} />
         <Route path="/password/forgot" element={<ForgotPassword />} />
@@ -156,323 +159,66 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
 
         {/* protected routes */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile/update"
-          element={
-            <ProtectedRoute>
-              <UpdateProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile/delete"
-          element={
-            <ProtectedRoute>
-              <Delete />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/password/update"
-          element={
-            <ProtectedRoute>
-              <UpdatePassword />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile/setting"
-          element={
-            <ProtectedRoute>
-              <Setting />
-            </ProtectedRoute>
-          }
-        />
+        {/* all user routes */}
+        <Route element={<ProtectedRoute roles={ROLE_GROUPS.ALL_USERS} />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/update" element={<UpdateProfile />} />
+          <Route path="/profile/delete" element={<Delete />} />
+          <Route path="/password/update" element={<UpdatePassword />} />
+          <Route path="/profile/setting" element={<Setting />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/orders" element={<MyOrders />} />
+          <Route path="/order/:id" element={<OrderDetails />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
+          <Route path="/payment-fail" element={<PaymentFail />} />
+        </Route>
 
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <MyOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/order/:id"
-          element={
-            <ProtectedRoute>
-              <OrderDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment-success"
-          element={
-            <ProtectedRoute>
-              <PaymentSuccess />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment-cancel"
-          element={
-            <ProtectedRoute>
-              <PaymentCancel />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment-fail"
-          element={
-            <ProtectedRoute>
-              <PaymentFail />
-            </ProtectedRoute>
-          }
-        />
+        {/* moderator, admin, super-admin route */}
+        <Route element={<ProtectedRoute roles={ROLE_GROUPS.MODS_AND_UP} />}>
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/messages" element={<Messages />} />
+        </Route>
 
-        {/* admin route */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/blog"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <NewBlog />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/blogs"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllBlogs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/blog/:id"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <UpdateBlog />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllUsers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/user/:id"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <UserDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/categories"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllCategories />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/logos"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllLogos />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/banners"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllBanners />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/coupons"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllCoupons />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/charges"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllCharges />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/logocharges"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllCustomLogoCharges />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/subcategories"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllSubcategories />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/subsubcategories"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllSubsubcategories />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/brands"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllBrands />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/types"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllTypes />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/genders"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllGenders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/ships"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllShips />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/product/new"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <NewProduct />
-            </ProtectedRoute>
-          }
-        />
+        {/* admin and super-admin routes */}
+        <Route element={<ProtectedRoute roles={ROLE_GROUPS.ADMINS_AND_UP} />}>
+          <Route path="/admin/blog" element={<NewBlog />} />
+          <Route path="/admin/blogs" element={<AllBlogs />} />
+          <Route path="/admin/blog/:id" element={<UpdateBlog />} />
+          <Route path="/admin/categories" element={<AllCategories />} />
+          <Route path="/admin/logos" element={<AllLogos />} />
+          <Route path="/admin/banners" element={<AllBanners />} />
+          <Route path="/admin/subcategories" element={<AllSubcategories />} />
+          <Route
+            path="/admin/subsubcategories"
+            element={<AllSubsubcategories />}
+          />
+          <Route path="/admin/brands" element={<AllBrands />} />
+          <Route path="/admin/types" element={<AllTypes />} />
+          <Route path="/admin/genders" element={<AllGenders />} />
+          <Route path="/admin/product/new" element={<NewProduct />} />
+          <Route path="/admin/product/:id" element={<UpdateProduct />} />
+          <Route path="/admin/products" element={<AllProducts />} />
+          <Route path="/admin/reviews/:id" element={<Reviews />} />
+          <Route path="/admin/reviews" element={<AllReviews />} />
+        </Route>
 
+        {/* super-admin route */}
         <Route
-          path="/admin/product/:id"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <UpdateProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllProducts />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/orders"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/order/:id"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AdminOrderDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/reviews/:id"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <Reviews />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/reviews"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <AllReviews />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/notification"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <NotificationManager />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/emails"
-          element={
-            <ProtectedRoute isAdmin={true}>
-              <UserEmails />
-            </ProtectedRoute>
-          }
-        />
+          element={<ProtectedRoute roles={ROLE_GROUPS.SUPER_ADMIN_ONLY} />}
+        >
+          <Route path="/admin/users" element={<AllUsers />} />
+          <Route path="/admin/user/:id" element={<UserDetails />} />
+          <Route path="/admin/coupons" element={<AllCoupons />} />
+          <Route path="/admin/charges" element={<AllCharges />} />
+          <Route path="/admin/logocharges" element={<AllCustomLogoCharges />} />
+          <Route path="/admin/ships" element={<AllShips />} />
+          <Route path="/admin/orders" element={<AllOrders />} />
+          <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
+          <Route path="/admin/notification" element={<NotificationManager />} />
+          <Route path="/admin/emails" element={<UserEmails />} />
+        </Route>
       </Routes>
       <ToastContainer />
       <Footer />

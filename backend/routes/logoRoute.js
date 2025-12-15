@@ -1,5 +1,6 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const {
   getAllLogos,
@@ -12,28 +13,45 @@ const {
 
 const router = express.Router();
 
-// Public routes
+/* ======================
+   PUBLIC ROUTES
+====================== */
+
+// All logos (public)
 router.get("/logos", getAllLogos);
+
+// Single logo details (public)
 router.get("/logo/:id", getLogoDetails);
 
-// Admin routes
+/* ======================
+   ADMIN + SUPER-ADMIN
+====================== */
+
 router.get(
   "/admin/logos",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   getAdminLogos
 );
 
 router.post(
   "/admin/logo/new",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
   createLogo
 );
 
 router
   .route("/admin/logo/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updateLogo)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteLogo);
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    updateLogo
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    deleteLogo
+  );
 
 module.exports = router;

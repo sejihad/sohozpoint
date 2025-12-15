@@ -201,6 +201,20 @@ const getAllOrders = catchAsyncErrors(async (req, res, next) => {
     orders,
   });
 });
+const getSingleUserOrders = catchAsyncErrors(async (req, res, next) => {
+  const { userId } = req.params; // frontend থেকে আসবে
+
+  const orders = await Order.find({ "userData.userId": userId })
+    .sort({ createdAt: -1 })
+    .populate("userData.userId", "name email phone")
+    .lean();
+
+  res.status(200).json({
+    success: true,
+    count: orders.length,
+    orders,
+  });
+});
 
 // update Order Status -- Admin
 
@@ -683,4 +697,5 @@ module.exports = {
   createOrder,
   updatePaymentStatus,
   createOrder,
+  getSingleUserOrders,
 };

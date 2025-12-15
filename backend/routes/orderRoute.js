@@ -10,33 +10,69 @@ const {
   requestRefund,
   updatePaymentStatus,
   createOrder,
+  getSingleUserOrders,
 } = require("../controllers/orderController");
-const router = express.Router();
+
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
+
+const router = express.Router();
+
+/* ======================
+   USER ROUTES (AUTH)
+====================== */
 
 router.post("/order/new", isAuthenticator, createOrder);
 router.get("/order/:id", isAuthenticator, getSingleOrder);
-router.route("/order/:id/cancel").put(isAuthenticator, cancelOrder);
-
-router.route("/order/:id/refund-request").put(isAuthenticator, requestRefund);
+router.put("/order/:id/cancel", isAuthenticator, cancelOrder);
+router.put("/order/:id/refund-request", isAuthenticator, requestRefund);
 router.get("/orders/me", isAuthenticator, myOrders);
+
+/* ======================
+   SUPER-ADMIN ONLY
+====================== */
 
 router.get(
   "/admin/orders",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
   getAllOrders
+);
+
+router.get(
+  "/admin/orders/user/:userId",
+  isAuthenticator,
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  getSingleUserOrders
 );
 
 router
   .route("/admin/order/:id")
-  .get(isAuthenticator, authorizeRoles("admin"), getSingleAdminOrder)
-  .put(isAuthenticator, authorizeRoles("admin"), updateOrder)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteOrder);
+  .get(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    getSingleAdminOrder
+  )
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    updateOrder
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    deleteOrder
+  );
 
-// ✅ New Admin Payment Update Route
-router
-  .route("/admin/payment/:id")
-  .put(isAuthenticator, authorizeRoles("admin"), updatePaymentStatus);
+/* ======================
+   PAYMENT (SUPER-ADMIN)
+====================== */
+
+router.put(
+  "/admin/payment/:id",
+  isAuthenticator,
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  updatePaymentStatus
+);
 
 module.exports = router;

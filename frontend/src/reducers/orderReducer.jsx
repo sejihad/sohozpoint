@@ -23,6 +23,9 @@ import {
   REQUEST_REFUND_FAIL,
   REQUEST_REFUND_REQUEST,
   REQUEST_REFUND_SUCCESS,
+  SINGLE_USER_ORDERS_FAIL,
+  SINGLE_USER_ORDERS_REQUEST,
+  SINGLE_USER_ORDERS_SUCCESS,
   UPDATE_ORDER_FAIL,
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_RESET,
@@ -107,17 +110,20 @@ export const myOrdersReducer = (state = { orders: [] }, action) => {
 export const allOrdersReducer = (state = { orders: [] }, action) => {
   switch (action.type) {
     case ALL_ORDERS_REQUEST:
+    case SINGLE_USER_ORDERS_REQUEST:
       return {
         loading: true,
       };
 
     case ALL_ORDERS_SUCCESS:
+    case SINGLE_USER_ORDERS_SUCCESS:
       return {
         loading: false,
         orders: action.payload,
       };
 
     case ALL_ORDERS_FAIL:
+    case SINGLE_USER_ORDERS_FAIL:
       return {
         loading: false,
         error: action.payload,

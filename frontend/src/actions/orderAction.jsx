@@ -21,6 +21,9 @@ import {
   REQUEST_REFUND_FAIL,
   REQUEST_REFUND_REQUEST,
   REQUEST_REFUND_SUCCESS,
+  SINGLE_USER_ORDERS_FAIL,
+  SINGLE_USER_ORDERS_REQUEST,
+  SINGLE_USER_ORDERS_SUCCESS,
   UPDATE_ORDER_FAIL,
   UPDATE_ORDER_REQUEST,
   UPDATE_ORDER_SUCCESS,
@@ -150,6 +153,35 @@ export const getAllOrders = () => async (dispatch) => {
     dispatch({
       type: ALL_ORDERS_FAIL,
       payload: error.response.data.message,
+    });
+  }
+};
+// Get single user Orders (admin)
+export const getSingleUserOrders = (userId) => async (dispatch) => {
+  try {
+    dispatch({ type: SINGLE_USER_ORDERS_REQUEST });
+
+    const token = localStorage.getItem("token");
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `${API_URL}/api/v1/admin/orders/user/${userId}`,
+      config
+    );
+
+    dispatch({
+      type: SINGLE_USER_ORDERS_SUCCESS,
+      payload: data.orders,
+    });
+  } catch (error) {
+    dispatch({
+      type: SINGLE_USER_ORDERS_FAIL,
+      payload: error.response?.data?.message || error.message,
     });
   }
 };

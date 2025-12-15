@@ -1,7 +1,6 @@
 const express = require("express");
-
 const passport = require("passport");
-const jwt = require("jsonwebtoken");
+
 const {
   registerUser,
   loginUser,
@@ -20,22 +19,42 @@ const {
   getSingleUser,
   deleteUserRequest,
   contactUs,
+  updateUser,
 } = require("../controllers/userController");
+
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
+const { ROLE_GROUPS } = require("../utils/roles");
 
 const router = express.Router();
 
+/* =======================
+   PUBLIC ROUTES
+======================= */
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/verify-otp", verifyOtp);
+router.post("/password/forgot", forgotPassword);
+router.put("/password/reset/:token", resetPassword);
+router.post("/contact/us", contactUs);
 
-// Google Login Start
+/* =======================
+   AUTH ROUTES
+======================= */
+router.post("/logout", isAuthenticator, logoutUser);
+router.get("/me", isAuthenticator, getUserDetails);
+router.put("/password/update", isAuthenticator, updatePassword);
+router.put("/me/update", isAuthenticator, updateProfile);
+router.post("/me/delete", isAuthenticator, deleteUserRequest);
+router.put("/twofactor/toggle", isAuthenticator, enableTwoFactor);
+
+/* =======================
+   GOOGLE / FACEBOOK
+======================= */
 router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// ➤ Google Auth Callback
 router.get(
   "/google/callback",
   passport.authenticate("google", {
@@ -45,13 +64,11 @@ router.get(
   googleLoginCallback
 );
 
-// Facebook Login Start
 router.get(
   "/facebook",
   passport.authenticate("facebook", { scope: ["email"] })
 );
 
-// ➤ Facebook Auth Callback
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
@@ -61,24 +78,32 @@ router.get(
   facebookLoginCallback
 );
 
-router.post("/logout", logoutUser);
-router.put("/twofactor/toggle", isAuthenticator, enableTwoFactor);
-
-router.post("/password/forgot", forgotPassword);
-router.put("/password/reset/:token", resetPassword);
-router.get("/me", isAuthenticator, getUserDetails);
-router.put("/password/update", isAuthenticator, updatePassword);
-router.put("/me/update", isAuthenticator, updateProfile);
-router.post("/me/delete", isAuthenticator, deleteUserRequest);
-router.post("/contact/us", contactUs);
+/* =======================
+   ADMIN & SUPER-ADMIN
+======================= */
 router.get(
   "/admin/users",
   isAuthenticator,
-  authorizeRoles("admin"),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
   getAllUser
 );
+
 router
   .route("/admin/user/:id")
-  .get(isAuthenticator, authorizeRoles("admin"), getSingleUser)
-  .delete(isAuthenticator, authorizeRoles("admin"), deleteUser);
+  .get(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    getSingleUser
+  )
+  .put(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    updateUser
+  )
+  .delete(
+    isAuthenticator,
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    deleteUser
+  );
+
 module.exports = router;

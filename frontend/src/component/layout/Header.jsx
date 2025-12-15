@@ -18,6 +18,7 @@ import { getCart } from "../../actions/cartAction";
 import { getCategory } from "../../actions/categoryAction";
 import { logout } from "../../actions/userAction";
 import logo from "../../assets/logo.png";
+import { ROLE_GROUPS } from "../../constants/roles";
 
 const Header = () => {
   const location = useLocation();
@@ -428,7 +429,7 @@ const Header = () => {
                 {isAuthenticated && showDesktopUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
                     <div className="flex flex-col p-2">
-                      {user?.role === "admin" && (
+                      {ROLE_GROUPS.MODS_AND_UP.includes(user?.role) && (
                         <Link
                           to="/admin/dashboard"
                           onClick={() => setShowDesktopUserMenu(false)}
@@ -570,7 +571,7 @@ const Header = () => {
                 {isAuthenticated && showMobileUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
                     <div className="flex flex-col p-2">
-                      {user?.role === "admin" && (
+                      {ROLE_GROUPS.MODS_AND_UP.includes(user?.role) && (
                         <Link
                           to="/admin/dashboard"
                           onClick={() => setShowMobileUserMenu(false)}
