@@ -40,50 +40,39 @@ import {
 
 // All products reducer
 export const productsReducer = (
-  state = { products: [], totalCount: 0, page: 1 },
+  state = { loading: false, products: [], totalCount: 0, page: 1, error: null },
   action
 ) => {
   switch (action.type) {
     case ALL_PRODUCT_REQUEST:
-      return {
-        loading: true,
-        products: [],
-        totalCount: 0,
-        page: 1,
-      };
+      return { ...state, loading: true, error: null };
+
     case ADMIN_PRODUCT_REQUEST:
-      return {
-        loading: true,
-        products: [],
-        totalCount: 0,
-      };
+      return { ...state, loading: true, products: [], totalCount: 0 };
+
     case ALL_PRODUCT_SUCCESS:
-      // Append products for pages > 1 (infinite scroll)
       const isFirstPage = action.payload.page === 1;
       return {
+        ...state,
         loading: false,
         products: isFirstPage
           ? action.payload.products || []
           : [...state.products, ...(action.payload.products || [])],
         totalCount: action.payload.totalCount || 0,
         page: action.payload.page || 1,
-      };
-    case ADMIN_PRODUCT_SUCCESS:
-      return {
-        loading: false,
-        products: action.payload,
-      };
-    case ALL_PRODUCT_FAIL:
-    case ADMIN_PRODUCT_FAIL:
-      return {
-        loading: false,
-        error: action.payload,
-      };
-    case CLEAR_ERRORS:
-      return {
-        ...state,
         error: null,
       };
+
+    case ADMIN_PRODUCT_SUCCESS:
+      return { ...state, loading: false, products: action.payload };
+
+    case ALL_PRODUCT_FAIL:
+    case ADMIN_PRODUCT_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
+    case CLEAR_ERRORS:
+      return { ...state, error: null };
+
     default:
       return state;
   }

@@ -104,7 +104,12 @@ const Shop = () => {
     dispatch(getSubsubcategories());
     dispatch(getGenders());
   }, [dispatch]);
-
+  // Update hasMore when page or totalCount changes
+  useEffect(() => {
+    const limit = page === 1 ? 20 : 10;
+    const totalPages = Math.ceil(totalCount / limit);
+    setHasMore(page < totalPages);
+  }, [page, totalCount]);
   // Sync URL params with local state and fetch products
   useEffect(() => {
     const params = getFiltersFromURL();
@@ -206,30 +211,47 @@ const Shop = () => {
   }, [products]);
 
   // Infinite scroll observer
+  // Infinite scroll observer - FIXED VERSION
   const lastProductElementRef = useCallback(
     (node) => {
-      if (loading) return;
+      if (loading || !hasMore) return;
       if (observer.current) observer.current.disconnect();
 
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          const nextPage = page + 1;
-          const totalPages = Math.ceil(totalCount / (page === 1 ? 20 : 10));
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore) {
+            const nextPage = page + 1;
 
-          if (nextPage <= totalPages) {
-            const params = getFiltersFromURL();
-            dispatch(getProduct({ ...params, page: nextPage }));
-          } else {
-            setHasMore(false);
+            // ✅ প্রথম page: limit=20, পরের pages: limit=10
+            const limit = page === 1 ? 20 : 10;
+
+            // ✅ Calculate total pages based on limit
+            const totalPages = Math.ceil(totalCount / limit);
+
+            if (nextPage <= totalPages) {
+              const params = getFiltersFromURL();
+              dispatch(
+                getProduct({
+                  ...params,
+                  page: nextPage,
+                  limit: limit, // ✅ limit parameter পাঠান
+                })
+              );
+            } else {
+              setHasMore(false);
+            }
           }
+        },
+        {
+          threshold: 0.5, // 50% দেখা গেলে load করবে
+          rootMargin: "100px", // 100px আগেই load শুরু করবে
         }
-      });
+      );
 
       if (node) observer.current.observe(node);
     },
     [loading, hasMore, page, totalCount, dispatch]
   );
-
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
     if (filterType === "ratings") {
