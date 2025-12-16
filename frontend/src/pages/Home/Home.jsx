@@ -80,7 +80,7 @@ const Home = () => {
               laptop: 3,
               desktop: 5,
             }}
-            title="Latest Products"
+            title="Latest "
             products={displayedProducts}
             loading={false}
             lastProductElementRef={lastProductElementRef}

@@ -930,7 +930,7 @@ const Shop = () => {
                     title={
                       query.get("s")
                         ? `Search Results for "${query.get("s")}"`
-                        : "All Products"
+                        : "All "
                     }
                     productsPerRow={{
                       mobile: 2,

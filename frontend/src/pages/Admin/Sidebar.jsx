@@ -17,7 +17,7 @@ const Sidebar = () => {
       : "text-gray-700 hover:text-red-500 hover:bg-red-100";
 
   return (
-    <div className="bg-white p-6 h-screen sticky top-0 shadow-md overflow-y-auto w-[250px]">
+    <div className="bg-white flex flex-col p-6 h-auto md:h-screen sticky md:top-0 shadow-md overflow-y-auto w-full md:w-[260px]">
       {SIDEBAR_MENU.filter((item) => item.roles.includes(user?.role)).map(
         (item) => {
           const Icon = item.icon;
