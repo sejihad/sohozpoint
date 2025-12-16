@@ -459,7 +459,7 @@ const Shop = () => {
       </div>
 
       {/* Search Box */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <form onSubmit={handleSearch}>
           <div className="relative">
             <input
@@ -477,7 +477,7 @@ const Shop = () => {
             </button>
           </div>
         </form>
-      </div>
+      </div> */}
 
       <div className="space-y-6">
         {/* Categories */}

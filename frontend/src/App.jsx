@@ -12,7 +12,6 @@ import AllCategories from "./pages/Admin/AllCategories";
 import AllOrders from "./pages/Admin/AllOrders";
 import AllProducts from "./pages/Admin/AllProducts";
 import UserEmails from "./pages/Admin/UserEmails";
-import CatProduct from "./pages/Product/CatProduct";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 import AllReviews from "./pages/Admin/AllReviews";
@@ -34,7 +33,6 @@ import Login from "./pages/Auth/Login";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import BlogDetails from "./pages/Blogs/BlogDetails";
 import Blogs from "./pages/Blogs/Blogs";
-import ProductPage from "./pages/Product/ProductPage";
 
 import Cart from "./pages/Cart/Cart";
 import Contact from "./pages/Contact/Contact";
@@ -145,8 +143,7 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/terms&conditions" element={<TermsConditions />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
-        <Route path="/products/:category" element={<ProductPage />} />
-        <Route path="/category/:category" element={<CatProduct />} />
+
         {/* <Route path="/custom-design/:slug" element={<CustomProductDetails />} /> */}
         <Route path="/:category/:slug" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />

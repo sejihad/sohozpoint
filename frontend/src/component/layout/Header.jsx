@@ -240,7 +240,7 @@ const Header = () => {
                     {categories.map((cat) => (
                       <Link
                         key={cat._id}
-                        to={`/category/${cat.slug}`}
+                        to={`/shop?cat=${cat.slug}`}
                         className={`block px-4 py-3 hover:bg-green-50 text-sm transition-colors border-b border-gray-100 last:border-b-0 ${
                           isActive(`/category/${cat.slug}`)
                             ? "text-green-600 bg-green-50 font-semibold"
@@ -709,7 +709,7 @@ const Header = () => {
               {categories.map((cat) => (
                 <Link
                   key={cat._id}
-                  to={`/category/${cat.slug}`}
+                  to={`/shop?cat=${cat.slug}`}
                   className={`block px-4 py-3 text-sm border-b border-gray-100 last:border-b-0 transition-colors ${
                     isActive(`/category/${cat.slug}`)
                       ? "text-green-600 bg-green-50 font-semibold"

@@ -48,7 +48,7 @@ const Categories = () => {
               {categories && categories.length > 0 ? (
                 categories.map((cat, i) => (
                   <Link
-                    to={`/category/${cat.slug}`}
+                    to={`/shop?cat=${cat.slug}`}
                     key={`${cat.name}-${i}`}
                     className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-between transition-transform hover:scale-105 hover:shadow-xl h-32 w-full"
                   >
