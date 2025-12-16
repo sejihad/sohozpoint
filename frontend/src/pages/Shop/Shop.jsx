@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiBox,
   FiChevronDown,
@@ -16,7 +16,6 @@ import { getGenders } from "../../actions/genderAction";
 import { getProduct } from "../../actions/productAction";
 import { getSubcategories } from "../../actions/subcategoryAction";
 import { getSubsubcategories } from "../../actions/subsubcategoryAction";
-
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
 
@@ -27,27 +26,22 @@ const useQuery = () => {
 const Shop = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, products } = useSelector((state) => state.products);
+  const location = useLocation();
+  const query = useQuery();
+
+  // Redux states
+  const { loading, products, totalCount, page } = useSelector(
+    (state) => state.products
+  );
   const { categories } = useSelector((state) => state.categories);
   const { subcategories } = useSelector((state) => state.subcategories);
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
   const { genders } = useSelector((state) => state.genders);
 
+  // Local states
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  // Filter states
-  const [filters, setFilters] = useState({
-    gender: "",
-    category: "",
-    subCategory: "",
-    subsubCategory: "",
-    minPrice: "",
-    maxPrice: "",
-    ratings: [],
-  });
-
+  const [hasMore, setHasMore] = useState(true);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
@@ -58,12 +52,135 @@ const Shop = () => {
     ratings: true,
   });
 
-  const [applyFilterClicked, setApplyFilterClicked] = useState(false);
+  // Filters state (for UI only - URLs will handle actual filtering)
+  const [filters, setFilters] = useState({
+    category: "",
+    subCategory: "",
+    subsubCategory: "",
+    gender: "",
+    minPrice: "",
+    maxPrice: "",
+    ratings: [],
+  });
 
-  const query = useQuery();
-  const location = useLocation();
+  const observer = useRef();
 
-  // Calculate dynamic price range
+  // Get filters from URL
+  const getFiltersFromURL = () => {
+    const params = {};
+    if (query.get("cat")) params.cat = query.get("cat");
+    if (query.get("sub")) params.sub = query.get("sub");
+    if (query.get("subsub")) params.subsub = query.get("subsub");
+    if (query.get("gen")) params.gen = query.get("gen");
+    if (query.get("min")) params.min = query.get("min");
+    if (query.get("max")) params.max = query.get("max");
+    if (query.get("s")) params.s = query.get("s");
+    if (query.get("page")) params.page = query.get("page");
+
+    return params;
+  };
+
+  // Update URL with new params
+  const updateURL = (newParams, removeParams = []) => {
+    const currentParams = getFiltersFromURL();
+    const params = { ...currentParams, ...newParams };
+
+    // Remove specified params
+    removeParams.forEach((param) => delete params[param]);
+
+    // Remove undefined or empty values
+    Object.keys(params).forEach((key) => {
+      if (!params[key] || params[key] === "") delete params[key];
+    });
+
+    const queryString = new URLSearchParams(params).toString();
+    navigate(`/shop${queryString ? `?${queryString}` : ""}`, { replace: true });
+  };
+
+  // Fetch initial data
+  useEffect(() => {
+    dispatch(getCategory());
+    dispatch(getSubcategories());
+    dispatch(getSubsubcategories());
+    dispatch(getGenders());
+  }, [dispatch]);
+
+  // Sync URL params with local state and fetch products
+  useEffect(() => {
+    const params = getFiltersFromURL();
+
+    // Sync URL params with local state (for UI display)
+    if (params.cat) {
+      const category = categories?.find((c) => c.slug === params.cat);
+      if (category) {
+        setFilters((prev) => ({ ...prev, category: category._id }));
+      }
+    } else {
+      setFilters((prev) => ({ ...prev, category: "" }));
+    }
+
+    if (params.sub) {
+      const subcategory = subcategories?.find((s) => s.slug === params.sub);
+      if (subcategory) {
+        setFilters((prev) => ({ ...prev, subCategory: subcategory._id }));
+      }
+    } else {
+      setFilters((prev) => ({ ...prev, subCategory: "" }));
+    }
+
+    if (params.subsub) {
+      const subsubcategory = subsubcategories?.find(
+        (s) => s.slug === params.subsub
+      );
+      if (subsubcategory) {
+        setFilters((prev) => ({ ...prev, subsubCategory: subsubcategory._id }));
+      }
+    } else {
+      setFilters((prev) => ({ ...prev, subsubCategory: "" }));
+    }
+
+    if (params.gen) {
+      const gender = genders?.find((g) => g.slug === params.gen);
+      if (gender) {
+        setFilters((prev) => ({ ...prev, gender: gender._id }));
+      }
+    } else {
+      setFilters((prev) => ({ ...prev, gender: "" }));
+    }
+
+    if (params.min) {
+      setFilters((prev) => ({ ...prev, minPrice: params.min }));
+    } else {
+      setFilters((prev) => ({ ...prev, minPrice: "" }));
+    }
+
+    if (params.max) {
+      setFilters((prev) => ({ ...prev, maxPrice: params.max }));
+    } else {
+      setFilters((prev) => ({ ...prev, maxPrice: "" }));
+    }
+
+    if (params.s) {
+      setSearchTerm(params.s);
+    } else {
+      setSearchTerm("");
+    }
+
+    // Fetch products with current URL params
+    dispatch(getProduct(params));
+
+    // Reset hasMore when filters change
+    setHasMore(true);
+  }, [
+    location.search,
+    categories,
+    subcategories,
+    subsubcategories,
+    genders,
+    dispatch,
+  ]);
+
+  // Calculate dynamic price range from products
   useEffect(() => {
     if (products && products.length > 0) {
       const prices = products
@@ -74,173 +191,158 @@ const Shop = () => {
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
         setPriceRange({ min: minPrice, max: maxPrice });
-        setFilters((prev) => ({
-          ...prev,
-          minPrice: minPrice.toString(),
-          maxPrice: maxPrice.toString(),
-        }));
+
+        // Only set default price if not already set in URL
+        const params = getFiltersFromURL();
+        if (!params.min && !params.max) {
+          setFilters((prev) => ({
+            ...prev,
+            minPrice: minPrice.toString(),
+            maxPrice: maxPrice.toString(),
+          }));
+        }
       }
     }
   }, [products]);
 
-  // Fetch all data
-  useEffect(() => {
-    dispatch(getProduct());
-    dispatch(getCategory());
-    dispatch(getSubcategories());
-    dispatch(getSubsubcategories());
-    dispatch(getGenders());
-  }, [dispatch]);
+  // Infinite scroll observer
+  const lastProductElementRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
 
-  useEffect(() => {
-    const querySearch = query.get("search") || "";
-    setSearchTerm(querySearch);
-  }, [location.search, query]);
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          const nextPage = page + 1;
+          const totalPages = Math.ceil(totalCount / (page === 1 ? 20 : 10));
 
-  // Filter products based on all criteria - FIXED VERSION
-  const applyFilters = useCallback(() => {
-    if (!products || products.length === 0) {
-      setFilteredProducts([]);
-      return;
-    }
+          if (nextPage <= totalPages) {
+            const params = getFiltersFromURL();
+            dispatch(getProduct({ ...params, page: nextPage }));
+          } else {
+            setHasMore(false);
+          }
+        }
+      });
 
-    let filtered = products.filter((product) => {
-      // Search filter
-      const matchesSearch =
-        !searchTerm ||
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.category?.name || product.category)
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase());
-
-      // Gender filter
-      const productGenderName = product.gender?.name || product.gender;
-      const selectedGenderName = genders?.find(
-        (g) => g._id === filters.gender
-      )?.name;
-
-      const matchesGender =
-        !filters.gender || productGenderName === selectedGenderName;
-      // Category filters - FIXED: Compare with category name instead of ID
-      const productCategoryName = product.category?.name || product.category;
-      const selectedCategoryName = categories?.find(
-        (c) => c._id === filters.category
-      )?.name;
-
-      const matchesCategory =
-        !filters.category || productCategoryName === selectedCategoryName;
-
-      // Sub Category filter - FIXED: Compare with subcategory name
-      const productSubCategoryName =
-        product.subCategory?.name || product.subCategory;
-      const selectedSubCategoryName = subcategories?.find(
-        (s) => s._id === filters.subCategory
-      )?.name;
-
-      const matchesSubCategory =
-        !filters.subCategory ||
-        productSubCategoryName === selectedSubCategoryName;
-
-      // Sub Sub Category filter - FIXED: Compare with subsubcategory name
-      const productSubSubCategoryName =
-        product.subsubCategory?.name || product.subsubCategory;
-      const selectedSubSubCategoryName = subsubcategories?.find(
-        (s) => s._id === filters.subsubCategory
-      )?.name;
-
-      const matchesSubSubCategory =
-        !filters.subsubCategory ||
-        productSubSubCategoryName === selectedSubSubCategoryName;
-
-      // Price filter - Only apply if applyFilterClicked is true
-      const productPrice = product.salePrice || product.oldPrice || 0;
-      const minPriceValue = parseInt(filters.minPrice) || priceRange.min;
-      const maxPriceValue = parseInt(filters.maxPrice) || priceRange.max;
-
-      const matchesMinPrice =
-        !applyFilterClicked || productPrice >= minPriceValue;
-      const matchesMaxPrice =
-        !applyFilterClicked || productPrice <= maxPriceValue;
-
-      // Ratings filter
-      const matchesRating =
-        filters.ratings.length === 0 ||
-        filters.ratings.some(
-          (rating) => product.ratings >= rating && product.ratings < rating + 1
-        );
-
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesGender &&
-        matchesSubCategory &&
-        matchesSubSubCategory &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesRating
-      );
-    });
-
-    setFilteredProducts(filtered);
-  }, [
-    products,
-    searchTerm,
-    filters,
-    priceRange,
-    applyFilterClicked,
-    categories,
-    subcategories,
-    subsubcategories,
-  ]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore, page, totalCount, dispatch]
+  );
 
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
-    setFilters((prev) => {
-      if (Array.isArray(prev[filterType])) {
-        return {
-          ...prev,
-          [filterType]: prev[filterType].includes(value)
-            ? prev[filterType].filter((item) => item !== value)
-            : [...prev[filterType], value],
-        };
-      } else {
-        // For single select filters, reset dependent filters
-        const newFilters = { ...prev, [filterType]: value };
+    if (filterType === "ratings") {
+      // Ratings are client-side only
+      setFilters((prev) => ({
+        ...prev,
+        ratings: prev.ratings.includes(value)
+          ? prev.ratings.filter((r) => r !== value)
+          : [...prev.ratings, value],
+      }));
+      return;
+    }
 
-        if (filterType === "category") {
-          newFilters.subCategory = "";
-          newFilters.subsubCategory = "";
-          setExpandedSections((prev) => ({
-            ...prev,
-            subCategories: true,
-            subsubCategories: false,
-          }));
-        } else if (filterType === "subCategory") {
-          newFilters.subsubCategory = "";
-          setExpandedSections((prev) => ({ ...prev, subsubCategories: true }));
-        }
+    let urlParams = {};
+    let removeParams = [];
 
-        return newFilters;
-      }
+    if (filterType === "category") {
+      const category = categories?.find((c) => c._id === value);
+      urlParams = {
+        cat: category?.slug || "",
+        page: "1", // Reset to first page
+      };
+      removeParams = ["sub", "subsub"];
+
+      // Reset dependent filters in UI
+      setFilters((prev) => ({
+        ...prev,
+        category: value,
+        subCategory: "",
+        subsubCategory: "",
+      }));
+
+      setExpandedSections((prev) => ({
+        ...prev,
+        subCategories: true,
+        subsubCategories: false,
+      }));
+    } else if (filterType === "subCategory") {
+      const subcategory = subcategories?.find((s) => s._id === value);
+      urlParams = {
+        sub: subcategory?.slug || "",
+        page: "1",
+      };
+      removeParams = ["subsub"];
+
+      setFilters((prev) => ({
+        ...prev,
+        subCategory: value,
+        subsubCategory: "",
+      }));
+
+      setExpandedSections((prev) => ({
+        ...prev,
+        subsubCategories: true,
+      }));
+    } else if (filterType === "subsubCategory") {
+      const subsubcategory = subsubcategories?.find((s) => s._id === value);
+      urlParams = {
+        subsub: subsubcategory?.slug || "",
+        page: "1",
+      };
+
+      setFilters((prev) => ({
+        ...prev,
+        subsubCategory: value,
+      }));
+    } else if (filterType === "gender") {
+      const gender = genders?.find((g) => g._id === value);
+      urlParams = {
+        gen: gender?.slug || "",
+        page: "1",
+      };
+
+      setFilters((prev) => ({
+        ...prev,
+        gender: value,
+      }));
+    } else if (filterType === "minPrice" || filterType === "maxPrice") {
+      // Price filters will be applied on button click
+      setFilters((prev) => ({
+        ...prev,
+        [filterType]: value,
+      }));
+      return;
+    }
+
+    updateURL(urlParams, removeParams);
+  };
+
+  // Handle price filter application
+  const handlePriceFilter = () => {
+    updateURL({
+      min: filters.minPrice || "",
+      max: filters.maxPrice || "",
+      page: "1",
     });
   };
 
   const handlePriceChange = (type, value) => {
-    const numValue = value === "" ? "" : parseInt(value) || 0;
     setFilters((prev) => ({
       ...prev,
-      [type]: numValue.toString(),
+      [type]: value,
     }));
   };
 
-  const handleApplyFilters = () => {
-    setApplyFilterClicked(true);
+  // Handle search
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      updateURL({ s: searchTerm.trim(), page: "1" });
+    } else {
+      updateURL({}, ["s"]);
+    }
   };
 
   const clearAllFilters = () => {
@@ -248,18 +350,21 @@ const Shop = () => {
       category: "",
       subCategory: "",
       subsubCategory: "",
+      gender: "",
       minPrice: priceRange.min.toString(),
       maxPrice: priceRange.max.toString(),
       ratings: [],
     });
+
     setExpandedSections({
       categories: true,
+      gender: true,
       subCategories: false,
       subsubCategories: false,
       price: true,
       ratings: true,
     });
-    setApplyFilterClicked(false);
+
     setSearchTerm("");
     navigate("/shop");
   };
@@ -274,6 +379,9 @@ const Shop = () => {
   // Get filtered subcategories based on selected category
   const getFilteredSubCategories = () => {
     if (!filters.category) return [];
+    const category = categories?.find((c) => c._id === filters.category);
+    if (!category) return [];
+
     return (
       subcategories?.filter(
         (subCat) => subCat.category?._id === filters.category
@@ -281,7 +389,7 @@ const Shop = () => {
     );
   };
 
-  // Get filtered subsubcategories based on selected category and subcategory
+  // Get filtered subsubcategories based on selected subcategory
   const getFilteredSubSubCategories = () => {
     if (!filters.subCategory) return [];
     return (
@@ -293,22 +401,26 @@ const Shop = () => {
 
   // Calculate active filters count for mobile button
   const getActiveFiltersCount = () => {
-    return (
-      Object.entries(filters).filter(([key, value]) => {
-        if (Array.isArray(value)) {
-          return value.length > 0;
-        } else {
-          return (
-            value !== "" &&
-            (key !== "minPrice" || value !== priceRange.min.toString()) &&
-            (key !== "maxPrice" || value !== priceRange.max.toString())
-          );
-        }
-      }).length + (applyFilterClicked ? 1 : 0)
-    );
+    const params = getFiltersFromURL();
+    return Object.keys(params).filter(
+      (key) => !["page", "limit"].includes(key) && params[key]
+    ).length;
   };
 
-  const showSearchInfo = searchTerm && filteredProducts.length > 0;
+  // Client-side rating filter
+  const getRatingFilteredProducts = () => {
+    if (filters.ratings.length === 0) return products;
+
+    return products.filter((product) => {
+      return filters.ratings.some(
+        (rating) => product.ratings >= rating && product.ratings < rating + 1
+      );
+    });
+  };
+
+  const ratingFilteredProducts = getRatingFilteredProducts();
+  const showSearchInfo = query.get("s") && ratingFilteredProducts.length > 0;
+  const activeFiltersCount = getActiveFiltersCount();
 
   // Filter sidebar component
   const FilterSidebar = () => (
@@ -322,6 +434,27 @@ const Shop = () => {
         >
           Clear All
         </button>
+      </div>
+
+      {/* Search Box */}
+      <div className="mb-6">
+        <form onSubmit={handleSearch}>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products..."
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+            <button
+              type="submit"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            >
+              🔍
+            </button>
+          </div>
+        </form>
       </div>
 
       <div className="space-y-6">
@@ -451,7 +584,7 @@ const Shop = () => {
           </div>
         )}
 
-        {/* gender filter */}
+        {/* Gender filter */}
         {genders && genders.length > 0 && (
           <div className="border-b border-gray-200 pb-6">
             <button
@@ -535,7 +668,7 @@ const Shop = () => {
                 Range: ৳{priceRange.min} - ৳{priceRange.max}
               </div>
               <button
-                onClick={handleApplyFilters}
+                onClick={handlePriceFilter}
                 className="w-full py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
               >
                 Apply Price Filter
@@ -544,7 +677,7 @@ const Shop = () => {
           )}
         </div>
 
-        {/* Ratings */}
+        {/* Ratings (Client-side only) */}
         <div className="border-b border-gray-200 pb-6">
           <button
             className="flex justify-between items-center w-full text-left font-medium text-gray-900"
@@ -603,9 +736,9 @@ const Shop = () => {
           >
             <FiFilter className="w-4 h-4" />
             Filters
-            {getActiveFiltersCount() > 0 && (
+            {activeFiltersCount > 0 && (
               <span className="bg-green-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                {getActiveFiltersCount()}
+                {activeFiltersCount}
               </span>
             )}
           </button>
@@ -624,13 +757,11 @@ const Shop = () => {
               <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex justify-between items-center">
                   <p className="text-green-800">
-                    Showing {filteredProducts.length} results for "{searchTerm}"
+                    Showing {ratingFilteredProducts.length} results for "
+                    {query.get("s")}"
                   </p>
                   <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      navigate("/shop");
-                    }}
+                    onClick={() => updateURL({}, ["s"])}
                     className="text-green-600 hover:text-green-700 text-sm font-medium"
                   >
                     Clear Search
@@ -640,7 +771,7 @@ const Shop = () => {
             )}
 
             {/* Active Filters */}
-            {getActiveFiltersCount() > 0 && (
+            {activeFiltersCount > 0 && (
               <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-medium text-gray-900">
@@ -654,15 +785,13 @@ const Shop = () => {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {filters.category && (
+                  {query.get("cat") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                       Category:{" "}
-                      {
-                        categories?.find((c) => c._id === filters.category)
-                          ?.name
-                      }
+                      {categories?.find((c) => c.slug === query.get("cat"))
+                        ?.name || query.get("cat")}
                       <button
-                        onClick={() => handleFilterChange("category", "")}
+                        onClick={() => updateURL({}, ["cat", "sub", "subsub"])}
                         className="hover:text-green-900"
                       >
                         <FiX className="w-3 h-3" />
@@ -670,16 +799,13 @@ const Shop = () => {
                     </span>
                   )}
 
-                  {filters.subCategory && (
+                  {query.get("sub") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                       Sub:{" "}
-                      {
-                        subcategories?.find(
-                          (s) => s._id === filters.subCategory
-                        )?.name
-                      }
+                      {subcategories?.find((s) => s.slug === query.get("sub"))
+                        ?.name || query.get("sub")}
                       <button
-                        onClick={() => handleFilterChange("subCategory", "")}
+                        onClick={() => updateURL({}, ["sub", "subsub"])}
                         className="hover:text-blue-900"
                       >
                         <FiX className="w-3 h-3" />
@@ -687,29 +813,42 @@ const Shop = () => {
                     </span>
                   )}
 
-                  {filters.subsubCategory && (
+                  {query.get("subsub") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
                       Sub Sub:{" "}
-                      {
-                        subsubcategories?.find(
-                          (s) => s._id === filters.subsubCategory
-                        )?.name
-                      }
+                      {subsubcategories?.find(
+                        (s) => s.slug === query.get("subsub")
+                      )?.name || query.get("subsub")}
                       <button
-                        onClick={() => handleFilterChange("subsubCategory", "")}
+                        onClick={() => updateURL({}, ["subsub"])}
                         className="hover:text-indigo-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
                   )}
-                  {filters.gender && (
+
+                  {query.get("gen") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">
                       Gender:{" "}
-                      {genders?.find((g) => g._id === filters.gender)?.name}
+                      {genders?.find((g) => g.slug === query.get("gen"))
+                        ?.name || query.get("gen")}
                       <button
-                        onClick={() => handleFilterChange("gender", "")}
+                        onClick={() => updateURL({}, ["gen"])}
                         className="hover:text-pink-900"
+                      >
+                        <FiX className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {(query.get("min") || query.get("max")) && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                      Price: ৳{query.get("min") || "0"} - ৳
+                      {query.get("max") || "Any"}
+                      <button
+                        onClick={() => updateURL({}, ["min", "max"])}
+                        className="hover:text-gray-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
@@ -730,36 +869,28 @@ const Shop = () => {
                       </button>
                     </span>
                   ))}
-
-                  {applyFilterClicked && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
-                      Price: ৳{filters.minPrice} - ৳{filters.maxPrice}
-                      <button
-                        onClick={() => setApplyFilterClicked(false)}
-                        className="hover:text-gray-900"
-                      >
-                        <FiX className="w-3 h-3" />
-                      </button>
-                    </span>
-                  )}
                 </div>
               </div>
             )}
 
-            {loading ? (
+            {loading && page === 1 ? (
               <Loader />
-            ) : filteredProducts.length === 0 ? (
+            ) : ratingFilteredProducts.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
                 <div className="max-w-md mx-auto">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {searchTerm ? "No products found" : "No products available"}
+                    {query.get("s")
+                      ? "No products found"
+                      : "No products available"}
                   </h3>
                   <p className="text-gray-500 mb-6">
-                    {searchTerm
-                      ? `We couldn't find any products matching "${searchTerm}". Try adjusting your search or filters.`
+                    {query.get("s")
+                      ? `We couldn't find any products matching "${query.get(
+                          "s"
+                        )}". Try adjusting your search or filters.`
                       : "There are currently no products available in this category."}
                   </p>
-                  {searchTerm && (
+                  {query.get("s") && (
                     <button
                       onClick={clearAllFilters}
                       className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -771,11 +902,13 @@ const Shop = () => {
               </div>
             ) : (
               <>
-                {/* ProductSection with 3-4 products per row on desktop */}
+                {/* ProductSection with infinite scroll */}
                 <div className="mb-8">
                   <ProductSection
                     title={
-                      searchTerm ? `Search Results for "${searchTerm}"` : "All"
+                      query.get("s")
+                        ? `Search Results for "${query.get("s")}"`
+                        : "All Products"
                     }
                     productsPerRow={{
                       mobile: 2,
@@ -783,10 +916,24 @@ const Shop = () => {
                       laptop: 3,
                       desktop: 3,
                     }}
-                    products={filteredProducts}
+                    products={ratingFilteredProducts}
                     loading={loading}
+                    lastProductElementRef={lastProductElementRef}
                   />
                 </div>
+
+                {/* Infinite scroll indicators */}
+                {loading && page > 1 && (
+                  <div className="text-center py-4">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  </div>
+                )}
+
+                {!hasMore && ratingFilteredProducts.length > 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    No more products to load
+                  </div>
+                )}
               </>
             )}
           </div>

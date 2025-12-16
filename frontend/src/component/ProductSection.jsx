@@ -24,7 +24,7 @@ const StarRating = memo(({ rating = 0 }) => {
 });
 
 /* ---------------- PRODUCT CARD ---------------- */
-const ProductCard = memo(({ product }) => {
+const ProductCard = memo(({ product, lastProductRef }) => {
   if (!product) return null;
 
   const imageUrl =
@@ -45,6 +45,7 @@ const ProductCard = memo(({ product }) => {
     <Link
       to={productURL}
       className="bg-white shadow hover:shadow-lg transition duration-300 border-amber-50 flex flex-col h-full"
+      ref={lastProductRef || null}
     >
       <div className="relative group overflow-hidden border border-gray-200 p-2 bg-white">
         <img
@@ -104,6 +105,8 @@ const ProductSection = ({
     laptop: 3,
     desktop: 5,
   },
+  lastProductElementRef, // ✅ New prop for infinite scroll
+  showTitle = true, // ✅ New prop to control title visibility
 }) => {
   const colClasses = {
     1: "grid-cols-1",
@@ -113,11 +116,12 @@ const ProductSection = ({
     5: "grid-cols-5",
   };
 
-  if (loading) return <Loader />;
+  // ✅ Show loader only for initial load
+  if (loading && products.length === 0) return <Loader />;
 
   return (
     <section className="container bg-gradient-to-br from-green-50 to-white mx-auto px-4 py-8">
-      {title && (
+      {showTitle && title && (
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
             {title}{" "}
@@ -137,26 +141,46 @@ const ProductSection = ({
         </div>
       )}
 
-      {products.length === 0 ? (
+      {products.length === 0 && !loading ? (
         <div className="text-center text-gray-500 text-lg py-10">
           No products found.
         </div>
       ) : (
-        <div
-          className={`grid gap-6
-            ${colClasses[productsPerRow.mobile]}
-            sm:${colClasses[productsPerRow.tablet]}
-            md:${colClasses[productsPerRow.laptop]}
-            lg:${colClasses[productsPerRow.desktop]}
-          `}
-        >
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
+        <>
+          <div
+            className={`grid gap-6
+              ${colClasses[productsPerRow.mobile]}
+              sm:${colClasses[productsPerRow.tablet]}
+              md:${colClasses[productsPerRow.laptop]}
+              lg:${colClasses[productsPerRow.desktop]}
+            `}
+          >
+            {products.map((product, index) => {
+              const isLastElement = index === products.length - 1;
+              return (
+                <ProductCard
+                  key={product._id || index}
+                  product={product}
+                  lastProductRef={isLastElement ? lastProductElementRef : null}
+                />
+              );
+            })}
+          </div>
+
+          {/* ✅ Loading indicator for infinite scroll (only show when loading and we already have products) */}
+          {loading && products.length > 0 && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+              <span className="ml-3 text-gray-600">
+                Loading more products...
+              </span>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
 };
 
+export { ProductCard };
 export default memo(ProductSection);

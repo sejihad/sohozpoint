@@ -2,11 +2,15 @@ const Product = require("../models/productModel");
 const Logo = require("../models/logoModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const Subcategory = require("../models/subcategoryModel");
+const Category = require("../models/categoryModel");
+const Gender = require("../models/genderModel");
 const slugify = require("slugify");
 const cloudinary = require("cloudinary");
 const mongoose = require("mongoose");
 const uploadToS3 = require("../config/uploadToS3");
 const deleteFromS3 = require("../config/deleteFromS3");
+const SubSubcategory = require("../models/subsubcategoryModel");
 
 const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
@@ -402,16 +406,102 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     product: updatedProduct,
   });
 });
+// Get All Products with Filters and Pagination
+const getAllProducts = catchAsyncErrors(async (req, res) => {
+  const {
+    cat, // Category filter (slug)
+    sub, // Subcategory filter (slug)
+    subsub, // Subsubcategory filter (slug)
+    min, // Minimum price filter
+    max, // Maximum price filter
+    s, // Search term filter
+    gen, // Gender filter
+    page = 1, // Default page 1
+    limit = 20, // Default limit of products per page
+  } = req.query;
 
-// get all prodcuts
-const getAllProducts = catchAsyncErrors(async (req, res, next) => {
-  const products = await Product.find({ show: "yes" });
+  // ✅ Validate category hierarchy
+  if (subsub && !sub) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Subcategory (sub) is required when filtering by sub-subcategory",
+    });
+  }
 
+  if (sub && !cat) {
+    return res.status(400).json({
+      success: false,
+      message: "Category (cat) is required when filtering by subcategory",
+    });
+  }
+
+  // Convert and validate pagination parameters
+  const pageNum = Math.max(1, Number(page));
+  const limitNum = Math.min(Math.max(1, Number(limit)), 50); // Max 50 per page
+
+  const filters = {}; // Initialize an empty filters object
+
+  // ✅ Category: Find by slug and get name
+  if (cat) {
+    const category = await Category.findOne({ slug: cat });
+    if (category) {
+      filters.category = category.name;
+    }
+  }
+
+  // ✅ Subcategory: Find by slug and get name
+  if (sub) {
+    const subcategory = await Subcategory.findOne({ slug: sub });
+    if (subcategory) {
+      filters.subCategory = subcategory.name;
+    }
+  }
+
+  // ✅ SubSubcategory: Find by slug and get name
+  if (subsub) {
+    const subsubcategory = await SubSubcategory.findOne({ slug: subsub });
+    if (subsubcategory) {
+      filters.subsubCategory = subsubcategory.name;
+    }
+  }
+  if (gen) {
+    const gender = await Gender.findOne({ slug: gen });
+    if (gender) {
+      filters.gender = gender.name;
+    }
+  }
+
+  // Apply price filters (min and max price)
+  if (min) filters.salePrice = { $gte: Number(min) };
+  if (max) filters.salePrice = { ...filters.salePrice, $lte: Number(max) };
+
+  // Apply search filter if provided (case-insensitive)
+  if (s) filters.name = { $regex: s, $options: "i" };
+
+  // Only show products marked as visible
+  filters.show = "yes";
+
+  // Fetch filtered products with pagination
+  const products = await Product.find(filters)
+    .select("-reviews") // Exclude reviews to improve performance
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .skip((pageNum - 1) * limitNum) // Pagination offset
+    .limit(limitNum) // Pagination limit
+    .lean(); // Return plain JS objects (faster)
+
+  // Get total count of filtered products
+  const totalCount = await Product.countDocuments(filters);
+
+  // Respond with the products, total count, and page number
   res.status(200).json({
     success: true,
     products,
+    totalCount,
+    page: pageNum,
   });
 });
+
 // Get All Product (Admin)
 const getAdminProducts = catchAsyncErrors(async (req, res, next) => {
   const products = await Product.find();

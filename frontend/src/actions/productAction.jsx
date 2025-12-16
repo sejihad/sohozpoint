@@ -35,24 +35,43 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// ✅ Get All Products
-export const getProduct = () => async (dispatch) => {
-  try {
-    dispatch({ type: ALL_PRODUCT_REQUEST });
+// ✅ Get All Products with Filters & Pagination
+export const getProduct =
+  (params = {}) =>
+  async (dispatch) => {
+    try {
+      dispatch({ type: ALL_PRODUCT_REQUEST });
 
-    const { data } = await axios.get(`${API_URL}/api/v1/products`);
+      // Build query params
+      const queryParams = {
+        page: params.page || 1,
+        limit: params.page > 1 ? 10 : 20, // Use 20 for the first page, 10 for subsequent pages
+        ...params,
+      };
 
-    dispatch({
-      type: ALL_PRODUCT_SUCCESS,
-      payload: data,
-    });
-  } catch (error) {
-    dispatch({
-      type: ALL_PRODUCT_FAIL,
-      payload: error.response.data.message,
-    });
-  }
-};
+      if (params.cat) queryParams.cat = params.cat;
+      if (params.sub) queryParams.sub = params.sub;
+      if (params.subsub) queryParams.subsub = params.subsub;
+      if (params.gen) queryParams.gen = params.gen;
+      if (params.min) queryParams.min = params.min;
+      if (params.max) queryParams.max = params.max;
+      if (params.s) queryParams.s = params.s;
+
+      const { data } = await axios.get(`${API_URL}/api/v1/products`, {
+        params: queryParams,
+      });
+
+      dispatch({
+        type: ALL_PRODUCT_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      dispatch({
+        type: ALL_PRODUCT_FAIL,
+        payload: error.response?.data?.message || "Failed to fetch products",
+      });
+    }
+  };
 
 // ✅ Get Admin Products
 export const getAdminProduct = () => async (dispatch) => {

@@ -154,7 +154,7 @@ const Header = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/shop?s=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
       setShowMobileSearch(false);
     }
