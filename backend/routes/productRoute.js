@@ -33,7 +33,7 @@ router.get(
   async (req, res) => {
     try {
       // শুধু show: "yes" যেগুলো আছে
-      const count = await Product.countDocuments();
+      const count = await Product.countDocuments({ show: "yes" });
 
       res.json({
         success: true,
