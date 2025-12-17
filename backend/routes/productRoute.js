@@ -14,7 +14,7 @@ const {
   updateReview,
   getOrderProductDetails,
 } = require("../controllers/productController");
-const Product = require("../models/productModel");
+
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
 const { ROLE_GROUPS } = require("../utils/roles");
 
@@ -26,28 +26,6 @@ const router = express.Router();
 
 // All products (public)
 router.get("/products", getAllProducts);
-// countController.js
-router.get(
-  "/count",
-
-  async (req, res) => {
-    try {
-      // শুধু show: "yes" যেগুলো আছে
-      const count = await Product.countDocuments({ show: "yes" });
-
-      res.json({
-        success: true,
-        count: count,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  }
-);
-
 router.get("/products/:id", getProductCart);
 router.get("/product/:slug", getProductDetails);
 router.get("/product/id/:id", getOrderProductDetails);
