@@ -416,6 +416,7 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
     max, // Maximum price filter
     s, // Search term filter
     gen, // Gender filter
+    rating,
     page = 1, // Default page 1
     limit = 20, // Default limit of products per page
   } = req.query;
@@ -441,7 +442,13 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
   const limitNum = Math.min(Math.max(1, Number(limit)), 50); // Max 50 per page
 
   const filters = {}; // Initialize an empty filters object
-
+  if (rating) {
+    const ratingNum = Number(rating);
+    if (!isNaN(ratingNum)) {
+      // 4+ rating মানে ratings >= 4
+      filters.ratings = { $gte: ratingNum };
+    }
+  }
   // ✅ Category: Find by slug and get name
   if (cat) {
     const category = await Category.findOne({ slug: cat });

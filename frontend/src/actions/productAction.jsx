@@ -56,7 +56,7 @@ export const getProduct =
       if (params.min) queryParams.min = params.min;
       if (params.max) queryParams.max = params.max;
       if (params.s) queryParams.s = params.s;
-
+      if (params.rating) queryParams.rating = params.rating;
       const { data } = await axios.get(`${API_URL}/api/v1/products`, {
         params: queryParams,
       });

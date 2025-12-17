@@ -58,9 +58,10 @@ const Shop = () => {
     subCategory: "",
     subsubCategory: "",
     gender: "",
+
     minPrice: "",
     maxPrice: "",
-    ratings: [],
+    rating: "",
   });
 
   const observer = useRef();
@@ -75,6 +76,7 @@ const Shop = () => {
     if (query.get("min")) params.min = query.get("min");
     if (query.get("max")) params.max = query.get("max");
     if (query.get("s")) params.s = query.get("s");
+    if (query.get("rating")) params.rating = query.get("rating");
     if (query.get("page")) params.page = query.get("page");
 
     return params;
@@ -113,7 +115,11 @@ const Shop = () => {
   // Sync URL params with local state and fetch products
   useEffect(() => {
     const params = getFiltersFromURL();
-
+    if (params.rating) {
+      setFilters((prev) => ({ ...prev, rating: params.rating }));
+    } else {
+      setFilters((prev) => ({ ...prev, rating: "" }));
+    }
     // Sync URL params with local state (for UI display)
     if (params.cat) {
       const category = categories?.find((c) => c.slug === params.cat);
@@ -243,19 +249,29 @@ const Shop = () => {
   );
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
-    if (filterType === "ratings") {
-      // Ratings are client-side only
-      setFilters((prev) => ({
-        ...prev,
-        ratings: prev.ratings.includes(value)
-          ? prev.ratings.filter((r) => r !== value)
-          : [...prev.ratings, value],
-      }));
-      return;
-    }
-
     let urlParams = {};
     let removeParams = [];
+
+    if (filterType === "rating") {
+      // ✅ Server-side rating filter (radio button)
+      if (value === filters.rating) {
+        // একই rating আবার ক্লিক করলে remove করবে
+        urlParams = {
+          rating: "",
+          page: "1",
+        };
+        setFilters((prev) => ({ ...prev, rating: "" }));
+      } else {
+        urlParams = {
+          rating: value,
+          page: "1",
+        };
+        setFilters((prev) => ({ ...prev, rating: value }));
+      }
+
+      updateURL(urlParams);
+      return;
+    }
 
     if (filterType === "category") {
       const category = categories?.find((c) => c._id === value);
@@ -263,7 +279,7 @@ const Shop = () => {
         cat: category?.slug || "",
         page: "1", // Reset to first page
       };
-      removeParams = ["sub", "subsub"];
+      removeParams = ["sub", "subsub", "rating"]; // ✅ rating ও reset করবে
 
       // Reset dependent filters in UI
       setFilters((prev) => ({
@@ -271,6 +287,7 @@ const Shop = () => {
         category: value,
         subCategory: "",
         subsubCategory: "",
+        rating: "", // ✅ rating clear করবে
       }));
 
       setExpandedSections((prev) => ({
@@ -284,12 +301,13 @@ const Shop = () => {
         sub: subcategory?.slug || "",
         page: "1",
       };
-      removeParams = ["subsub"];
+      removeParams = ["subsub", "rating"]; // ✅ rating ও reset করবে
 
       setFilters((prev) => ({
         ...prev,
         subCategory: value,
         subsubCategory: "",
+        rating: "", // ✅ rating clear করবে
       }));
 
       setExpandedSections((prev) => ({
@@ -302,10 +320,12 @@ const Shop = () => {
         subsub: subsubcategory?.slug || "",
         page: "1",
       };
+      removeParams = ["rating"]; // ✅ rating reset করবে
 
       setFilters((prev) => ({
         ...prev,
         subsubCategory: value,
+        rating: "", // ✅ rating clear করবে
       }));
     } else if (filterType === "gender") {
       const gender = genders?.find((g) => g._id === value);
@@ -313,10 +333,12 @@ const Shop = () => {
         gen: gender?.slug || "",
         page: "1",
       };
+      removeParams = ["rating"]; // ✅ rating reset করবে
 
       setFilters((prev) => ({
         ...prev,
         gender: value,
+        rating: "", // ✅ rating clear করবে
       }));
     } else if (filterType === "minPrice" || filterType === "maxPrice") {
       // Price filters will be applied on button click
@@ -346,16 +368,6 @@ const Shop = () => {
     }));
   };
 
-  // Handle search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      updateURL({ s: searchTerm.trim(), page: "1" });
-    } else {
-      updateURL({}, ["s"]);
-    }
-  };
-
   const clearAllFilters = () => {
     setFilters({
       category: "",
@@ -364,7 +376,7 @@ const Shop = () => {
       gender: "",
       minPrice: priceRange.min.toString(),
       maxPrice: priceRange.max.toString(),
-      ratings: [],
+      rating: "",
     });
 
     setExpandedSections({
@@ -418,19 +430,8 @@ const Shop = () => {
     ).length;
   };
 
-  // Client-side rating filter
-  const getRatingFilteredProducts = () => {
-    if (filters.ratings.length === 0) return products;
+  const showSearchInfo = query.get("s") && products.length > 0;
 
-    return products.filter((product) => {
-      return filters.ratings.some(
-        (rating) => product.ratings >= rating && product.ratings < rating + 1
-      );
-    });
-  };
-
-  const ratingFilteredProducts = getRatingFilteredProducts();
-  const showSearchInfo = query.get("s") && ratingFilteredProducts.length > 0;
   const activeFiltersCount = getActiveFiltersCount();
 
   // Filter sidebar component
@@ -446,27 +447,6 @@ const Shop = () => {
           Clear All
         </button>
       </div>
-
-      {/* Search Box */}
-      {/* <div className="mb-6">
-        <form onSubmit={handleSearch}>
-          <div className="relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search products..."
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            />
-            <button
-              type="submit"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            >
-              🔍
-            </button>
-          </div>
-        </form>
-      </div> */}
 
       <div className="space-y-6">
         {/* Categories */}
@@ -688,7 +668,7 @@ const Shop = () => {
           )}
         </div>
 
-        {/* Ratings (Client-side only) */}
+        {/* Ratings*/}
         <div className="border-b border-gray-200 pb-6">
           <button
             className="flex justify-between items-center w-full text-left font-medium text-gray-900"
@@ -709,10 +689,13 @@ const Shop = () => {
                   className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
                 >
                   <input
-                    type="checkbox"
-                    checked={filters.ratings.includes(rating)}
-                    onChange={() => handleFilterChange("ratings", rating)}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    type="radio"
+                    name="rating"
+                    checked={filters.rating === rating.toString()}
+                    onChange={() =>
+                      handleFilterChange("rating", rating.toString())
+                    }
+                    className="rounded-full border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="flex items-center text-gray-700">
                     {[...Array(5)].map((_, i) => (
@@ -729,6 +712,20 @@ const Shop = () => {
                   </span>
                 </label>
               ))}
+
+              {/* Clear rating option */}
+              {filters.rating && (
+                <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                  <input
+                    type="radio"
+                    name="rating"
+                    checked={filters.rating === ""}
+                    onChange={() => handleFilterChange("rating", "")}
+                    className="rounded-full border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-gray-700">All Ratings</span>
+                </label>
+              )}
             </div>
           )}
         </div>
@@ -768,8 +765,7 @@ const Shop = () => {
               <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex justify-between items-center">
                   <p className="text-green-800">
-                    Showing {ratingFilteredProducts.length} results for "
-                    {query.get("s")}"
+                    Showing {products.length} results for "{query.get("s")}"
                   </p>
                   <button
                     onClick={() => updateURL({}, ["s"])}
@@ -809,7 +805,6 @@ const Shop = () => {
                       </button>
                     </span>
                   )}
-
                   {query.get("sub") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                       Sub:{" "}
@@ -823,7 +818,6 @@ const Shop = () => {
                       </button>
                     </span>
                   )}
-
                   {query.get("subsub") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
                       Sub Sub:{" "}
@@ -838,7 +832,6 @@ const Shop = () => {
                       </button>
                     </span>
                   )}
-
                   {query.get("gen") && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">
                       Gender:{" "}
@@ -852,7 +845,6 @@ const Shop = () => {
                       </button>
                     </span>
                   )}
-
                   {(query.get("min") || query.get("max")) && (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
                       Price: ৳{query.get("min") || "0"} - ৳
@@ -866,27 +858,24 @@ const Shop = () => {
                     </span>
                   )}
 
-                  {filters.ratings.map((rating) => (
-                    <span
-                      key={rating}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm"
-                    >
-                      Rating: {rating}+
+                  {query.get("rating") && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                      Rating: {query.get("rating")}+
                       <button
-                        onClick={() => handleFilterChange("ratings", rating)}
+                        onClick={() => updateURL({}, ["rating"])}
                         className="hover:text-yellow-900"
                       >
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
 
             {loading && page === 1 ? (
               <Loader />
-            ) : ratingFilteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
                 <div className="max-w-md mx-auto">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -927,7 +916,7 @@ const Shop = () => {
                       laptop: 3,
                       desktop: 3,
                     }}
-                    products={ratingFilteredProducts}
+                    products={products}
                     loading={loading}
                     lastProductElementRef={lastProductElementRef}
                   />
@@ -940,7 +929,7 @@ const Shop = () => {
                   </div>
                 )}
 
-                {!hasMore && ratingFilteredProducts.length > 0 && (
+                {!hasMore && products.length > 0 && (
                   <div className="text-center py-4 text-gray-500">
                     No more products to load
                   </div>
