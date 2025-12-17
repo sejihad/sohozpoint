@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Footer from "./component/layout/Footer";
 import Header from "./component/layout/Header";
@@ -78,7 +78,9 @@ import UpdateProfile from "./pages/User/UpdateProfile";
 
 const App = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useSelector((state) => state.user);
   // useEffect(() => {
   //   enableContentProtection();
   // }, []);
@@ -126,9 +128,19 @@ const App = () => {
       dispatch(logout());
     }
   }, [dispatch]);
-
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      user &&
+      !user.number &&
+      location.pathname !== "/profile/update"
+    ) {
+      toast.error("Please add your number");
+      navigate("/profile/update", { replace: true });
+    }
+  }, [isAuthenticated, user, location.pathname]);
   return (
-    <BrowserRouter>
+    <>
       <Header />
       <ScrollToTop />
       <NotificationBanner />
@@ -144,7 +156,6 @@ const App = () => {
         <Route path="/terms&conditions" element={<TermsConditions />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
 
-        {/* <Route path="/custom-design/:slug" element={<CustomProductDetails />} /> */}
         <Route path="/:category/:slug" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/suspended" element={<SuspendedAccount />} />
@@ -219,7 +230,7 @@ const App = () => {
       </Routes>
       <ToastContainer />
       <Footer />
-    </BrowserRouter>
+    </>
   );
 };
 

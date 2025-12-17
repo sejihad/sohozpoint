@@ -47,12 +47,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && !otpPending) {
-      // Checkout state na thakle role-based routing
-      if (user?.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (user?.role === "user") {
-        navigate("/");
-      }
+      navigate("/");
     }
 
     const container = document.querySelector(".form-container");

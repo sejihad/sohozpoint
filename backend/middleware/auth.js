@@ -5,29 +5,21 @@ const User = require("../models/userModel");
 
 // Authentication Middleware
 const isAuthenticator = catchAsyncErrors(async (req, res, next) => {
-  const { authorization } = req.headers;
+  const { authorization } = req.headers; // Get token from Authorization header
 
   if (!authorization || !authorization.startsWith("Bearer ")) {
-    return next(new ErrorHandler("Please login to access this resource", 401));
+    return next(new ErrorHandler("Please Login to access this resource", 401)); // Unauthorized
   }
 
-  const token = authorization.split(" ")[1];
+  const token = authorization.split(" ")[1]; // Extract token from 'Bearer <token>'
 
-  let decodedData;
-  try {
-    decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (error) {
-    return next(new ErrorHandler("Invalid or expired token", 401));
-  }
+  // Verify token
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const user = await User.findById(decodedData.id);
+  // Attach user to request
+  req.user = await User.findById(decodedData.id); // Get user from DB
 
-  if (!user) {
-    return next(new ErrorHandler("User no longer exists", 401));
-  }
-
-  req.user = user;
-  next();
+  next(); // Proceed to next middleware or route handler
 });
 
 // Authorization Middleware

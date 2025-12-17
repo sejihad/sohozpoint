@@ -32,6 +32,8 @@ const router = express.Router();
 ======================= */
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/logout", logoutUser);
+
 router.post("/verify-otp", verifyOtp);
 router.post("/password/forgot", forgotPassword);
 router.put("/password/reset/:token", resetPassword);
@@ -40,7 +42,6 @@ router.post("/contact/us", contactUs);
 /* =======================
    AUTH ROUTES
 ======================= */
-router.post("/logout", isAuthenticator, logoutUser);
 router.get("/me", isAuthenticator, getUserDetails);
 router.put("/password/update", isAuthenticator, updatePassword);
 router.put("/me/update", isAuthenticator, updateProfile);
