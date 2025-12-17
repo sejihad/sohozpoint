@@ -45,7 +45,7 @@ export const getProduct =
       // Build query params
       const queryParams = {
         page: params.page || 1,
-        limit: params.page > 1 ? 10 : 20, // Use 20 for the first page, 10 for subsequent pages
+        limit: 20,
         ...params,
       };
 

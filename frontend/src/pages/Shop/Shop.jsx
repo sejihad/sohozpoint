@@ -106,7 +106,7 @@ const Shop = () => {
   }, [dispatch]);
   // Update hasMore when page or totalCount changes
   useEffect(() => {
-    const limit = page === 1 ? 20 : 10;
+    const limit = 20; // ✅ সর্বদা 20
     const totalPages = Math.ceil(totalCount / limit);
     setHasMore(page < totalPages);
   }, [page, totalCount]);
@@ -211,7 +211,6 @@ const Shop = () => {
   }, [products]);
 
   // Infinite scroll observer
-  // Infinite scroll observer - FIXED VERSION
   const lastProductElementRef = useCallback(
     (node) => {
       if (loading || !hasMore) return;
@@ -222,35 +221,25 @@ const Shop = () => {
           if (entries[0].isIntersecting && hasMore) {
             const nextPage = page + 1;
 
-            // ✅ প্রথম page: limit=20, পরের pages: limit=10
-            const limit = page === 1 ? 20 : 10;
-
-            // ✅ Calculate total pages based on limit
-            const totalPages = Math.ceil(totalCount / limit);
-
-            if (nextPage <= totalPages) {
-              const params = getFiltersFromURL();
-              dispatch(
-                getProduct({
-                  ...params,
-                  page: nextPage,
-                  limit: limit, // ✅ limit parameter পাঠান
-                })
-              );
-            } else {
-              setHasMore(false);
-            }
+            const params = getFiltersFromURL();
+            dispatch(
+              getProduct({
+                ...params,
+                page: nextPage,
+                // ✅ limit পাঠাবেন না, backend default 20 নেবে
+              })
+            );
           }
         },
         {
-          threshold: 0.5, // 50% দেখা গেলে load করবে
-          rootMargin: "100px", // 100px আগেই load শুরু করবে
+          threshold: 0.1, // 10% দেখা গেলেই load করবে - smoother
+          rootMargin: "200px", // আগে থেকেই load শুরু করবে
         }
       );
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, page, totalCount, dispatch]
+    [loading, hasMore, page, dispatch]
   );
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
