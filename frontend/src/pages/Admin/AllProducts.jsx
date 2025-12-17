@@ -339,9 +339,9 @@ const AllProducts = () => {
                         </span>
                       </div>
                       <div className="truncate">
-                        <span className="text-gray-500">Category:</span>
+                        <span className="text-gray-500">Show:</span>
                         <span className="ml-1 font-medium truncate">
-                          {product.category || "N/A"}
+                          {product.show || "N/A"}
                         </span>
                       </div>
                       <div className="truncate">
@@ -406,7 +406,7 @@ const AllProducts = () => {
                           </button>
                         </div>
                       </th>
-                      <th className="px-3 py-2 sm:px-4 sm:py-3">Category</th>
+                      <th className="px-3 py-2 sm:px-4 sm:py-3">Show</th>
                       <th className="px-3 py-2 sm:px-4 sm:py-3">
                         <div className="flex items-center gap-1">
                           Price
@@ -494,7 +494,7 @@ const AllProducts = () => {
                         </td>
                         <td className="px-3 py-2 sm:px-4 sm:py-3">
                           <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded truncate inline-block max-w-[120px]">
-                            {product.category || "N/A"}
+                            {product.show || "N/A"}
                           </span>
                         </td>
                         <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-green-600 text-sm sm:text-base">
