@@ -6,6 +6,7 @@ import Categories from "../../component/Categories";
 import Hero from "../../component/Hero";
 import ProductSection from "../../component/ProductSection";
 import Loader from "../../component/layout/Loader/Loader";
+import { ALL_PRODUCT_RESET } from "../../constants/productContants";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,9 @@ const Home = () => {
   const MAX_PRODUCTS = 100; // সর্বোচ্চ ১০০টি প্রোডাক্ট
 
   // ✅ প্রথম লোডে products fetch
+  useEffect(() => {
+    dispatch({ type: ALL_PRODUCT_RESET });
+  }, [dispatch]);
   useEffect(() => {
     if (products.length === 0) {
       dispatch(getProduct({ page: 1, limit: 20 }));

@@ -1,10 +1,10 @@
 // src/pages/ProductDetails.jsx
 
+import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
 // Actions
 import { addItemsToCart } from "../../actions/cartAction";
 import { getCustomLogoCharge } from "../../actions/customLogoChargeAction";
@@ -52,6 +52,9 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [zoomImage, setZoomImage] = useState(null);
 
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -84,7 +87,37 @@ const ProductDetails = () => {
       dispatch(getCustomLogoCharge());
     }
   }, [product?.type, dispatch]);
+  useEffect(() => {
+    if (product?._id && product?.category) {
+      fetchRelatedProducts();
+    }
+  }, [product?._id, product?.category]);
 
+  const fetchRelatedProducts = async () => {
+    setRelatedLoading(true);
+
+    try {
+      // ✅ Direct API call (Redux store এ affect করবে না)
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/products`,
+        {
+          params: {
+            cat: product.category,
+            limit: 20,
+            page: 1,
+          },
+        }
+      );
+
+      // Filter out current product
+      const filtered = data.products.filter((p) => p._id !== product._id);
+      setRelatedProducts(filtered.slice(0, 20));
+    } catch (error) {
+      console.error("Error fetching related products:", error);
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
   /** -----------------------------
    *  PAGE ANIMATION OBSERVER
    * ----------------------------- */
@@ -556,12 +589,6 @@ const ProductDetails = () => {
   const productReviews = product?.reviews || [];
   const listItems = Array.isArray(product.listItems) ? product.listItems : [];
 
-  const relatedProducts = (products || [])
-    .filter(
-      (p) => p && p._id !== product._id && p.category === product.category
-    )
-    .slice(0, 20);
-
   const hasReviewed = product?.reviews?.some((r) => r.user === user?._id);
   const hasCompletedOrder = orders?.some((order) =>
     order.orderItems?.some(
@@ -799,8 +826,9 @@ const ProductDetails = () => {
               }}
               title="Related"
               products={relatedProducts}
+              loading={relatedLoading} // ✅ Add loading
               showViewAll={false}
-              columns={4}
+              lastProductElementRef={null} // ✅ No infinite scroll
             />
           </div>
         )}

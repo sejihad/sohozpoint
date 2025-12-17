@@ -491,7 +491,17 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
 
   // Fetch filtered products with pagination
   const products = await Product.find(filters)
-    .select("-reviews") // Exclude reviews to improve performance
+    .select({
+      name: 1,
+      slug: 1,
+      category: 1,
+      salePrice: 1,
+      oldPrice: 1,
+      ratings: 1,
+      numOfReviews: 1,
+      sold: 1,
+      images: 1, // শুধু প্রথম ইমেজের url
+    }) // Exclude reviews to improve performance
     .sort({ createdAt: -1 }) // Sort by newest first
     .skip((pageNum - 1) * limitNum) // Pagination offset
     .limit(limitNum) // Pagination limit

@@ -4,6 +4,7 @@ import {
   ADMIN_PRODUCT_SUCCESS,
   ALL_PRODUCT_FAIL,
   ALL_PRODUCT_REQUEST,
+  ALL_PRODUCT_RESET,
   ALL_PRODUCT_SUCCESS,
   ALL_REVIEW_FAIL,
   ALL_REVIEW_REQUEST,
@@ -44,6 +45,14 @@ export const productsReducer = (
   action
 ) => {
   switch (action.type) {
+    case ALL_PRODUCT_RESET:
+      return {
+        ...state,
+        products: [], // Clear products state when navigating to Home page
+        totalCount: 0,
+        page: 1,
+        loading: false,
+      };
     case ALL_PRODUCT_REQUEST:
       return { ...state, loading: true, error: null };
 
@@ -52,12 +61,18 @@ export const productsReducer = (
 
     case ALL_PRODUCT_SUCCESS:
       const isFirstPage = action.payload.page === 1;
+
+      // First page products randomize
+      const randomizedProducts = isFirstPage
+        ? (action.payload.products || []).sort(() => Math.random() - 0.5) // Randomize the first 20 products
+        : action.payload.products || [];
+
       return {
         ...state,
         loading: false,
         products: isFirstPage
-          ? action.payload.products || []
-          : [...state.products, ...(action.payload.products || [])],
+          ? randomizedProducts // Randomized first 20 products
+          : [...state.products, ...(action.payload.products || [])], // Append next page products
         totalCount: action.payload.totalCount || 0,
         page: action.payload.page || 1,
         error: null,
