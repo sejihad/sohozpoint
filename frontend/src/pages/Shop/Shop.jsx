@@ -116,15 +116,6 @@ const Shop = () => {
   // Sync URL params with local state and fetch products
   useEffect(() => {
     const params = getFiltersFromURL();
-
-    // Fetch products with current URL params
-    dispatch(getProduct(params));
-
-    // Reset hasMore when filters change
-    setHasMore(true);
-  }, [location.search, dispatch]);
-  useEffect(() => {
-    const params = getFiltersFromURL();
     if (params.rating) {
       setFilters((prev) => ({ ...prev, rating: params.rating }));
     } else {
@@ -192,7 +183,14 @@ const Shop = () => {
 
     // Reset hasMore when filters change
     setHasMore(true);
-  }, [location.search, categories, subcategories, subsubcategories, genders]);
+  }, [
+    location.search,
+    categories,
+    subcategories,
+    subsubcategories,
+    genders,
+    dispatch,
+  ]);
 
   // Calculate dynamic price range from products
   useEffect(() => {
