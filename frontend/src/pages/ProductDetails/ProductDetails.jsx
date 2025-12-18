@@ -1,9 +1,9 @@
 // src/pages/ProductDetails.jsx
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 // Actions
 import { addItemsToCart } from "../../actions/cartAction";
@@ -41,7 +41,7 @@ const ProductDetails = () => {
   // Redux State
   const { loading, product } = useSelector((state) => state.productDetails);
   const { user } = useSelector((state) => state.user);
-  const { products } = useSelector((state) => state.products);
+
   const { orders } = useSelector((state) => state.myOrders);
   const { success: reviewSuccess, error: reviewError } = useSelector(
     (state) => state.newReview
@@ -49,6 +49,8 @@ const ProductDetails = () => {
   const { charge: logoCharge } = useSelector((state) => state.customLogocharge);
 
   // Local States
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [zoomImage, setZoomImage] = useState(null);
 
@@ -81,6 +83,31 @@ const ProductDetails = () => {
   useEffect(() => {
     dispatch(getProductDetails(slug));
   }, [dispatch, slug]);
+
+  useEffect(() => {
+    if (!product?.images || product.images.length === 0) return;
+
+    const imgParamRaw = searchParams.get("img");
+    const imgParam = Number(imgParamRaw);
+
+    const isValid =
+      imgParamRaw !== null &&
+      !Number.isNaN(imgParam) &&
+      imgParam >= 0 &&
+      imgParam < product.images.length;
+
+    if (!isValid) {
+      setSelectedImage(0);
+
+      // যদি কেউ ভুল img দেয়, URL clean করে দাও
+      if (imgParamRaw !== null) {
+        setSearchParams({}, { replace: true });
+      }
+      return;
+    }
+
+    setSelectedImage(imgParam);
+  }, [product?._id, searchParams]);
 
   useEffect(() => {
     if (product?.type === "custom") {
@@ -207,6 +234,15 @@ const ProductDetails = () => {
     setActiveLogoId(newLogo._id);
     setSelectedLogoPosition("");
   };
+  const handleImageChange = (index) => {
+    if (!product?.images || product.images.length === 0) return;
+
+    // safe guard
+    const safeIndex = index >= 0 && index < product.images.length ? index : 0;
+
+    setSelectedImage(safeIndex);
+    setSearchParams({ img: String(safeIndex) }, { replace: true });
+  };
 
   const handleRemoveLogo = (index) => {
     setSelectedLogos((prev) => prev.filter((_, i) => i !== index));
@@ -269,15 +305,17 @@ const ProductDetails = () => {
   const goToNextImage = () => {
     if (!product?.images) return;
     if (zoomImage < product.images.length - 1) {
-      setZoomImage(zoomImage + 1);
-      setSelectedImage(zoomImage + 1);
+      const next = zoomImage + 1;
+      setZoomImage(next);
+      handleImageChange(next);
     }
   };
 
   const goToPrevImage = () => {
     if (zoomImage > 0) {
-      setZoomImage(zoomImage - 1);
-      setSelectedImage(zoomImage - 1);
+      const prev = zoomImage - 1;
+      setZoomImage(prev);
+      handleImageChange(prev);
     }
   };
 
@@ -644,7 +682,7 @@ const ProductDetails = () => {
               productName={product.name}
               isCustomProduct={isCustomProduct}
               selectedImage={selectedImage}
-              setSelectedImage={setSelectedImage}
+              setSelectedImage={handleImageChange}
               zoomImage={zoomImage}
               openImageZoom={openImageZoom}
               closeImageZoom={closeImageZoom}
