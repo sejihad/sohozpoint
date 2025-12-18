@@ -33,7 +33,7 @@ const Shop = () => {
   const { loading, products, totalCount, page } = useSelector(
     (state) => state.products
   );
-  console.log(products);
+
   const { categories } = useSelector((state) => state.categories);
   const { subcategories } = useSelector((state) => state.subcategories);
   const { subsubcategories } = useSelector((state) => state.subsubcategories);
@@ -64,7 +64,7 @@ const Shop = () => {
     maxPrice: "",
     rating: "",
   });
-
+  const initialLoadDone = useRef(false);
   const observer = useRef();
 
   // Get filters from URL
@@ -114,14 +114,96 @@ const Shop = () => {
     setHasMore(page < totalPages);
   }, [page, totalCount]);
   // Sync URL params with local state and fetch products
+  // useEffect(() => {
+  //   const params = getFiltersFromURL();
+  //   if (params.rating) {
+  //     setFilters((prev) => ({ ...prev, rating: params.rating }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, rating: "" }));
+  //   }
+  //   // Sync URL params with local state (for UI display)
+  //   if (params.cat) {
+  //     const category = categories?.find((c) => c.slug === params.cat);
+  //     if (category) {
+  //       setFilters((prev) => ({ ...prev, category: category._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, category: "" }));
+  //   }
+
+  //   if (params.sub) {
+  //     const subcategory = subcategories?.find((s) => s.slug === params.sub);
+  //     if (subcategory) {
+  //       setFilters((prev) => ({ ...prev, subCategory: subcategory._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, subCategory: "" }));
+  //   }
+
+  //   if (params.subsub) {
+  //     const subsubcategory = subsubcategories?.find(
+  //       (s) => s.slug === params.subsub
+  //     );
+  //     if (subsubcategory) {
+  //       setFilters((prev) => ({ ...prev, subsubCategory: subsubcategory._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, subsubCategory: "" }));
+  //   }
+
+  //   if (params.gen) {
+  //     const gender = genders?.find((g) => g.slug === params.gen);
+  //     if (gender) {
+  //       setFilters((prev) => ({ ...prev, gender: gender._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, gender: "" }));
+  //   }
+
+  //   if (params.min) {
+  //     setFilters((prev) => ({ ...prev, minPrice: params.min }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, minPrice: "" }));
+  //   }
+
+  //   if (params.max) {
+  //     setFilters((prev) => ({ ...prev, maxPrice: params.max }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, maxPrice: "" }));
+  //   }
+
+  //   if (params.s) {
+  //     setSearchTerm(params.s);
+  //   } else {
+  //     setSearchTerm("");
+  //   }
+
+  //   // Fetch products with current URL params
+  //   dispatch(getProduct(params));
+
+  //   // Reset hasMore when filters change
+  //   setHasMore(true);
+  // }, [
+  //   location.search,
+  //   categories,
+  //   subcategories,
+  //   subsubcategories,
+  //   genders,
+  //   dispatch,
+  // ]);
+  // Sync URL params with local state and fetch products
   useEffect(() => {
     const params = getFiltersFromURL();
+
+    // ✅ ১. সব সময় filters state আপডেট করুন (UI দেখানোর জন্য)
+    // rating
     if (params.rating) {
       setFilters((prev) => ({ ...prev, rating: params.rating }));
     } else {
       setFilters((prev) => ({ ...prev, rating: "" }));
     }
-    // Sync URL params with local state (for UI display)
+
+    // category
     if (params.cat) {
       const category = categories?.find((c) => c.slug === params.cat);
       if (category) {
@@ -131,6 +213,7 @@ const Shop = () => {
       setFilters((prev) => ({ ...prev, category: "" }));
     }
 
+    // subcategory
     if (params.sub) {
       const subcategory = subcategories?.find((s) => s.slug === params.sub);
       if (subcategory) {
@@ -140,6 +223,7 @@ const Shop = () => {
       setFilters((prev) => ({ ...prev, subCategory: "" }));
     }
 
+    // subsubcategory
     if (params.subsub) {
       const subsubcategory = subsubcategories?.find(
         (s) => s.slug === params.subsub
@@ -151,6 +235,7 @@ const Shop = () => {
       setFilters((prev) => ({ ...prev, subsubCategory: "" }));
     }
 
+    // gender
     if (params.gen) {
       const gender = genders?.find((g) => g.slug === params.gen);
       if (gender) {
@@ -160,6 +245,7 @@ const Shop = () => {
       setFilters((prev) => ({ ...prev, gender: "" }));
     }
 
+    // price
     if (params.min) {
       setFilters((prev) => ({ ...prev, minPrice: params.min }));
     } else {
@@ -172,26 +258,33 @@ const Shop = () => {
       setFilters((prev) => ({ ...prev, maxPrice: "" }));
     }
 
+    // search
     if (params.s) {
       setSearchTerm(params.s);
     } else {
       setSearchTerm("");
     }
 
-    // Fetch products with current URL params
-    dispatch(getProduct(params));
+    // ✅ ২. এখন getProduct কল করার লজিক
 
-    // Reset hasMore when filters change
-    setHasMore(true);
-  }, [
-    location.search,
-    categories,
-    subcategories,
-    subsubcategories,
-    genders,
-    dispatch,
-  ]);
+    if (!initialLoadDone.current) {
+      dispatch(getProduct(params));
+      initialLoadDone.current = true;
+    } else {
+      // Clear All এর ক্ষেত্রে বিশেষ হ্যান্ডেলিং
+      const isClearAll = Object.keys(params).length === 0;
+      const hasFilterChanged = Object.keys(params).some(
+        (key) => key !== "page" && params[key]
+      );
 
+      if (isClearAll || hasFilterChanged) {
+        dispatch(getProduct({ ...params, page: "1" }));
+        setHasMore(true);
+      }
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
   // Calculate dynamic price range from products
   useEffect(() => {
     if (products && products.length > 0) {
@@ -227,26 +320,25 @@ const Shop = () => {
         (entries) => {
           if (entries[0].isIntersecting && hasMore) {
             const nextPage = page + 1;
+            const params = getFiltersFromURL(); // 🔥 URL থেকে params নিন
 
-            const params = getFiltersFromURL();
             dispatch(
               getProduct({
-                ...params,
+                ...params, // 🔥 বর্তমান ফিল্টার রাখুন
                 page: nextPage,
-                // ✅ limit পাঠাবেন না, backend default 20 নেবে
               })
             );
           }
         },
         {
-          threshold: 0.1, // 10% দেখা গেলেই load করবে - smoother
-          rootMargin: "200px", // আগে থেকেই load শুরু করবে
+          threshold: 0.1,
+          rootMargin: "200px",
         }
       );
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, page, dispatch]
+    [loading, hasMore, page, dispatch] // 🔥 location.search যোগ করার দরকার নেই
   );
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
@@ -370,13 +462,14 @@ const Shop = () => {
   };
 
   const clearAllFilters = () => {
+    navigate("/shop");
     setFilters({
       category: "",
       subCategory: "",
       subsubCategory: "",
       gender: "",
-      minPrice: priceRange.min.toString(),
-      maxPrice: priceRange.max.toString(),
+      minPrice: "",
+      maxPrice: "",
       rating: "",
     });
 
@@ -390,7 +483,6 @@ const Shop = () => {
     });
 
     setSearchTerm("");
-    navigate("/shop");
   };
 
   const toggleSection = (section) => {
