@@ -6,6 +6,7 @@ import {
   FiCopy,
   FiMail,
   FiPaperclip,
+  FiPlus,
   FiRotateCw,
   FiSearch,
   FiSend,
@@ -22,6 +23,8 @@ const UserEmails = () => {
   const dispatch = useDispatch();
   const { users, loading } = useSelector((state) => state.allUsers);
   const [emails, setEmails] = useState([]);
+  const [pastedEmails, setPastedEmails] = useState("");
+
   const [filteredEmails, setFilteredEmails] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [copied, setCopied] = useState(false);
@@ -75,6 +78,45 @@ const UserEmails = () => {
       setFilteredEmails(emails);
     }
   }, [searchTerm, emails]);
+  const pastedOnlyRecipients = emailData.recipients.filter(
+    (email) => !emails.some((u) => u.email === email)
+  );
+
+  const parseEmailsFromText = (text) => {
+    if (!text) return [];
+
+    // Split by comma, space, or new line
+    const rawEmails = text
+      .split(/[\s,]+/)
+      .map((e) => e.trim())
+      .filter(Boolean);
+
+    // Simple email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Valid + unique emails
+    const validEmails = [
+      ...new Set(rawEmails.filter((email) => emailRegex.test(email))),
+    ];
+
+    return validEmails;
+  };
+  const addPastedEmailsToRecipients = () => {
+    const parsedEmails = parseEmailsFromText(pastedEmails);
+
+    if (parsedEmails.length === 0) {
+      toast.error("No valid email found");
+      return;
+    }
+
+    setEmailData((prev) => ({
+      ...prev,
+      recipients: [...new Set([...prev.recipients, ...parsedEmails])],
+    }));
+
+    toast.success(`${parsedEmails.length} emails added`);
+    setPastedEmails("");
+  };
 
   const copyAllEmails = () => {
     const emailString = emails.map((user) => user.email).join(", ");
@@ -520,6 +562,64 @@ const UserEmails = () => {
                           </span>
                         )}
                       </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Paste Emails Section */}
+              {!emailData.individualMode && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Paste Email List
+                  </label>
+
+                  <textarea
+                    value={pastedEmails}
+                    onChange={(e) => setPastedEmails(e.target.value)}
+                    placeholder={`Paste emails here...\nexample:\nuser1@gmail.com, user2@yahoo.com`}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={addPastedEmailsToRecipients}
+                    className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                  >
+                    <FiPlus />
+                    Add Emails
+                  </button>
+                </div>
+              )}
+              {/* Pasted / External Emails Preview */}
+              {!emailData.individualMode && pastedOnlyRecipients.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Added External Emails ({pastedOnlyRecipients.length})
+                  </label>
+
+                  <div className="flex flex-wrap gap-2">
+                    {pastedOnlyRecipients.map((email) => (
+                      <span
+                        key={email}
+                        className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                      >
+                        {email}
+                        <button
+                          onClick={() =>
+                            setEmailData((prev) => ({
+                              ...prev,
+                              recipients: prev.recipients.filter(
+                                (e) => e !== email
+                              ),
+                            }))
+                          }
+                          className="hover:text-red-600"
+                          title="Remove"
+                        >
+                          <FiX size={14} />
+                        </button>
+                      </span>
                     ))}
                   </div>
                 </div>
