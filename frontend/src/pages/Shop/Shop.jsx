@@ -113,83 +113,102 @@ const Shop = () => {
     setHasMore(page < totalPages);
   }, [page, totalCount]);
   // Sync URL params with local state and fetch products
+  // useEffect(() => {
+  //   const params = getFiltersFromURL();
+  //   if (params.rating) {
+  //     setFilters((prev) => ({ ...prev, rating: params.rating }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, rating: "" }));
+  //   }
+  //   // Sync URL params with local state (for UI display)
+  //   if (params.cat) {
+  //     const category = categories?.find((c) => c.slug === params.cat);
+  //     if (category) {
+  //       setFilters((prev) => ({ ...prev, category: category._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, category: "" }));
+  //   }
+
+  //   if (params.sub) {
+  //     const subcategory = subcategories?.find((s) => s.slug === params.sub);
+  //     if (subcategory) {
+  //       setFilters((prev) => ({ ...prev, subCategory: subcategory._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, subCategory: "" }));
+  //   }
+
+  //   if (params.subsub) {
+  //     const subsubcategory = subsubcategories?.find(
+  //       (s) => s.slug === params.subsub
+  //     );
+  //     if (subsubcategory) {
+  //       setFilters((prev) => ({ ...prev, subsubCategory: subsubcategory._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, subsubCategory: "" }));
+  //   }
+
+  //   if (params.gen) {
+  //     const gender = genders?.find((g) => g.slug === params.gen);
+  //     if (gender) {
+  //       setFilters((prev) => ({ ...prev, gender: gender._id }));
+  //     }
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, gender: "" }));
+  //   }
+
+  //   if (params.min) {
+  //     setFilters((prev) => ({ ...prev, minPrice: params.min }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, minPrice: "" }));
+  //   }
+
+  //   if (params.max) {
+  //     setFilters((prev) => ({ ...prev, maxPrice: params.max }));
+  //   } else {
+  //     setFilters((prev) => ({ ...prev, maxPrice: "" }));
+  //   }
+
+  //   if (params.s) {
+  //     setSearchTerm(params.s);
+  //   } else {
+  //     setSearchTerm("");
+  //   }
+
+  //   // Fetch products with current URL params
+  //   dispatch(getProduct(params));
+
+  //   // Reset hasMore when filters change
+  //   setHasMore(true);
+  // }, [
+  //   location.search,
+  //   categories,
+  //   subcategories,
+  //   subsubcategories,
+  //   genders,
+  //   dispatch,
+  // ]);
+  // useEffect(() => {
+  //   const params = getFiltersFromURL();
+  //   dispatch(getProduct(params));
+  //   setHasMore(true);
+  // }, [location.search, dispatch]);
   useEffect(() => {
     const params = getFiltersFromURL();
-    if (params.rating) {
-      setFilters((prev) => ({ ...prev, rating: params.rating }));
-    } else {
-      setFilters((prev) => ({ ...prev, rating: "" }));
-    }
-    // Sync URL params with local state (for UI display)
-    if (params.cat) {
-      const category = categories?.find((c) => c.slug === params.cat);
-      if (category) {
-        setFilters((prev) => ({ ...prev, category: category._id }));
-      }
-    } else {
-      setFilters((prev) => ({ ...prev, category: "" }));
-    }
 
-    if (params.sub) {
-      const subcategory = subcategories?.find((s) => s.slug === params.sub);
-      if (subcategory) {
-        setFilters((prev) => ({ ...prev, subCategory: subcategory._id }));
-      }
-    } else {
-      setFilters((prev) => ({ ...prev, subCategory: "" }));
-    }
+    // URL → UI sync
+    setFilters((prev) => ({
+      ...prev,
+      rating: params.rating || "",
+      minPrice: params.min || "",
+      maxPrice: params.max || "",
+    }));
 
-    if (params.subsub) {
-      const subsubcategory = subsubcategories?.find(
-        (s) => s.slug === params.subsub
-      );
-      if (subsubcategory) {
-        setFilters((prev) => ({ ...prev, subsubCategory: subsubcategory._id }));
-      }
-    } else {
-      setFilters((prev) => ({ ...prev, subsubCategory: "" }));
-    }
-
-    if (params.gen) {
-      const gender = genders?.find((g) => g.slug === params.gen);
-      if (gender) {
-        setFilters((prev) => ({ ...prev, gender: gender._id }));
-      }
-    } else {
-      setFilters((prev) => ({ ...prev, gender: "" }));
-    }
-
-    if (params.min) {
-      setFilters((prev) => ({ ...prev, minPrice: params.min }));
-    } else {
-      setFilters((prev) => ({ ...prev, minPrice: "" }));
-    }
-
-    if (params.max) {
-      setFilters((prev) => ({ ...prev, maxPrice: params.max }));
-    } else {
-      setFilters((prev) => ({ ...prev, maxPrice: "" }));
-    }
-
-    if (params.s) {
-      setSearchTerm(params.s);
-    } else {
-      setSearchTerm("");
-    }
-
-    // Fetch products with current URL params
     dispatch(getProduct(params));
-
-    // Reset hasMore when filters change
     setHasMore(true);
-  }, [
-    location.search,
-    categories,
-    subcategories,
-    subsubcategories,
-    genders,
-    dispatch,
-  ]);
+  }, [location.search, dispatch]);
 
   // Calculate dynamic price range from products
   useEffect(() => {
