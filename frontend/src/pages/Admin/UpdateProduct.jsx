@@ -35,6 +35,7 @@ const UpdateProduct = () => {
   const { loading, error, product } = useSelector(
     (state) => state.productDetails
   );
+  console.log(product);
   const {
     loading: updateLoading,
     error: updateError,
@@ -147,7 +148,13 @@ const UpdateProduct = () => {
         logos: product.logos || [],
       });
       if (product.logos && product.logos.length > 0) {
-        setSelectedLogos(product.logos);
+        const logoIds = product.logos.map((l) => l._id);
+        setSelectedLogos(logoIds);
+
+        setFormData((fd) => ({
+          ...fd,
+          logos: logoIds,
+        }));
       }
       if (product.listItems && product.listItems.length > 0) {
         setListItems(product.listItems);
@@ -178,17 +185,16 @@ const UpdateProduct = () => {
   // ✅ Logo selection handlers
   const handleLogoSelect = (logoId) => {
     setSelectedLogos((prev) => {
-      const newSelectedLogos = prev.includes(logoId)
+      const updated = prev.includes(logoId)
         ? prev.filter((id) => id !== logoId)
         : [...prev, logoId];
 
-      // Update formData with logo IDs
-      setFormData({
-        ...formData,
-        logos: newSelectedLogos,
-      });
+      setFormData((fd) => ({
+        ...fd,
+        logos: updated,
+      }));
 
-      return newSelectedLogos;
+      return updated;
     });
   };
 

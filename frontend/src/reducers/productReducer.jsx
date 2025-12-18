@@ -59,24 +59,20 @@ export const productsReducer = (
     case ADMIN_PRODUCT_REQUEST:
       return { ...state, loading: true, products: [], totalCount: 0 };
 
-    case ALL_PRODUCT_SUCCESS:
+    case ALL_PRODUCT_SUCCESS: {
       const isFirstPage = action.payload.page === 1;
-
-      // First page products randomize
-      const randomizedProducts = isFirstPage
-        ? (action.payload.products || []).sort(() => Math.random() - 0.5) // Randomize the first 20 products
-        : action.payload.products || [];
 
       return {
         ...state,
         loading: false,
         products: isFirstPage
-          ? randomizedProducts // Randomized first 20 products
-          : [...state.products, ...(action.payload.products || [])], // Append next page products
+          ? action.payload.products || [] // ✅ backend random 그대로
+          : [...state.products, ...(action.payload.products || [])],
         totalCount: action.payload.totalCount || 0,
         page: action.payload.page || 1,
         error: null,
       };
+    }
 
     case ADMIN_PRODUCT_SUCCESS:
       return { ...state, loading: false, products: action.payload };
