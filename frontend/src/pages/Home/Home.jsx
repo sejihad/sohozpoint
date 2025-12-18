@@ -13,7 +13,7 @@ const Home = () => {
   const { loading, products, totalCount, page } = useSelector(
     (state) => state.products
   );
-
+  console.log(products);
   const observer = useRef();
   const [hasMore, setHasMore] = useState(true);
   const MAX_PRODUCTS = 100; // সর্বোচ্চ ১০০টি প্রোডাক্ট

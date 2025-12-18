@@ -490,47 +490,22 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
   filters.show = "yes";
 
   // Fetch filtered products with pagination
-  let products;
-
-  // ✅ FIRST LOAD → RANDOM 20
-  if (pageNum === 1) {
-    products = await Product.aggregate([
-      { $match: filters },
-      { $sample: { size: limitNum } },
-      {
-        $project: {
-          name: 1,
-          slug: 1,
-          category: 1,
-          salePrice: 1,
-          oldPrice: 1,
-          ratings: 1,
-          numOfReviews: 1,
-          sold: 1,
-          images: 1,
-        },
-      },
-    ]);
-  }
-  // ✅ NEXT PAGES → NORMAL PAGINATION
-  else {
-    products = await Product.find(filters)
-      .select({
-        name: 1,
-        slug: 1,
-        category: 1,
-        salePrice: 1,
-        oldPrice: 1,
-        ratings: 1,
-        numOfReviews: 1,
-        sold: 1,
-        images: 1,
-      })
-      .sort({ createdAt: -1 })
-      .skip((pageNum - 1) * limitNum)
-      .limit(limitNum)
-      .lean();
-  }
+  const products = await Product.find(filters)
+    .select({
+      name: 1,
+      slug: 1,
+      category: 1,
+      salePrice: 1,
+      oldPrice: 1,
+      ratings: 1,
+      numOfReviews: 1,
+      sold: 1,
+      images: 1, // শুধু প্রথম ইমেজের url
+    }) // Exclude reviews to improve performance
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .skip((pageNum - 1) * limitNum) // Pagination offset
+    .limit(limitNum) // Pagination limit
+    .lean(); // Return plain JS objects (faster)
 
   // Get total count of filtered products
   const totalCount = await Product.countDocuments(filters);
