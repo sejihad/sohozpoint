@@ -1,6 +1,6 @@
 const express = require("express");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
-const { ROLE_GROUPS } = require("../utils/roles");
+const { ROLE_GROUPS, ROLES } = require("../utils/roles");
 
 const {
   getAdminCoupons,
@@ -21,14 +21,14 @@ const router = express.Router();
 router.get(
   "/admin/coupons",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
   getAdminCoupons
 );
 
 router.post(
   "/admin/coupon/new",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
   createCoupon
 );
 
@@ -36,7 +36,7 @@ router
   .route("/admin/coupon/:id")
   .put(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
     updateCoupon
   )
   .delete(
@@ -48,7 +48,7 @@ router
 router.get(
   "/admin/coupon/:id",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
   getCouponDetails
 );
 

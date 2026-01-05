@@ -110,7 +110,6 @@ export const createSubcategory = (subcategoryData) => async (dispatch) => {
       payload: data,
     });
   } catch (error) {
-    console.log(error);
     dispatch({
       type: NEW_SUBCATEGORY_FAIL,
       payload: error.response?.data?.message || "Something went wrong",

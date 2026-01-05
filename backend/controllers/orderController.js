@@ -3,10 +3,12 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
+const User = require("../models/userModel");
 
 const Coupon = require("../models/couponModel");
 const steadfastService = require("../services/steadfastService");
 const sendEmail = require("../utils/sendEmail");
+const { sendNotify } = require("../services/notifyService");
 // create order
 const createOrder = async (req, res) => {
   const {
@@ -110,14 +112,28 @@ ${
 Total Price: ৳${totalPrice}
 Remaining: ৳${cashOnDelivery}
 `;
-
+    // await sendNotify({
+    //   title: "Your Order Placed Successfully",
+    //   message: `Your order #${pendingOrder.orderId} has been placed successfully!`,
+    //   users: [req.user._id],
+    // });
     // Send the email
+    const superAdmins = await User.find({ role: "super-admin" }, { _id: 1 });
+
+    // Extract only IDs
+    const superAdminIds = superAdmins.map((admin) => admin._id);
+    await sendNotify({
+      title: "New Order Created",
+      message: `A new order #${pendingOrder.orderId} has been created.`,
+      users: [superAdminIds],
+    });
     await sendEmail({
       email: process.env.SMTP_MAIL, // your admin email
       subject: `New Order Created – #${pendingOrder.orderId}`,
       message: emailMessage,
       attachments: attachments,
     });
+    // After order creation, before sending response
 
     res.status(201).json({
       success: true,
@@ -125,7 +141,6 @@ Remaining: ৳${cashOnDelivery}
       order: pendingOrder,
     });
   } catch (error) {
-    console.error("Order Creation Error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create order",
@@ -260,7 +275,11 @@ If you have any questions, please contact our customer support.
 Best regards,
 Sohoz Point Team
   `;
-
+    await sendNotify({
+      title: `Order Confirmed`,
+      message: `Your order #${order.orderId} has been confirmed!`,
+      users: [order.userData.userId],
+    });
     await sendEmail({
       email: order.userData.email,
       subject: emailSubject,
@@ -305,7 +324,11 @@ Thank you for shopping with us!
 Best regards,
 Sohoz Point Team
     `;
-
+      await sendNotify({
+        title: "Order Out for Delivery",
+        message: `Your order #${order.orderId} is out for delivery!`,
+        users: [order.userData.userId],
+      });
       await sendEmail({
         email: order.userData.email,
         subject: emailSubject,
@@ -343,6 +366,11 @@ Sohoz Point Team
         subject: emailSubject,
         message: emailMessage,
       });
+      await sendNotify({
+        title: "Order Out for Delivery",
+        message: `Your order #${order.orderId} is out for delivery!`,
+        users: [order.userData.userId],
+      });
     }
   }
 
@@ -374,7 +402,11 @@ If you have any questions, please contact our customer support.
 Best regards,
 Sohoz Point Team
 `;
-
+    await sendNotify({
+      title: "Order Processing",
+      message: `Your order #${order.orderId} is now processing!`,
+      users: [order.userData.userId],
+    });
     await sendEmail({
       email: order.userData.email,
       subject: emailSubject,
@@ -435,7 +467,11 @@ Thank you for choosing Sohoz Point!
 Best regards,
 Sohoz Point Team
     `;
-
+    await sendNotify({
+      title: "Order Delivered",
+      message: `Your order #${order.orderId} has been delivered!`,
+      users: [order.userData.userId],
+    });
     await sendEmail({
       email: order.userData.email,
       subject: emailSubject,
@@ -499,21 +535,26 @@ Thank you for choosing Sohoz Point!
 Best regards,
 Sohoz Point Team
   `;
-
+    await sendNotify({
+      title: "Return successful",
+      message: `Your return for order #${order.orderId} has been  successfully!`,
+      users: [order.userData.userId],
+    });
     try {
       await sendEmail({
         email: order.userData.email,
         subject: emailSubject,
         message: emailMessage,
       });
-      console.log("✅ Return confirmation email sent");
-    } catch (emailError) {
-      console.error("❌ Failed to send return confirmation email:", emailError);
-    }
+    } catch (emailError) {}
   }
   if (newStatus === "refund" && oldStatus !== "refund") {
     order.refund_request = false;
-
+    await sendNotify({
+      title: "Refunded Successfully",
+      message: `Your order #${order.orderId} has been refunded successfully!`,
+      users: [order.userData.userId],
+    });
     // Restore stock if refund is processed
   }
 
@@ -542,7 +583,11 @@ We hope to see you again soon!
 Best regards,
 Sohoz Point Team
     `;
-
+    await sendNotify({
+      title: "Order Cancelled",
+      message: `Your order #${order.orderId} has been cancelled!`,
+      users: [order.userData.userId],
+    });
     await sendEmail({
       email: order.userData.email,
       subject: emailSubject,
@@ -696,6 +741,6 @@ module.exports = {
   cancelOrder,
   createOrder,
   updatePaymentStatus,
-  createOrder,
+
   getSingleUserOrders,
 };

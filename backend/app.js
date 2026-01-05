@@ -26,7 +26,8 @@ const product = require("./routes/productRoute");
 const ship = require("./routes/shipRoute");
 const payment = require("./routes/paymentRoute");
 const meta = require("./routes/metaRoute");
-
+const notify = require("./routes/notifyRoute");
+require("./jobs/notificationCleanup");
 const order = require("./routes/orderRoute");
 
 dotenv.config();
@@ -77,6 +78,7 @@ app.use("/api/v1", notification);
 app.use("/api/v1", coupon);
 app.use("/api/v1", cart);
 app.use("/api/v1", meta);
+app.use("/api/v1", notify);
 
 // Error Middleware
 app.use(errorMiddleware);

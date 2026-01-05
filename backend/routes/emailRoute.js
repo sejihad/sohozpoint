@@ -1,7 +1,7 @@
 const express = require("express");
 const { sendBulkEmail } = require("../controllers/emailController");
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
-const { ROLE_GROUPS } = require("../utils/roles");
+const { ROLE_GROUPS, ROLES } = require("../utils/roles");
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ const router = express.Router();
 router.post(
   "/send-bulk-email",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
   sendBulkEmail
 );
 

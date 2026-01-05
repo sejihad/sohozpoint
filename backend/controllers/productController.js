@@ -11,7 +11,9 @@ const mongoose = require("mongoose");
 const uploadToS3 = require("../config/uploadToS3");
 const deleteFromS3 = require("../config/deleteFromS3");
 const SubSubcategory = require("../models/subsubcategoryModel");
-
+const { sendNotify } = require("../services/notifyService");
+const User = require("../models/userModel");
+const sendEmail = require("../utils/sendEmail");
 const createProduct = catchAsyncErrors(async (req, res, next) => {
   // Validate required fields
   const requiredFields = [
@@ -57,7 +59,6 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       });
     } catch (error) {
-      console.error("S3 upload error:", error);
       return res.status(500).json({
         success: false,
         message: "Failed to upload product images",
@@ -146,9 +147,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
         name: item.name?.trim(),
         price: Number(item.price) || 0,
       }));
-    } catch (err) {
-      console.error("Sizes parsing error:", err);
-    }
+    } catch (err) {}
   }
 
   // Colors
@@ -163,12 +162,21 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
         name: item.name?.trim(),
         price: Number(item.price) || 0,
       }));
-    } catch (err) {
-      console.error("Colors parsing error:", err);
-    }
+    } catch (err) {}
   }
 
   const product = await Product.create(productData);
+
+  await sendNotify({
+    title: "New Product",
+    message: `Our new product ${product.name} has been launched.`,
+    link: `${process.env.FRONTEND_URL}/${slugify(product.category, {
+      lower: true,
+      strict: true,
+    })}/${product.slug}`,
+    image: product.images[0],
+    users: [],
+  });
 
   res.status(201).json({
     success: true,
@@ -290,9 +298,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
         name: item.name?.trim(),
         price: Number(item.price) || 0,
       }));
-    } catch (err) {
-      console.error("Sizes update error:", err);
-    }
+    } catch (err) {}
   }
 
   // Colors Update
@@ -307,9 +313,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
         name: item.name?.trim(),
         price: Number(item.price) || 0,
       }));
-    } catch (err) {
-      console.error("Colors update error:", err);
-    }
+    } catch (err) {}
   }
 
   // Handle slug update if name changed
@@ -356,7 +360,6 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
       // 5️⃣ Final image array (old + new)
       updateData.images = [...remainingImages, ...newImages];
     } catch (error) {
-      console.error("Images update error:", error);
       return res.status(500).json({
         success: false,
         message: "Failed to update product images",
@@ -381,7 +384,6 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
         (img) => !imagesToDelete.some((del) => del.public_id === img.public_id)
       );
     } catch (error) {
-      console.error("Images deletion error:", error);
       return res.status(500).json({
         success: false,
         message: "Failed to delete images",
@@ -558,7 +560,6 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
       message: "Product deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting product:", error);
     res.status(500).json({
       success: false,
       message:
@@ -640,7 +641,6 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
 
       reviewImages = await Promise.all(uploadPromises);
     } catch (error) {
-      console.error("Multiple images upload error:", error);
       return next(new ErrorHandler("Failed to upload review images", 500));
     }
   }
@@ -648,7 +648,7 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
   // ✅ ERROR: "book" change to "product"
   const product = await Product.findById(productId);
   if (!product) return next(new ErrorHandler("Product not found", 404));
-  console.log(req.user.name);
+
   const review = {
     user: req.user._id,
     name: req.user.role === "admin" ? name : req.user.name,
@@ -751,7 +751,6 @@ const updateReview = catchAsyncErrors(async (req, res, next) => {
 
       review.images = await Promise.all(uploadPromises);
     } catch (error) {
-      console.error("Image update error:", error);
       return next(new ErrorHandler("Failed to update review images", 500));
     }
   }
@@ -801,7 +800,6 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
       });
       await Promise.all(deletePromises);
     } catch (error) {
-      console.error("Error deleting review images from Cloudinary:", error);
       // Continue with review deletion even if image deletion fails
     }
   }

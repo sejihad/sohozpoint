@@ -51,7 +51,6 @@ const createBanner = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return res.status(500).json({
         success: false,
         message: "Desktop image upload failed",
@@ -104,7 +103,6 @@ const updateBanner = catchAsyncErrors(async (req, res, next) => {
       try {
         await deleteFromS3(banner.image.public_id);
       } catch (err) {
-        console.error("S3 Deletion Error:", err);
         // Continue even if deletion fails
       }
     }
@@ -118,7 +116,6 @@ const updateBanner = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (err) {
-      console.error("S3 Upload Error:", err);
       return res.status(500).json({
         success: false,
         message: "Banner image upload failed",
@@ -149,9 +146,7 @@ const deleteBanner = catchAsyncErrors(async (req, res, next) => {
   if (banner.image?.public_id) {
     try {
       await deleteFromS3(banner.image.public_id);
-    } catch (error) {
-      console.error("S3 Deletion Error (desktop):", error);
-    }
+    } catch (error) {}
   }
 
   // Finally delete banner document from DB

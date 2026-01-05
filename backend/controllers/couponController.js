@@ -1,6 +1,7 @@
 const Coupon = require("../models/couponModel");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const { sendNotify } = require("../services/notifyService");
 
 // -------------------- Admin Routes --------------------
 
@@ -34,6 +35,43 @@ const getCouponDetails = catchAsyncErrors(async (req, res, next) => {
 // ✅ Create coupon (Admin)
 const createCoupon = catchAsyncErrors(async (req, res, next) => {
   const coupon = await Coupon.create(req.body);
+
+  let notifyUsers = [];
+  if (coupon.allowedUsersType === "specific") {
+    notifyUsers = coupon.allowedUsers || [];
+  }
+
+  // Format discount
+  const discountText =
+    coupon.discountType === "percentage"
+      ? `${coupon.discountValue}% off`
+      : `৳${coupon.discountValue} off`;
+
+  // Format expiry date nicely
+  const expiryDate = coupon.expiryDate
+    ? new Date(coupon.expiryDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "N/A";
+
+  // Build message
+  const message = `🎉 Good news! A new coupon "${
+    coupon.code
+  }" is live! Get ${discountText}${
+    coupon.minimumPurchase
+      ? ` on purchases above ৳${coupon.minimumPurchase}`
+      : ""
+  }. Valid until ${expiryDate}.`;
+
+  if (req.body.isSend) {
+    await sendNotify({
+      title: "New Coupon Available!",
+      message,
+      users: notifyUsers,
+    });
+  }
 
   res.status(201).json({
     success: true,

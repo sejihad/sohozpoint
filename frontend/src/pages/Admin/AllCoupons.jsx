@@ -893,6 +893,19 @@ const AllCoupons = () => {
                       Active Coupon
                     </label>
                   </div>
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.isSend || false}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isSend: e.target.checked })
+                        }
+                        className="accent-green-600"
+                      />
+                      Send Notification to Users
+                    </label>
+                  </div>
 
                   {/* Submit Button */}
                   <button
@@ -951,12 +964,13 @@ const AllCoupons = () => {
                       key={coupon._id}
                       className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <span className="text-lg font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                      <div className="flex flex-col mb-3 gap-2">
+                        <span className="text-lg font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded break-all">
                           {coupon.code}
                         </span>
+
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${getStatusColor(
                             coupon
                           )}`}
                         >

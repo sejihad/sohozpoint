@@ -190,7 +190,6 @@ export const applyCoupon =
         payload: data,
       });
     } catch (error) {
-      console.log(error);
       dispatch({
         type: APPLY_COUPON_FAIL,
         payload: error.response?.data?.message || "Something went wrong",

@@ -39,6 +39,7 @@ import Contact from "./pages/Contact/Contact";
 
 import Home from "./pages/Home/Home";
 import NotFound from "./pages/NotFound/NotFound";
+import Notify from "./pages/Notify/Notify.jsx";
 import MyOrders from "./pages/Orders/MyOrders";
 import OrderDetails from "./pages/Orders/OrderDetails";
 
@@ -58,9 +59,11 @@ import AllSubcategories from "./pages/Admin/AllSubcategories";
 import AllSubsubcategories from "./pages/Admin/AllSubsubcategories";
 import AllTypes from "./pages/Admin/AllTypes";
 
-import { ROLE_GROUPS } from "./constants/roles.jsx";
+import { ROLE_GROUPS, ROLES } from "./constants/roles.jsx";
 import AllGenders from "./pages/Admin/AllGenders";
+import AllNotifies from "./pages/Admin/AllNotifies.jsx";
 import NotificationManager from "./pages/Admin/NotificationManager";
+import Notifications from "./pages/Notify/Notifications.jsx";
 import Checkout from "./pages/Payment/Checkout";
 import PaymentCancel from "./pages/Payment/PaymentCancel";
 import PaymentFail from "./pages/Payment/PaymentFail";
@@ -75,6 +78,7 @@ import Profile from "./pages/User/Profile";
 import Setting from "./pages/User/Setting";
 import UpdatePassword from "./pages/User/UpdatePassword";
 import UpdateProfile from "./pages/User/UpdateProfile";
+import { connectSocket } from "./utils/socket.js";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -102,7 +106,7 @@ const App = () => {
         email: user?.email || "",
         phone: user?.number || "",
       }),
-    }).catch((err) => console.error("CAPI Error:", err));
+    }).catch();
   }, []);
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -139,6 +143,12 @@ const App = () => {
       navigate("/profile/update", { replace: true });
     }
   }, [isAuthenticated, user, location.pathname]);
+  // App.jsx
+  useEffect(() => {
+    if (user?._id) {
+      connectSocket(user._id, dispatch);
+    }
+  }, [user]);
   return (
     <>
       <Header />
@@ -169,7 +179,9 @@ const App = () => {
         {/* protected routes */}
         {/* all user routes */}
         <Route element={<ProtectedRoute roles={ROLE_GROUPS.ALL_USERS} />}>
+          <Route path="/notification/:id" element={<Notify />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile/update" element={<UpdateProfile />} />
           <Route path="/profile/delete" element={<Delete />} />
           <Route path="/password/update" element={<UpdatePassword />} />
@@ -184,16 +196,19 @@ const App = () => {
         </Route>
 
         {/* moderator, admin, super-admin route */}
-        <Route element={<ProtectedRoute roles={ROLE_GROUPS.MODS_AND_UP} />}>
+        <Route
+          element={
+            <ProtectedRoute
+              roles={[...ROLE_GROUPS.MODS_AND_UP, ROLES.USER_ADMIN]}
+            />
+          }
+        >
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/messages" element={<Messages />} />
         </Route>
 
         {/* admin and super-admin routes */}
         <Route element={<ProtectedRoute roles={ROLE_GROUPS.ADMINS_AND_UP} />}>
-          <Route path="/admin/blog" element={<NewBlog />} />
-          <Route path="/admin/blogs" element={<AllBlogs />} />
-          <Route path="/admin/blog/:id" element={<UpdateBlog />} />
           <Route path="/admin/categories" element={<AllCategories />} />
           <Route path="/admin/logos" element={<AllLogos />} />
           <Route path="/admin/banners" element={<AllBanners />} />
@@ -211,21 +226,41 @@ const App = () => {
           <Route path="/admin/reviews/:id" element={<Reviews />} />
           <Route path="/admin/reviews" element={<AllReviews />} />
         </Route>
-
+        {/* admin-user , admin ,super-admin */}
+        <Route
+          element={
+            <ProtectedRoute
+              roles={[...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN]}
+            />
+          }
+        >
+          <Route path="/admin/blog" element={<NewBlog />} />
+          <Route path="/admin/blogs" element={<AllBlogs />} />
+          <Route path="/admin/blog/:id" element={<UpdateBlog />} />
+        </Route>
+        {/* admin-user and super-admin */}
+        <Route
+          element={
+            <ProtectedRoute roles={[ROLES.SUPER_ADMIN, ROLES.USER_ADMIN]} />
+          }
+        >
+          <Route path="/admin/coupons" element={<AllCoupons />} />
+          <Route path="/admin/emails" element={<UserEmails />} />
+          <Route path="/admin/notifies" element={<AllNotifies />} />
+        </Route>
         {/* super-admin route */}
         <Route
           element={<ProtectedRoute roles={ROLE_GROUPS.SUPER_ADMIN_ONLY} />}
         >
           <Route path="/admin/users" element={<AllUsers />} />
           <Route path="/admin/user/:id" element={<UserDetails />} />
-          <Route path="/admin/coupons" element={<AllCoupons />} />
+
           <Route path="/admin/charges" element={<AllCharges />} />
           <Route path="/admin/logocharges" element={<AllCustomLogoCharges />} />
           <Route path="/admin/ships" element={<AllShips />} />
           <Route path="/admin/orders" element={<AllOrders />} />
           <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
           <Route path="/admin/notification" element={<NotificationManager />} />
-          <Route path="/admin/emails" element={<UserEmails />} />
         </Route>
       </Routes>
       <ToastContainer />

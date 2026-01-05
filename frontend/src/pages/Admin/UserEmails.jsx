@@ -129,7 +129,6 @@ const UserEmails = () => {
       })
       .catch((err) => {
         toast.error("Failed to copy emails");
-        console.error("Copy failed:", err);
       });
   };
 
@@ -141,7 +140,6 @@ const UserEmails = () => {
       })
       .catch((err) => {
         toast.error("Failed to copy email");
-        console.error("Copy failed:", err);
       });
   };
 
@@ -155,7 +153,6 @@ const UserEmails = () => {
       })
       .catch((err) => {
         toast.error("Failed to copy emails");
-        console.error("Copy failed:", err);
       });
   };
 
@@ -302,7 +299,6 @@ const UserEmails = () => {
         throw new Error(data.message || "Failed to send email");
       }
     } catch (error) {
-      console.error("Email sending failed:", error);
       toast.error(
         "Failed to send email: " +
           (error.response?.data?.message || error.message)

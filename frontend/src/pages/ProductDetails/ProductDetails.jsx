@@ -140,7 +140,7 @@ const ProductDetails = () => {
       const filtered = data.products.filter((p) => p._id !== product._id);
       setRelatedProducts(filtered.slice(0, 20));
     } catch (error) {
-      console.error("Error fetching related products:", error);
+     
     } finally {
       setRelatedLoading(false);
     }

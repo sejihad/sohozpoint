@@ -27,7 +27,7 @@ const getAdminShip = catchAsyncErrors(async (req, res, next) => {
 });
 const createShip = catchAsyncErrors(async (req, res, next) => {
   const ship = await Ship.create(req.body);
-  console.log("Created Ship:", ship.allowedUsers);
+
   res.status(201).json({
     success: true,
     ship,

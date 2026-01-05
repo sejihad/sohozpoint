@@ -76,12 +76,7 @@ const OrderDetails = () => {
         });
 
         setProductDetails(detailsMap);
-      } catch (error) {
-        console.error(
-          "Failed to fetch product details:",
-          error.response?.data || error.message
-        );
-      }
+      } catch (error) {}
     };
 
     fetchProductDetails();
@@ -151,7 +146,6 @@ const OrderDetails = () => {
         throw new Error("No delivery status in response");
       }
     } catch (error) {
-      console.error("Tracking error:", error);
       toast.error("Failed to fetch tracking information");
       setTrackingStatus(null);
     } finally {

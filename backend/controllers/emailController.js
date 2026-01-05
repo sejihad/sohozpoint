@@ -55,15 +55,12 @@ exports.sendBulkEmail = async (req, res) => {
           status: "sent",
           messageId: result.messageId,
         });
-
-        console.log(`Email sent individually to: ${recipientList[0]}`);
       } catch (error) {
         results.push({
           email: recipientList[0],
           status: "failed",
           error: error.message,
         });
-        console.error(`Failed to send email to ${recipientList[0]}:`, error);
       }
     } else {
       // Bulk email - কিন্তু প্রতিটি user এর জন্য আলাদা email

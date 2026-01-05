@@ -23,7 +23,7 @@ const {
 } = require("../controllers/userController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
-const { ROLE_GROUPS } = require("../utils/roles");
+const { ROLE_GROUPS, ROLES } = require("../utils/roles");
 
 const router = express.Router();
 
@@ -85,7 +85,7 @@ router.get(
 router.get(
   "/admin/users",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+  authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
   getAllUser
 );
 
@@ -93,7 +93,7 @@ router
   .route("/admin/user/:id")
   .get(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
+    authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
     getSingleUser
   )
   .put(

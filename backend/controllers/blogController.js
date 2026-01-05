@@ -25,7 +25,6 @@ const createBlog = catchAsyncErrors(async (req, res, next) => {
       url: uploaded.url,
     };
   } catch (error) {
-    console.error("S3 Upload Error:", error);
     return res
       .status(500)
       .json({ success: false, message: "Image upload failed" });
@@ -93,7 +92,6 @@ const updateBlog = catchAsyncErrors(async (req, res, next) => {
       try {
         await deleteFromS3(blog.image.public_id);
       } catch (error) {
-        console.error("S3 Deletion Error:", error);
         // Continue update even if deletion fails
       }
     }
@@ -107,7 +105,6 @@ const updateBlog = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -138,9 +135,7 @@ const deleteBlog = catchAsyncErrors(async (req, res, next) => {
   if (blog.image && blog.image.public_id) {
     try {
       await deleteFromS3(blog.image.public_id);
-    } catch (error) {
-      console.error("S3 Deletion Error:", error);
-    }
+    } catch (error) {}
   }
 
   await Blog.findByIdAndDelete(req.params.id);

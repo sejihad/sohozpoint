@@ -35,7 +35,6 @@ const UpdateProduct = () => {
   const { loading, error, product } = useSelector(
     (state) => state.productDetails
   );
-  console.log(product);
   const {
     loading: updateLoading,
     error: updateError,

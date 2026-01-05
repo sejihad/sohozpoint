@@ -20,26 +20,26 @@ import {
   FaTicketAlt,
 } from "react-icons/fa";
 import { FiLayers } from "react-icons/fi";
-import { ROLE_GROUPS } from "../constants/roles";
+import { ROLE_GROUPS, ROLES } from "../constants/roles";
 
 export const SIDEBAR_MENU = [
   {
     label: "Dashboard",
     path: "/admin/dashboard",
     icon: DashboardIcon,
-    roles: ROLE_GROUPS.ADMINS_AND_UP,
+    roles: [...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN],
   },
   {
     label: "Blogs",
     path: "/admin/blogs",
     icon: LibraryBooks,
-    roles: ROLE_GROUPS.ADMINS_AND_UP,
+    roles: [...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN],
   },
   {
     label: "Add Blog",
     path: "/admin/blog",
     icon: PostAdd,
-    roles: ROLE_GROUPS.ADMINS_AND_UP,
+    roles: [...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN],
   },
   {
     label: "Categories",
@@ -135,7 +135,7 @@ export const SIDEBAR_MENU = [
     label: "Coupons",
     path: "/admin/coupons",
     icon: FaTicketAlt,
-    roles: ROLE_GROUPS.SUPER_ADMIN_ONLY,
+    roles: [...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN],
   },
   {
     label: "Notification",
@@ -144,15 +144,21 @@ export const SIDEBAR_MENU = [
     roles: ROLE_GROUPS.SUPER_ADMIN_ONLY,
   },
   {
+    label: "Notifies",
+    path: "/admin/notifies",
+    icon: FaBell,
+    roles: ROLE_GROUPS.USER_ADMIN_AND_SUP,
+  },
+  {
     label: "Messages",
     path: "/admin/messages",
     icon: FaComments,
-    roles: ROLE_GROUPS.MODS_AND_UP,
+    roles: [...ROLE_GROUPS.MODS_AND_UP, ROLES.USER_ADMIN],
   },
   {
     label: "Emails",
     path: "/admin/emails",
     icon: Mail,
-    roles: ROLE_GROUPS.SUPER_ADMIN_ONLY,
+    roles: ROLE_GROUPS.USER_ADMIN_AND_SUP,
   },
 ];

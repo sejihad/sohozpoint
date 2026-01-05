@@ -16,7 +16,7 @@ const {
 } = require("../controllers/productController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
-const { ROLE_GROUPS } = require("../utils/roles");
+const { ROLE_GROUPS, ROLES } = require("../utils/roles");
 
 const router = express.Router();
 
@@ -37,7 +37,7 @@ router.get("/product/id/:id", getOrderProductDetails);
 router.get(
   "/admin/products",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
   getAdminProducts
 );
 
@@ -52,7 +52,7 @@ router
   .route("/admin/product/:id")
   .get(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP),
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
     getAdminProductDetails
   )
   .put(

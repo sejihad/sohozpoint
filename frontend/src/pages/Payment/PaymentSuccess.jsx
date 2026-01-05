@@ -35,7 +35,7 @@ const PaymentSuccess = () => {
           toast.error("❌ Payment verification failed!");
         }
       } catch (err) {
-        console.error("Payment verification error:", err);
+       
         toast.error("❌ Verification failed or order deleted!");
       } finally {
         setLoading(false);
@@ -76,10 +76,8 @@ const PaymentSuccess = () => {
               eventID: orderData.orderId,
             }
           );
-
-          console.log("🔥 Pixel Purchase Fired:", orderData.orderId);
         } catch (err) {
-          console.error("Pixel fire failed:", err);
+         
         }
       }
 
@@ -106,10 +104,8 @@ const PaymentSuccess = () => {
             content_name: orderData.orderItems.map((i) => i.name).join(", "),
           }
         );
-
-        console.log("🔥 Server CAPI Purchase Sent:", orderData.orderId);
       } catch (error) {
-        console.error("Server CAPI Failed:", error);
+       
       }
     };
 

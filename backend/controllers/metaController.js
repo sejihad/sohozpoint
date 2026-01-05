@@ -90,7 +90,6 @@ const purchase = async (req, res) => {
 
     res.status(200).json({ success: true, result });
   } catch (error) {
-    console.error("❌ Error sending Purchase event:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -152,7 +151,6 @@ const pageView = async (req, res) => {
 
     res.status(200).json({ success: true, result });
   } catch (error) {
-    console.error("❌ Error sending PageView event:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

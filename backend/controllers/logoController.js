@@ -45,7 +45,6 @@ const createLogo = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return res
         .status(500)
         .json({ success: false, message: "Image upload failed" });
@@ -91,7 +90,6 @@ const updateLogo = catchAsyncErrors(async (req, res, next) => {
       try {
         await deleteFromS3(logo.image.public_id);
       } catch (error) {
-        console.error("S3 Deletion Error:", error);
         // continue even if delete fails
       }
     }
@@ -105,7 +103,6 @@ const updateLogo = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -134,9 +131,7 @@ const deleteLogo = catchAsyncErrors(async (req, res, next) => {
   if (logo.image && logo.image.public_id) {
     try {
       await deleteFromS3(logo.image.public_id);
-    } catch (error) {
-      console.error("S3 Deletion Error:", error);
-    }
+    } catch (error) {}
   }
 
   await Logo.findByIdAndDelete(req.params.id);

@@ -4,7 +4,8 @@ const crypto = require("crypto");
 const Order = require("../models/orderModel.js");
 const sendEmail = require("../utils/sendEmail");
 const Coupon = require("../models/couponModel.js");
-
+const { sendNotify } = require("../services/notifyService.js");
+const User = require("../models/userModel.js");
 // EPS Credentials
 const {
   EPS_USERNAME,
@@ -113,7 +114,10 @@ const initializePayment = async (req, res) => {
     //---------------------------------------------------
     // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
     //---------------------------------------------------
+    const superAdmins = await User.find({ role: "super-admin" }, { _id: 1 });
 
+    // Extract only IDs
+    const superAdminIds = superAdmins.map((admin) => admin._id);
     let attachments = [];
     let logoDetails = "";
 
@@ -162,6 +166,11 @@ Total Price: ৳${totalPrice}
 Remaining: ৳${cashOnDelivery}
 `;
 
+    await sendNotify({
+      title: "Order Created",
+      message: `Order #${pendingOrder.orderId} has been created .`,
+      users: [superAdminIds],
+    });
     // Send the email
     await sendEmail({
       email: process.env.SMTP_MAIL, // your admin email
@@ -224,7 +233,6 @@ Remaining: ৳${cashOnDelivery}
       orderId: pendingOrder._id,
     });
   } catch (err) {
-    console.error("EPS Payment Error:", err.response?.data || err.message);
     res.status(500).json({ message: "EPS Payment Gateway Error" });
   }
 };
@@ -269,10 +277,6 @@ const createOrderAfterPayment = async (req, res) => {
       order,
     });
   } catch (err) {
-    console.error(
-      "Order confirmation failed:",
-      err.response?.data || err.message
-    );
     res.status(500).json({ message: "Failed to confirm order" });
   }
 };

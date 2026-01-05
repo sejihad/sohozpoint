@@ -33,7 +33,7 @@ const GoogleSuccess = () => {
           navigate("/");
         })
         .catch((err) => {
-          console.error(err);
+          
           navigate("/login");
         });
     } else {

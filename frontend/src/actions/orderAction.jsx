@@ -61,6 +61,7 @@ export const createOrder = (orderData) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: CREATE_ORDER_FAIL,
+
       payload: error.response?.data?.message || "Payment initialization failed",
     });
   }
@@ -205,7 +206,6 @@ export const updateOrder = (id, order) => async (dispatch) => {
 
     dispatch({ type: UPDATE_ORDER_SUCCESS, payload: data.success });
   } catch (error) {
-    console.log(error);
     dispatch({
       type: UPDATE_ORDER_FAIL,
       payload: error.response.data.message,

@@ -282,7 +282,6 @@ export const getReviews = (id) => async (dispatch) => {
       payload: data.reviews,
     });
   } catch (error) {
-    console.log(error);
     dispatch({
       type: ALL_REVIEW_FAIL,
       payload: error.response.data.message,

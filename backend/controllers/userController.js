@@ -8,6 +8,7 @@ const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const deleteFromS3 = require("../config/deleteFromS3");
 const uploadToS3 = require("../config/uploadToS3");
+const { sendNotify } = require("../services/notifyService");
 
 //cloudflare verify
 const verifyTurnstile = async (token, ip) => {
@@ -27,58 +28,7 @@ const verifyTurnstile = async (token, ip) => {
   const data = await res.json();
   return data.success;
 };
-// ✅ Register User
-// const registerUser = catchAsyncErrors(async (req, res, next) => {
-//   const { name, email, number, password } = req.body;
 
-//   // Validation
-//   if (!name || !email || !password || !number) {
-//     return next(
-//       new ErrorHandler("Please provide name, email, number, and password", 400)
-//     );
-//   }
-//   const existUser = await User.findOne({ email });
-
-//   if (existUser) {
-//     return next(new ErrorHandler("User already exists. Please login.", 400));
-//   }
-//   // Create user
-//   const user = await User.create({ name, email,number, password });
-
-//   // Send welcome email
-//   const message = `
-//     Hi ${name},
-
-//     🎉 Welcome to Sohoz Point!
-
-//     Your account has been created successfully.
-//     You can now log in using your email: ${email} or ${number}.
-
-//     We're excited to have you on board. Explore our platform and enjoy the features we offer.
-
-//     If you have any questions, feel free to reply to this email.
-
-//     Regards,
-//     Sohoz Point Team
-//   `;
-
-//   try {
-//     await sendEmail({
-//       email: user.email,
-//       subject: "Welcome to Sohoz Point 🎉",
-//       message,
-//     });
-//   } catch (error) {
-//     console.error("Welcome email failed:", error);
-//     // no need to throw error, registration should still succeed
-//   }
-
-//   // Response
-//   res.status(201).json({
-//     success: true,
-//     message: "User registered successfully",
-//   });
-// });
 // Register User with OTP
 const registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, number, password } = req.body;
@@ -124,6 +74,11 @@ const registerUser = catchAsyncErrors(async (req, res, next) => {
     Regards,
     Sohoz Point Team
   `;
+  await sendNotify({
+    users: [user._id],
+    message: "Welcome to Sohoz Point!",
+    title: "Account Registered",
+  });
 
   await sendEmail({
     email: user.email,
@@ -281,14 +236,17 @@ const googleLoginCallback = catchAsyncErrors(async (req, res, next) => {
     `;
 
     try {
+      await sendNotify({
+        users: [user._id],
+        message: "Welcome to Sohoz Point!",
+        title: "Account Registered",
+      });
       await sendEmail({
         email: user.email,
         subject: "Account Created🎉",
         message,
       });
-    } catch (err) {
-      console.error("Welcome email failed:", err);
-    }
+    } catch (err) {}
   }
   const token = user.getJWTToken();
 
@@ -514,9 +472,7 @@ const deleteUser = catchAsyncErrors(async (req, res, next) => {
   if (user.avatar && user.avatar.public_id) {
     try {
       await deleteFromS3(user.avatar.public_id);
-    } catch (err) {
-      console.error("S3 Deletion Error:", err);
-    }
+    } catch (err) {}
   }
 
   await User.findByIdAndDelete(req.params.id);

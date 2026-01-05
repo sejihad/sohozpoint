@@ -1,4 +1,4 @@
-import { Bell, Home, Search, X } from "lucide-react";
+import { Bell, Home, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   FaAngleDown,
@@ -16,9 +16,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getCart } from "../../actions/cartAction";
 import { getCategory } from "../../actions/categoryAction";
+import { getNotifies } from "../../actions/notifyAction";
 import { logout } from "../../actions/userAction";
 import logo from "../../assets/logo.png";
-import { ROLE_GROUPS } from "../../constants/roles";
+import { ROLE_GROUPS, ROLES } from "../../constants/roles";
 
 const Header = () => {
   const location = useLocation();
@@ -39,33 +40,22 @@ const Header = () => {
   const mobileUserMenuRef = useRef();
   const dropdownTimeoutRef = useRef();
   const categoriesRef = useRef();
-  const notificationsRef = useRef();
   const searchRef = useRef();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { isAuthenticated, user } = useSelector((state) => state.user);
-
   const { cartItems = [] } = useSelector((state) => state.cart);
   const { categories, loading: categoriesLoading } = useSelector(
     (state) => state.categories
   );
 
-  // Dummy notifications data
-  const [notifications] = useState([
-    {
-      id: 1,
-      title: "Account Verification",
-      message: "Your email has been successfully verified",
-      time: "",
-      read: true,
-      type: "account",
-    },
-  ]);
-
+  // Unread notification count - if you have notifications in Redux state
+  const { notifications = [] } = useSelector((state) => state.notify || {});
   const unreadCount = notifications.filter(
-    (notification) => !notification.read
+    (notification) => !notification.isRead
   ).length;
+
   useEffect(() => {
     if (user) {
       dispatch(getCart());
@@ -102,12 +92,6 @@ const Header = () => {
         setShowCategories(false);
       }
       if (
-        notificationsRef.current &&
-        !notificationsRef.current.contains(event.target)
-      ) {
-        setShowNotifications(false);
-      }
-      if (
         searchRef.current &&
         !searchRef.current.contains(event.target) &&
         showMobileSearch
@@ -123,6 +107,9 @@ const Header = () => {
   // Load categories
   useEffect(() => {
     dispatch(getCategory());
+  }, [dispatch]);
+  useEffect(() => {
+    dispatch(getNotifies());
   }, [dispatch]);
 
   const handleCategoryEnter = () => {
@@ -147,10 +134,6 @@ const Header = () => {
     setMobileCategoriesOpen(!mobileCategoriesOpen);
   };
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -165,26 +148,16 @@ const Header = () => {
     if (menuOpen) setMenuOpen(false);
   };
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case "order":
-        return "🛒";
-      case "promo":
-        return "🎁";
-      case "shipping":
-        return "🚚";
-      case "account":
-        return "👤";
-      default:
-        return "🔔";
-    }
-  };
-
   const handleWhatsAppClick = () => {
-    // Replace with your actual WhatsApp number (without + or spaces)
-    const phoneNumber = "8801577344846"; // ✅ Correct format
+    const phoneNumber = "8801577344846";
     const whatsappUrl = `https://wa.me/${phoneNumber}`;
     window.open(whatsappUrl, "_blank");
+  };
+
+  // Handle notification icon click - redirect to notifications page
+  const handleNotificationClick = () => {
+    navigate("/notifications");
+    setShowNotifications(false);
   };
 
   return (
@@ -291,93 +264,19 @@ const Header = () => {
             {/* Right Side Icons - DESKTOP */}
             <div className="hidden lg:flex items-center gap-2 sm:gap-3 lg:gap-4 text-gray-700 flex-shrink-0">
               {/* Notification Icon - Desktop */}
-              <div className="relative" ref={notificationsRef}>
+              <div className="relative">
                 <button
-                  onClick={toggleNotifications}
+                  onClick={handleNotificationClick}
                   className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   aria-label="Notifications"
                 >
                   <Bell size={20} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex justify-center items-center">
-                      {unreadCount > 9 ? "9+" : unreadCount}
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex justify-center items-center animate-pulse">
+                      {unreadCount > 100 ? "100+" : unreadCount}
                     </span>
                   )}
                 </button>
-
-                {/* Notifications Modal */}
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
-                    <div className="p-4 border-b border-gray-200 bg-gray-50">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          Notifications
-                        </h3>
-                        <button
-                          onClick={() => setShowNotifications(false)}
-                          className="text-gray-400 hover:text-gray-600 transition p-1"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.id}
-                            className={`border-b border-gray-100 last:border-b-0 p-3 hover:bg-gray-50 transition-colors ${
-                              !notification.read ? "bg-blue-50" : ""
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="text-lg flex-shrink-0">
-                                {getNotificationIcon(notification.type)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-start gap-2">
-                                  <h4
-                                    className={`font-medium text-sm truncate ${
-                                      !notification.read
-                                        ? "text-blue-700"
-                                        : "text-gray-800"
-                                    }`}
-                                  >
-                                    {notification.title}
-                                  </h4>
-                                  {!notification.read && (
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5"></span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                                  {notification.message}
-                                </p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  {notification.time}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-6 text-center text-gray-500">
-                          <Bell
-                            size={32}
-                            className="mx-auto mb-2 text-gray-300"
-                          />
-                          <p className="text-sm">No notifications available</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-3 border-t border-gray-200 bg-gray-50">
-                      <button className="w-full text-center text-sm text-green-600 hover:text-green-700 font-medium py-2 transition-colors">
-                        View All Notifications
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Cart Icon - Desktop */}
@@ -429,7 +328,8 @@ const Header = () => {
                 {isAuthenticated && showDesktopUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
                     <div className="flex flex-col p-2">
-                      {ROLE_GROUPS.MODS_AND_UP.includes(user?.role) && (
+                      {(ROLE_GROUPS.MODS_AND_UP.includes(user?.role) ||
+                        [ROLES.USER_ADMIN].includes(user?.role)) && (
                         <Link
                           to="/admin/dashboard"
                           onClick={() => setShowDesktopUserMenu(false)}
@@ -571,7 +471,8 @@ const Header = () => {
                 {isAuthenticated && showMobileUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
                     <div className="flex flex-col p-2">
-                      {ROLE_GROUPS.MODS_AND_UP.includes(user?.role) && (
+                      {(ROLE_GROUPS.MODS_AND_UP.includes(user?.role) ||
+                        [ROLES.USER_ADMIN].includes(user?.role)) && (
                         <Link
                           to="/admin/dashboard"
                           onClick={() => setShowMobileUserMenu(false)}
@@ -753,15 +654,17 @@ const Header = () => {
         {/* Notifications - MOBILE BOTTOM MENU */}
         <div className="relative flex-1 max-w-[20%]">
           <button
-            onClick={toggleNotifications}
+            onClick={handleNotificationClick}
             className={`flex flex-col items-center w-full p-2 rounded-xl transition-colors relative ${
-              showNotifications ? "text-green-600 bg-green-50" : "text-gray-600"
+              location.pathname === "/notifications"
+                ? "text-green-600 bg-green-50"
+                : "text-gray-600"
             }`}
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
-                {unreadCount > 9 ? "9+" : unreadCount}
+              <span className="absolute -top-1 right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] flex justify-center items-center animate-pulse">
+                {unreadCount > 100 ? "100+" : unreadCount}
               </span>
             )}
             <span className="text-xs mt-1 font-medium">ALERTS</span>
@@ -778,82 +681,6 @@ const Header = () => {
       >
         <FaWhatsapp className="text-3xl" />
       </button>
-
-      {/* Mobile Notifications Modal */}
-      {showNotifications && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center lg:hidden">
-          <div className="bg-white rounded-t-2xl w-full max-h-[85vh] overflow-hidden animate-slideUp">
-            <div className="p-4 border-b border-gray-200 bg-gray-50 sticky top-0">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-800 text-lg">
-                  Notifications
-                </h3>
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-
-            <div className="max-h-[60vh] overflow-y-auto">
-              {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`border-b border-gray-100 last:border-b-0 p-4 transition-colors ${
-                      !notification.read ? "bg-blue-50" : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="text-xl flex-shrink-0">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4
-                            className={`font-medium text-base ${
-                              !notification.read
-                                ? "text-blue-700"
-                                : "text-gray-800"
-                            }`}
-                          >
-                            {notification.title}
-                          </h4>
-                          {!notification.read && (
-                            <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {notification.time}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <Bell size={40} className="mx-auto mb-3 text-gray-300" />
-                  <p className="text-base">No notifications available</p>
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-gray-200 bg-gray-50 sticky bottom-0">
-              <button
-                onClick={() => setShowNotifications(false)}
-                className="w-full text-center text-base text-green-600 hover:text-green-700 font-medium py-3 transition-colors bg-white border border-green-600 rounded-lg hover:bg-green-50"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

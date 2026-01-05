@@ -28,9 +28,7 @@ router.post("/payment/fail", async (req, res) => {
       });
     }
     res.status(404).json({ success: false, message: "Order not found" });
-  } catch (error) {
-    console.error("Payment Fail Delete Error:", error);
-  }
+  } catch (error) {}
 });
 
 // ❌ Payment Cancel - order delete
@@ -47,9 +45,7 @@ router.post("/payment/cancel", async (req, res) => {
       });
     }
     res.status(404).json({ success: false, message: "Order not found" });
-  } catch (error) {
-    console.error("Payment Cancel Delete Error:", error);
-  }
+  } catch (error) {}
 });
 
 module.exports = router;

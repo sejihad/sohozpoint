@@ -381,7 +381,7 @@ const Checkout = () => {
         ];
         setDistricts(manualDistricts.sort());
       } catch (error) {
-        console.error("Error loading districts:", error);
+        
       }
     };
 

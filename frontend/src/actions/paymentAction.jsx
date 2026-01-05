@@ -9,7 +9,6 @@ import {
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const initializePayment = (orderData) => async (dispatch) => {
-  console.log(orderData);
   try {
     dispatch({ type: PAYMENT_INITIALIZE_REQUEST });
 
@@ -33,12 +32,13 @@ export const initializePayment = (orderData) => async (dispatch) => {
         type: PAYMENT_INITIALIZE_SUCCESS,
         payload: data.redirectUrl,
       });
-      console.log(data?.redirectUrl);
+
       window.location.href = data.redirectUrl;
     } else {
       throw new Error("Failed to get payment link");
     }
   } catch (error) {
+    console.error("Payment Initialization Error:", error);
     dispatch({
       type: PAYMENT_INITIALIZE_FAIL,
       payload: error.response?.data?.message || "Payment initialization failed",

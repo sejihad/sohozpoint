@@ -146,6 +146,8 @@ const UserDetails = () => {
         return "bg-red-100 text-red-800 border border-red-200";
       case "admin":
         return "bg-purple-100 text-purple-800 border border-purple-200";
+      case "user-admin":
+        return "bg-purple-100 text-purple-800 border border-purple-200";
       case "moderator":
         return "bg-blue-100 text-blue-800 border border-blue-200";
       case "user":
@@ -471,6 +473,7 @@ const UserDetails = () => {
                     >
                       <option value="user">User</option>
                       <option value="moderator">Moderator</option>
+                      <option value="user-admin">User Admin</option>
                       <option value="admin">Admin</option>
                       <option value="super-admin">Super Admin</option>
                       <option value="reseller">Reseller</option>
@@ -576,6 +579,8 @@ const getRoleIcon = (role) => {
     case "super-admin":
       return <FiShield className="mr-1.5 h-4 w-4 text-red-600" />;
     case "admin":
+      return <FiShield className="mr-1.5 h-4 w-4 text-purple-600" />;
+    case "user-admin":
       return <FiShield className="mr-1.5 h-4 w-4 text-purple-600" />;
     case "moderator":
       return <FiUser className="mr-1.5 h-4 w-4 text-blue-600" />;

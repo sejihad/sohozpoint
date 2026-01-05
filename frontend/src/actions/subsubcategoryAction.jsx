@@ -63,7 +63,6 @@ export const getAdminSubsubcategories = () => async (dispatch) => {
       payload: data.subsubcategories,
     });
   } catch (error) {
-    console.log(error);
     dispatch({
       type: ADMIN_SUBSUBCATEGORY_FAIL,
       payload: error.response?.data?.message || "Something went wrong",

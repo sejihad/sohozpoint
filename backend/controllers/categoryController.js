@@ -41,7 +41,6 @@ const createCategory = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return res
         .status(500)
         .json({ success: false, message: "Image upload failed" });
@@ -84,7 +83,6 @@ const updateCategory = catchAsyncErrors(async (req, res, next) => {
       try {
         await deleteFromS3(category.image.public_id);
       } catch (error) {
-        console.error("S3 Deletion Error:", error);
         // Continue even if deletion fails
       }
     }
@@ -98,7 +96,6 @@ const updateCategory = catchAsyncErrors(async (req, res, next) => {
         url: uploaded.url,
       };
     } catch (error) {
-      console.error("S3 Upload Error:", error);
       return next(new ErrorHandler("Image upload failed", 500));
     }
   }
@@ -128,9 +125,7 @@ const deleteCategory = catchAsyncErrors(async (req, res, next) => {
   if (category.image && category.image.public_id) {
     try {
       await deleteFromS3(category.image.public_id);
-    } catch (error) {
-      console.error("S3 Deletion Error:", error);
-    }
+    } catch (error) {}
   }
 
   await Category.findByIdAndDelete(req.params.id);

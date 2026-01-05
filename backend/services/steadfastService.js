@@ -31,8 +31,6 @@ class SteadfastService {
         delivery_type: 0, // Regular delivery
       };
 
-      console.log("Creating parcel in Steadfast:", parcelData);
-
       const response = await this.client.post("/create_order", parcelData);
 
       return {
@@ -40,10 +38,6 @@ class SteadfastService {
         data: response.data,
       };
     } catch (error) {
-      console.error(
-        "Steadfast API Error:",
-        error.response?.data || error.message
-      );
       return {
         success: false,
         error: error.response?.data?.message || error.message,

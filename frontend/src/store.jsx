@@ -86,6 +86,10 @@ import {
   logosReducer,
   newLogoReducer,
 } from "./reducers/logoReducer";
+import {
+  notifyReducer,
+  sendNotificationReducer,
+} from "./reducers/notifyReducer";
 import { paymentInitializeReducer } from "./reducers/paymentReducer";
 import {
   newShipReducer,
@@ -232,6 +236,10 @@ const rootReducer = combineReducers({
   // cart
   cart: cartReducer,
   payment: paymentInitializeReducer,
+
+  // notify
+  notify: notifyReducer,
+  sendNotification: sendNotificationReducer,
 });
 
 // Create persisted reducer

@@ -120,12 +120,10 @@ const AdminOrderDetails = () => {
           toast.success("PDF downloaded successfully!");
         })
         .catch((err) => {
-          console.error("PDF generation error:", err);
           element.style.display = originalDisplay;
           toast.error("Failed to download PDF!");
         });
     } catch (err) {
-      console.error("PDF download error:", err);
       toast.error("Failed to download PDF!");
     }
   };
