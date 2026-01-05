@@ -15,10 +15,13 @@ export const connectSocket = (userId, dispatch) => {
     socket.disconnect();
     socket = null;
   }
-
+  const token = localStorage.getItem("token"); // অথবা যেখান থেকে টোকেন আসে
   // ৩. নতুন সকেট তৈরি
   socket = io(import.meta.env.VITE_API_URL, {
     transports: ["websocket"],
+    auth: {
+      token: token,
+    },
     reconnection: true,
   });
 
