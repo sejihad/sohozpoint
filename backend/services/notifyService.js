@@ -71,7 +71,6 @@ const sendNotify = async ({ title, message, users = [], image, link }) => {
 
     return notify;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };

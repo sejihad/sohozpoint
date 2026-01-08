@@ -6,6 +6,7 @@ const sendEmail = require("../utils/sendEmail");
 const Coupon = require("../models/couponModel.js");
 const { sendNotify } = require("../services/notifyService.js");
 const User = require("../models/userModel.js");
+const uploadToS3 = require("../config/uploadToS3.js");
 // EPS Credentials
 const {
   EPS_USERNAME,
@@ -79,6 +80,33 @@ const initializePayment = async (req, res) => {
   } = req.body;
 
   try {
+    for (const item of orderItems) {
+      if (
+        item.type === "custom-product" &&
+        item.logos &&
+        item.logos.length > 0
+      ) {
+        for (const logo of item.logos) {
+          if (logo.isCustom && logo.image?.url?.startsWith("data:image/")) {
+            // Extract base64 part
+            const base64Data = logo.image.url.split(";base64,").pop();
+
+            // Convert to Buffer
+            const buffer = Buffer.from(base64Data, "base64");
+            const file = {
+              name: logo.name,
+              data: buffer,
+            };
+            // Upload to S3 (or Cloudinary)
+            const result = await uploadToS3(file, "custom/logos"); // result should return { url, public_id }
+
+            // Set url and public_id
+            logo.image.url = result.url;
+            logo.image.public_id = result.key;
+          }
+        }
+      }
+    }
     // Step 1: Create pending order
     const pendingOrder = await Order.create({
       userData: {
@@ -114,70 +142,6 @@ const initializePayment = async (req, res) => {
     //---------------------------------------------------
     // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
     //---------------------------------------------------
-    const superAdmins = await User.find({ role: "super-admin" }, { _id: 1 });
-
-    // Extract only IDs
-    const superAdminIds = superAdmins.map((admin) => admin._id);
-    let attachments = [];
-    let logoDetails = "";
-
-    // Loop through all order items
-    orderItems.forEach((item) => {
-      // If custom-product type
-      if (item.type === "custom-product") {
-        logoDetails += `\nProduct: ${item.name}\n`;
-
-        item.logos.forEach((logo) => {
-          logoDetails += `   Logo: ${logo.name}\n`;
-          logoDetails += `   Position: ${logo.position}\n`;
-
-          if (logo.isCustom) {
-            // CUSTOM LOGO → FILE ATTACHMENT
-            attachments.push({
-              filename: logo.name,
-              content: logo.image.url.split(";base64,").pop(),
-              encoding: "base64",
-            });
-            logoDetails += "   File: attached\n\n";
-          } else {
-            // DEFAULT LOGO → URL TEXT
-            logoDetails += `   URL: ${logo.image.url}\n\n`;
-          }
-        });
-      }
-    });
-
-    // Email body text
-    const emailMessage = `
-🛍 New Order Created
-
-Order ID: ${pendingOrder.orderId}
-Customer: ${shippingInfo.fullName}
-Phone: ${shippingInfo.phone}
-Email: ${shippingInfo.email}
-
-${
-  logoDetails
-    ? "---- LOGO DETAILS ----\n" + logoDetails
-    : "No custom logos selected."
-}
-
-Total Price: ৳${totalPrice}
-Remaining: ৳${cashOnDelivery}
-`;
-
-    await sendNotify({
-      title: "Order Created",
-      message: `Order #${pendingOrder.orderId} has been created .`,
-      users: [superAdminIds],
-    });
-    // Send the email
-    await sendEmail({
-      email: process.env.SMTP_MAIL, // your admin email
-      subject: `New Order Created – #${pendingOrder.orderId}`,
-      message: emailMessage,
-      attachments: attachments,
-    });
 
     // Step 2: Get EPS token (reuse if cached)
     const token = await getEpsToken();
@@ -244,40 +208,83 @@ const createOrderAfterPayment = async (req, res) => {
   try {
     const { merchantTransactionId, orderId } = req.body;
 
-    // Step 1: Get EPS token (reuse if cached)
-    const EPS_TOKEN = await getEpsToken();
+    // Step 1: Find order
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    // Step 2: Verify Payment
-    const verifyHash = generateHash(merchantTransactionId);
-    const verifyResponse = await axios.get(
-      `${EPS_BASE_URL}/v1/EPSEngine/CheckMerchantTransactionStatus?merchantTransactionId=${merchantTransactionId}`,
-      {
-        headers: {
-          "x-hash": verifyHash,
-          Authorization: `Bearer ${EPS_TOKEN}`,
-        },
-      }
-    );
+    // 🔒 Duplicate call prevention
+    if (order.isPaid || order.paymentInfo?.status === "paid") {
+      // ✅ Already paid → DON'T send notifications or emails again
+      return res.status(200).json({
+        success: true,
+        message: "Order already processed",
+        order,
+      });
+    }
+
+    // Step 2: Verify Payment with EPS
+    let verifyResponse;
+    try {
+      const EPS_TOKEN = await getEpsToken(); // cached token
+      const verifyHash = generateHash(merchantTransactionId);
+
+      verifyResponse = await axios.get(
+        `${EPS_BASE_URL}/v1/EPSEngine/CheckMerchantTransactionStatus?merchantTransactionId=${merchantTransactionId}`,
+        {
+          headers: {
+            "x-hash": verifyHash,
+            Authorization: `Bearer ${EPS_TOKEN}`,
+          },
+        }
+      );
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to verify payment" });
+    }
 
     if (verifyResponse.data?.Status !== "Success") {
-      await Order.findByIdAndDelete(orderId);
+      // Payment failed → delete order
+      await Order.findByIdAndDelete(orderId).catch(() => {});
       return res
         .status(400)
         .json({ message: "❌ Payment failed. Order deleted." });
     }
 
-    // Step 3: Update Order as Paid
-    const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ message: "Order not found" });
-
+    // Step 3: Mark order as paid
     await order.markAsPaid(merchantTransactionId); // custom method in Order model
 
-    res.status(200).json({
+    // Step 4: Send notifications & email (only on first successful payment)
+    (async () => {
+      try {
+        const Admins = await User.find(
+          { role: { $in: ["super-admin", "admin", "user-admin"] } },
+          { _id: 1 }
+        );
+        const AdminIds = Admins.map((admin) => admin._id);
+
+        await sendNotify({
+          title: "Order Created",
+          message: `Order #${order.orderId} has been created.`,
+          users: AdminIds,
+        });
+      } catch (err) {}
+
+      try {
+        await sendEmail({
+          email: process.env.SMTP_MAIL,
+          subject: `Order created`,
+          message: `Order Created. Order ID: ${order.orderId}`,
+        });
+      } catch (err) {}
+    })();
+
+    // Step 5: Send final response
+    return res.status(200).json({
       success: true,
+      message: "Payment verified and order created successfully",
       order,
     });
   } catch (err) {
-    res.status(500).json({ message: "Failed to confirm order" });
+    return res.status(500).json({ message: "Failed to confirm order" });
   }
 };
 

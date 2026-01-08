@@ -9,6 +9,7 @@ const Coupon = require("../models/couponModel");
 const steadfastService = require("../services/steadfastService");
 const sendEmail = require("../utils/sendEmail");
 const { sendNotify } = require("../services/notifyService");
+const deleteFromS3 = require("../config/deleteFromS3");
 // create order
 const createOrder = async (req, res) => {
   const {
@@ -118,14 +119,17 @@ Remaining: ৳${cashOnDelivery}
     //   users: [req.user._id],
     // });
     // Send the email
-    const superAdmins = await User.find({ role: "super-admin" }, { _id: 1 });
+    const Admins = await User.find(
+      { role: { $in: ["super-admin", "admin", "user-admin"] } },
+      { _id: 1 }
+    );
 
     // Extract only IDs
-    const superAdminIds = superAdmins.map((admin) => admin._id);
+    const AdminIds = Admins.map((admin) => admin._id);
     await sendNotify({
       title: "New Order Created",
       message: `A new order #${pendingOrder.orderId} has been created.`,
-      users: [superAdminIds],
+      users: AdminIds,
     });
     await sendEmail({
       email: process.env.SMTP_MAIL, // your admin email
@@ -419,7 +423,18 @@ Sohoz Point Team
     for (const item of order.orderItems) {
       const productId = item?.id;
       const product = await Product.findById(productId);
-
+      // -------------------------------
+      // ✅ DELETE CUSTOM LOGOS FROM S3
+      // -------------------------------
+      if (item.type === "custom-product" && item.logos?.length > 0) {
+        for (const logo of item.logos) {
+          if (logo.isCustom && logo?.image?.public_id) {
+            try {
+              await deleteFromS3(logo.image.public_id);
+            } catch (err) {}
+          }
+        }
+      }
       if (product) {
         // ✅ Check if this is a preorder product
         if (order.isPreOrder) {

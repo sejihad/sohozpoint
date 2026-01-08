@@ -38,7 +38,6 @@ export const initializePayment = (orderData) => async (dispatch) => {
       throw new Error("Failed to get payment link");
     }
   } catch (error) {
-    console.error("Payment Initialization Error:", error);
     dispatch({
       type: PAYMENT_INITIALIZE_FAIL,
       payload: error.response?.data?.message || "Payment initialization failed",

@@ -931,6 +931,50 @@ const AdminOrderDetails = () => {
                               {item.quantity}pcs
                             </span>
                           </div>
+                          {item.type === "custom-product" &&
+                            item.logos?.length > 0 && (
+                              <div className="mt-3">
+                                <p className="text-xs font-semibold text-gray-600 mb-2">
+                                  Custom Logos
+                                </p>
+
+                                <div className="flex flex-wrap gap-3">
+                                  {item.logos.map((logo, idx) => (
+                                    <div
+                                      key={logo._id || idx}
+                                      className="w-20 text-center"
+                                    >
+                                      {/* Logo Image */}
+                                      <div className="w-20 h-20 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center bg-gray-50">
+                                        <img
+                                          src={
+                                            logo.image?.url || "/no-image.png"
+                                          }
+                                          alt={logo.name || "Logo"}
+                                          className="object-cover w-full h-full"
+                                          onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = "/no-image.png";
+                                          }}
+                                        />
+                                      </div>
+
+                                      {/* Logo Position */}
+                                      <p className="mt-1 text-xs font-medium text-gray-700 capitalize">
+                                        {logo.position || "N/A"}
+                                      </p>
+
+                                      {/* Custom / Uploaded badge */}
+                                      {logo.isCustom && (
+                                        <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">
+                                          User Uploaded
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                         </div>
                       </div>
 

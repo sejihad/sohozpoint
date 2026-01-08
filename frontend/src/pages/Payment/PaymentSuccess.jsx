@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -10,9 +10,6 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState(null);
-
-  // Track if events have been fired
-  const eventsFiredRef = useRef(false);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -26,86 +23,15 @@ const PaymentSuccess = () => {
         );
 
         if (data.success) {
-          toast.success("🎉 Payment Successful! Order Created.");
+          // toast.success("🎉 Payment Successful! Order Created.");
           setOrder(data.order);
-
-          // Fire events immediately after setting order
-          fireTrackingEvents(data.order);
         } else {
           toast.error("❌ Payment verification failed!");
         }
       } catch (err) {
-       
         toast.error("❌ Verification failed or order deleted!");
       } finally {
         setLoading(false);
-      }
-    };
-
-    const fireTrackingEvents = async (orderData) => {
-      // Prevent duplicate event firing
-      if (eventsFiredRef.current) return;
-      eventsFiredRef.current = true;
-
-      // 1️⃣ Pixel (browser) event
-      if (window.fbq) {
-        try {
-          const value = Number(orderData.totalPrice) || 0;
-
-          const contents = orderData.orderItems.map((item) => ({
-            id: item.id,
-            quantity: item.quantity,
-            item_price: item.price,
-            name: item.name,
-            color: item.color,
-            size: item.size,
-          }));
-
-          window.fbq(
-            "track",
-            "Purchase",
-            {
-              contents,
-              content_type: "product",
-              content_name: contents.map((c) => c.name).join(", "),
-              order_id: orderData._id,
-              value: value,
-              currency: "BDT",
-            },
-            {
-              eventID: orderData.orderId,
-            }
-          );
-        } catch (err) {
-         
-        }
-      }
-
-      // 2️⃣ Backend CAPI call
-      try {
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/v1/track-purchase`,
-          {
-            email: orderData.userData.email,
-            phone: orderData.userData.phone,
-            value: Number(orderData.totalPrice),
-            currency: "BDT",
-            eventID: orderData.orderId,
-            order_id: orderData._id,
-            contents: orderData.orderItems.map((item) => ({
-              id: item.id,
-              quantity: item.quantity,
-              item_price: item.price,
-              name: item.name,
-              color: item.color,
-              size: item.size,
-            })),
-            content_type: "product",
-            content_name: orderData.orderItems.map((i) => i.name).join(", "),
-          }
-        );
-      } catch (error) {
-       
       }
     };
 
