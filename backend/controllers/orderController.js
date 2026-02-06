@@ -26,12 +26,7 @@ const createOrder = catchAsyncErrors(async (req, res, next) => {
   }
 
   const orderPayload = await createOrderData(req, orderData);
-  // console.log(orderPayload);
-  // res.status(201).json({
-  //   success: true,
-  //   message: "Order data validated successfully",
-  //   orderItems: orderPayload.orderItems,
-  // });
+
   const pendingOrder = await Order.create({
     ...orderPayload,
     expiresAt: null,

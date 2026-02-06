@@ -20,7 +20,6 @@ const ErrorHandler = require("../utils/errorHandler.js");
 // ✅ Initialize Payment
 // -----------------------
 const initializePayment = catchAsyncErrors(async (req, res, next) => {
-  console.log("Initializing payment with data:", req.body);
   const orderData = req.body;
   if (!orderData?.shippingInfo) {
     return next(new ErrorHandler("Shipping information missing", 400));
@@ -34,7 +33,7 @@ const initializePayment = catchAsyncErrors(async (req, res, next) => {
 
   // Create pending order
   const orderPayload = await createOrderData(req, orderData);
-  console.log("Order payload for creation:", orderPayload);
+
   const pendingOrder = await Order.create(orderPayload);
 
   // Get EPS token

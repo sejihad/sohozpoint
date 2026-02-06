@@ -194,9 +194,7 @@ const sendAdminNotifications = async (orderId) => {
       subject: `New Order Created – #${orderId}`,
       message: `New Order Created. Order ID: ${orderId}`,
     });
-  } catch (error) {
-    console.error("Failed to send admin notifications:", error);
-  }
+  } catch (error) {}
 };
 
 /**
