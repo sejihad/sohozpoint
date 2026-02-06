@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaExclamationTriangle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, resetPassword } from "../../actions/userAction";
 import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
@@ -18,7 +18,7 @@ const ResetPassword = () => {
   const { token } = useParams();
 
   const { error, success, loading } = useSelector(
-    (state) => state.forgotPassword
+    (state) => state.forgotPassword,
   );
 
   const handleSubmit = (e) => {

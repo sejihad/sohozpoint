@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, getCategory } from "../actions/categoryAction";
 import Loader from "./layout/Loader/Loader";
 
 const Categories = () => {
   const dispatch = useDispatch();
   const { loading, error, categories } = useSelector(
-    (state) => state.categories
+    (state) => state.categories,
   );
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const Categories = () => {
                     {/* Dynamic image size based on name length */}
                     <div
                       className={`flex items-center justify-center ${getImageSizeClass(
-                        cat.name
+                        cat.name,
                       )}`}
                     >
                       <img

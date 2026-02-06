@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getCharge } from "../../actions/chargeAction";
 import {
   applyCoupon,
@@ -27,6 +27,7 @@ const Checkout = () => {
   const { charge } = useSelector((state) => state.charge);
   const {
     success,
+    message,
     error: orderError,
     loading: orderLoading,
   } = useSelector((state) => state.newOrder);
@@ -77,7 +78,7 @@ const Checkout = () => {
     if (!district || !ships || ships.length === 0) return null;
 
     const districtRules = ships.filter(
-      (ship) => ship.district.toLowerCase() === district.toLowerCase()
+      (ship) => ship.district.toLowerCase() === district.toLowerCase(),
     );
 
     return districtRules.length > 0 ? districtRules[0] : null;
@@ -95,7 +96,7 @@ const Checkout = () => {
 
       return shipRule.allowedUsers?.some(
         (allowedUser) =>
-          allowedUser._id === currentUserId || allowedUser.id === currentUserId
+          allowedUser._id === currentUserId || allowedUser.id === currentUserId,
       );
     }
 
@@ -141,10 +142,10 @@ const Checkout = () => {
 
   // Which products have free/paid delivery
   const productsWithFreeDelivery = updatedCartItems.filter(
-    (item) => item.deliveryCharge === "no"
+    (item) => item.deliveryCharge === "no",
   );
   const productsWithPaidDelivery = updatedCartItems.filter(
-    (item) => item.deliveryCharge !== "no"
+    (item) => item.deliveryCharge !== "no",
   );
 
   const freeDeliveryWeight = productsWithFreeDelivery.reduce((acc, item) => {
@@ -301,7 +302,7 @@ const Checkout = () => {
     dispatch(getShips()); // ✅ Load ships data
     dispatch(getCharge());
     if (success) {
-      toast.success("Order placed successfully!");
+      toast.success(message);
       navigate("/orders");
       // যদি দরকার হয়, Redux state reset করতে পারেন
       dispatch({ type: CREATE_ORDER_RESET });
@@ -380,9 +381,7 @@ const Checkout = () => {
           "Thakurgaon",
         ];
         setDistricts(manualDistricts.sort());
-      } catch (error) {
-        
-      }
+      } catch (error) {}
     };
 
     loadDistricts();
@@ -462,7 +461,7 @@ const Checkout = () => {
         if (userEligible) {
           const eligibleProductIds = getEligibleProductsForShipRule(
             shipRule,
-            updatedCartItems
+            updatedCartItems,
           );
 
           if (eligibleProductIds.length > 0) {
@@ -480,7 +479,7 @@ const Checkout = () => {
 
             setUpdatedCartItems(newCartItems);
             toast.success(
-              `${eligibleProductIds.length} products now have free delivery for ${value}`
+              `${eligibleProductIds.length} products now have free delivery for ${value}`,
             );
           }
         }
@@ -599,15 +598,15 @@ const Checkout = () => {
         return `full cash on delivery`;
       case "preorder_50":
         return `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
-          2
+          2,
         )}) now, remaining 50% later`;
       case "preorder_full":
         return `Pay full product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
-          2
+          2,
         )}) now`;
       case "full":
         return `Pay full amount including delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
-          2
+          2,
         )})`;
       default:
         return "";
@@ -928,7 +927,7 @@ const Checkout = () => {
                           </span>
                           <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
                             {`Pay full amount including delivery charge (৳${amounts.payableDeliveryCharge.toFixed(
-                              2
+                              2,
                             )})`}
                           </p>
                         </div>

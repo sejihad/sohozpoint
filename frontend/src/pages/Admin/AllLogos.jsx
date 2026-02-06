@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   createLogo,

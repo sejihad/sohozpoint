@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
 import { getGenders } from "../../actions/genderAction";
@@ -33,7 +33,7 @@ const UpdateProduct = () => {
   const { id } = useParams();
 
   const { loading, error, product } = useSelector(
-    (state) => state.productDetails
+    (state) => state.productDetails,
   );
   const {
     loading: updateLoading,
@@ -229,8 +229,8 @@ const UpdateProduct = () => {
         value === "available"
           ? "inStock"
           : value === "outofstock"
-          ? "outOfStock"
-          : "unavailable";
+            ? "outOfStock"
+            : "unavailable";
 
       setFormData({
         ...formData,
@@ -438,8 +438,8 @@ const UpdateProduct = () => {
     return formData.availability === "inStock"
       ? "available"
       : formData.availability === "outOfStock"
-      ? "outofstock"
-      : "unavailable";
+        ? "outofstock"
+        : "unavailable";
   };
 
   if (loading) {
@@ -1045,7 +1045,7 @@ const UpdateProduct = () => {
                             onChange={(e) => {
                               const updatedColors = [...formData.colors];
                               updatedColors[index].price = Number(
-                                e.target.value
+                                e.target.value,
                               );
                               setFormData({
                                 ...formData,

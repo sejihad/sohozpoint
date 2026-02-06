@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FiMail } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { forgotPassword } from "../../actions/userAction"; // <-- path adjust করে নিও
 const ForgotPassword = () => {
   const dispatch = useDispatch();
@@ -10,7 +10,7 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
 
   const { loading, message, error } = useSelector(
-    (state) => state.forgotPassword
+    (state) => state.forgotPassword,
   );
   const { isAuthenticated } = useSelector((state) => state.user);
 

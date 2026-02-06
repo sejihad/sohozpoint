@@ -13,7 +13,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   deleteOrder,
@@ -119,10 +119,10 @@ const AllOrders = () => {
       refundFilter === "all"
         ? true
         : refundFilter === "requested"
-        ? order.refund_request === true
-        : refundFilter === "not_requested"
-        ? order.refund_request === false
-        : true;
+          ? order.refund_request === true
+          : refundFilter === "not_requested"
+            ? order.refund_request === false
+            : true;
 
     return (
       matchesSearch &&
@@ -488,7 +488,7 @@ const AllOrders = () => {
                           <td className="px-4 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                                order.orderStatus
+                                order.orderStatus,
                               )}`}
                             >
                               {order.orderStatus || "Pending"}
@@ -506,14 +506,14 @@ const AllOrders = () => {
                             <div className="space-y-1">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(
-                                  order.paymentInfo?.status
+                                  order.paymentInfo?.status,
                                 )}`}
                               >
                                 {order.paymentInfo?.status || "N/A"}
                               </span>
                               <div
                                 className={`text-xs px-2 py-1 rounded-full ${getPaymentMethodColor(
-                                  order.paymentInfo?.method
+                                  order.paymentInfo?.method,
                                 )}`}
                               >
                                 {order.paymentInfo?.method || "N/A"}

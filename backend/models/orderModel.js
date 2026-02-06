@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 // ✅ Auto-generate unique 10-digit order ID
 const generateOrderId = async function () {
   const randomId = Math.floor(
-    100000000 + Math.random() * 9000000000
+    100000000 + Math.random() * 9000000000,
   ).toString(); // 9–10 digits
   const existing = await mongoose.models.Order.findOne({ orderId: randomId });
   if (existing) return generateOrderId(); // ensure uniqueness
@@ -16,12 +16,13 @@ const orderSchema = new mongoose.Schema(
       type: String,
       unique: true,
       index: true,
+      required: true,
     },
 
     userData: {
-      name: { type: String },
-      email: { type: String },
-      phone: { type: String },
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+      phone: { type: String, required: true },
       userCode: { type: String },
       userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,17 +31,20 @@ const orderSchema = new mongoose.Schema(
       country: { type: String, default: "Bangladesh" },
     },
 
-    orderItems: [],
+    orderItems: {
+      type: Array,
+      required: true,
+    },
 
     shippingInfo: {
-      fullName: { type: String },
-      email: { type: String },
-      phone: { type: String },
+      fullName: { type: String, required: true },
+      email: { type: String, required: true },
+      phone: { type: String, required: true },
       phone2: { type: String },
       zipCode: { type: String },
-      address: { type: String },
-      district: { type: String },
-      thana: { type: String },
+      address: { type: String, required: true },
+      district: { type: String, required: true },
+      thana: { type: String, required: true },
       country: { type: String, default: "Bangladesh" },
       shippingMethod: { type: String },
     },
@@ -57,7 +61,7 @@ const orderSchema = new mongoose.Schema(
       transactionId: { type: String }, // for EPS / gateway reference
     },
 
-    // 🕐 TTL: 60 মিনিটে পেমেন্ট না হলে অর্ডার ডিলিট
+    // 🕐 TTL: 60 hrs
     expiresAt: {
       type: Date,
       default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hour from creation
@@ -110,11 +114,11 @@ const orderSchema = new mongoose.Schema(
     canceledAt: { type: Date },
     returnedAt: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // 🪄 Before saving, auto generate orderId if not exists
-orderSchema.pre("save", async function (next) {
+orderSchema.pre("validate", async function (next) {
   if (this.isNew && !this.orderId) {
     this.orderId = await generateOrderId();
   }

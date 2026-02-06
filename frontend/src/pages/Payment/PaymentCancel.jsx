@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const PaymentCancel = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +22,7 @@ const PaymentCancel = () => {
           `${import.meta.env.VITE_API_URL}/api/v1/payment/cancel`,
           {
             orderId,
-          }
+          },
         );
         toast.info("⚠️ Payment cancelled. Order deleted.");
       } catch (err) {

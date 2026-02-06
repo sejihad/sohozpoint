@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import slugify from "slugify";
+import { toast } from "sonner";
 import {
   addItemsToCart,
   getCart,
@@ -24,7 +24,7 @@ const Cart = () => {
     setSelectedItems((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
+        : [...prev, itemId],
     );
   };
 
@@ -35,8 +35,9 @@ const Cart = () => {
     } else {
       setSelectedItems(
         cartItems.map(
-          (item) => `${item.product._id}-${item.size || ""}-${item.color || ""}`
-        )
+          (item) =>
+            `${item.product._id}-${item.size || ""}-${item.color || ""}`,
+        ),
       );
     }
   };
@@ -47,8 +48,8 @@ const Cart = () => {
       removeItemsFromCart(
         item.product._id,
         item.size || null,
-        item.color || null
-      )
+        item.color || null,
+      ),
     );
 
     // Remove from selected items if present
@@ -68,8 +69,8 @@ const Cart = () => {
         item.product._id,
         newQty,
         item.size || null,
-        item.color || null
-      )
+        item.color || null,
+      ),
     );
 
     // Refresh cart
@@ -153,18 +154,18 @@ const Cart = () => {
   // Calculate totals for selected items only
   const selectedItemsData = cartItems.filter((item) =>
     selectedItems.includes(
-      `${item.product._id}-${item.size || ""}-${item.color || ""}`
-    )
+      `${item.product._id}-${item.size || ""}-${item.color || ""}`,
+    ),
   );
 
   const totalPrice = selectedItemsData.reduce(
     (acc, item) => acc + (item.subtotal || item.price * item.quantity),
-    0
+    0,
   );
 
   const totalItems = selectedItemsData.reduce(
     (acc, item) => acc + item.quantity,
-    0
+    0,
   );
 
   if (loading)
@@ -262,7 +263,7 @@ const Cart = () => {
 
                       <Link
                         to={`/${safeSlugify(
-                          item.product?.category || "product"
+                          item.product?.category || "product",
                         )}/${safeSlugify(item.name)}`}
                       >
                         <img
@@ -277,7 +278,7 @@ const Cart = () => {
                     <div className="flex-1 flex flex-col justify-between">
                       <Link
                         to={`/${safeSlugify(
-                          item.product?.category || "product"
+                          item.product?.category || "product",
                         )}/${safeSlugify(item.name)}`}
                       >
                         <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
@@ -370,7 +371,7 @@ const Cart = () => {
                     <div className="md:col-span-3 flex items-center space-x-4">
                       <Link
                         to={`/${safeSlugify(
-                          item.product?.category || "product"
+                          item.product?.category || "product",
                         )}/${safeSlugify(item.name)}`}
                         className="flex items-center space-x-4"
                       >
@@ -448,7 +449,7 @@ const Cart = () => {
                       <span className="font-bold text-green-600">
                         ৳
                         {(item.subtotal || item.price * item.quantity).toFixed(
-                          0
+                          0,
                         )}
                       </span>
                     </div>
@@ -495,14 +496,14 @@ const Cart = () => {
                 <span
                   className={
                     selectedItemsData.some(
-                      (item) => item.deliveryCharge === "yes"
+                      (item) => item.deliveryCharge === "yes",
                     )
                       ? "text-orange-500"
                       : "text-green-500"
                   }
                 >
                   {selectedItemsData.some(
-                    (item) => item.deliveryCharge === "yes"
+                    (item) => item.deliveryCharge === "yes",
                   )
                     ? "Calculated at checkout"
                     : "Free Delivery"}

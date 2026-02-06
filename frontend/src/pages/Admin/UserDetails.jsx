@@ -17,7 +17,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getSingleUserOrders } from "../../actions/orderAction";
 import {
   clearErrors,
@@ -39,13 +39,13 @@ const UserDetails = () => {
 
   const { user, loading, error } = useSelector((state) => state.userDetails);
   const { error: deleteError, isDeleted } = useSelector(
-    (state) => state.profile
+    (state) => state.profile,
   );
   const { error: updateError, isUpdated } = useSelector(
-    (state) => state.profile
+    (state) => state.profile,
   );
   const { orders: userOrders, loading: ordersLoading } = useSelector(
-    (state) => state.allOrders
+    (state) => state.allOrders,
   );
 
   // Form states
@@ -258,7 +258,7 @@ const UserDetails = () => {
                   <div className="flex items-center space-x-4 mt-2">
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleColor(
-                        user?.role
+                        user?.role,
                       )}`}
                     >
                       {getRoleIcon(user?.role)}
@@ -266,7 +266,7 @@ const UserDetails = () => {
                     </span>
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        user?.status
+                        user?.status,
                       )}`}
                     >
                       {user?.status === "active" ? (
@@ -415,7 +415,7 @@ const UserDetails = () => {
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOrderStatusColor(
-                            order.orderStatus
+                            order.orderStatus,
                           )}`}
                         >
                           {order.orderStatus || "Pending"}
@@ -424,7 +424,7 @@ const UserDetails = () => {
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(
-                            order.paymentInfo?.status
+                            order.paymentInfo?.status,
                           )}`}
                         >
                           {order.paymentInfo?.status || "N/A"}

@@ -4,7 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 // Actions
 import { addItemsToCart } from "../../actions/cartAction";
 import { getCustomLogoCharge } from "../../actions/customLogoChargeAction";
@@ -44,7 +44,7 @@ const ProductDetails = () => {
 
   const { orders } = useSelector((state) => state.myOrders);
   const { success: reviewSuccess, error: reviewError } = useSelector(
-    (state) => state.newReview
+    (state) => state.newReview,
   );
   const { charge: logoCharge } = useSelector((state) => state.customLogocharge);
 
@@ -133,14 +133,13 @@ const ProductDetails = () => {
             limit: 20,
             page: 1,
           },
-        }
+        },
       );
 
       // Filter out current product
       const filtered = data.products.filter((p) => p._id !== product._id);
       setRelatedProducts(filtered.slice(0, 20));
     } catch (error) {
-     
     } finally {
       setRelatedLoading(false);
     }
@@ -157,7 +156,7 @@ const ProductDetails = () => {
           entry.target.classList.remove(
             "animate-slide-in-left",
             "animate-fade-in-up",
-            "animate-slide-in-right"
+            "animate-slide-in-right",
           );
           void entry.target.offsetWidth;
 
@@ -171,7 +170,7 @@ const ProductDetails = () => {
             entry.target.classList.add("animate-slide-in-right");
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
     );
 
     const delay = setTimeout(() => {
@@ -225,7 +224,7 @@ const ProductDetails = () => {
 
     if (existing) {
       setSelectedLogos((prev) =>
-        prev.map((l) => (l.position === position ? newLogo : l))
+        prev.map((l) => (l.position === position ? newLogo : l)),
       );
     } else {
       setSelectedLogos((prev) => [...prev, newLogo]);
@@ -266,7 +265,7 @@ const ProductDetails = () => {
 
     if (existing) {
       setSelectedLogos((prev) =>
-        prev.map((l) => (l.position === position ? customLogo : l))
+        prev.map((l) => (l.position === position ? customLogo : l)),
       );
     } else {
       setSelectedLogos((prev) => [...prev, customLogo]);
@@ -389,8 +388,8 @@ const ProductDetails = () => {
         quantity,
         selectedSize?.name || "",
         selectedColor?.name || "",
-        selectedImageUrl
-      )
+        selectedImageUrl,
+      ),
     );
     toast.success("Product Added to Cart");
   };
@@ -630,14 +629,14 @@ const ProductDetails = () => {
   const hasReviewed = product?.reviews?.some((r) => r.user === user?._id);
   const hasCompletedOrder = orders?.some((order) =>
     order.orderItems?.some(
-      (item) => item.id === product?._id && order.orderStatus === "delivered"
-    )
+      (item) => item.id === product?._id && order.orderStatus === "delivered",
+    ),
   );
 
   const discountPercentage =
     product.oldPrice > product.salePrice
       ? Math.round(
-          ((product.oldPrice - product.salePrice) / product.oldPrice) * 100
+          ((product.oldPrice - product.salePrice) / product.oldPrice) * 100,
         )
       : 0;
 

@@ -41,7 +41,8 @@ exports.sendBulkEmail = async (req, res) => {
     if (individualMode) {
       // Single email send - individual mode
       const mailOptions = {
-        from: process.env.SMTP_MAIL,
+        from: `"Sohoz Point" <${process.env.SMTP_MAIL}>`,
+
         to: recipientList[0], // শুধুমাত্র প্রথম recipient
         subject: subject,
         text: message,
@@ -66,7 +67,8 @@ exports.sendBulkEmail = async (req, res) => {
       // Bulk email - কিন্তু প্রতিটি user এর জন্য আলাদা email
       for (const recipient of recipientList) {
         const individualMailOptions = {
-          from: process.env.SMTP_MAIL,
+          from: `"Sohoz Point" <${process.env.SMTP_MAIL}>`,
+
           to: recipient, // শুধুমাত্র এই user এর email
           subject: subject,
           text: message,

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FiSearch, FiStar } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getAdminProduct } from "../../actions/productAction";
 
 import MetaData from "../../component/layout/MetaData";
@@ -15,13 +15,13 @@ const AllReviews = () => {
 
   // products state
   const { products: allProducts, loading: productsLoading } = useSelector(
-    (state) => state.products
+    (state) => state.products,
   );
   const { error: productError } = useSelector((state) => state.product);
 
   // Filter products based on search term
   const filteredProducts = allProducts?.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   useEffect(() => {

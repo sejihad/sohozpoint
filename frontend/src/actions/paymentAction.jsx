@@ -24,7 +24,7 @@ export const initializePayment = (orderData) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/payment/initialize`,
       orderData,
-      config
+      config,
     );
 
     if (data?.redirectUrl) {
@@ -38,6 +38,7 @@ export const initializePayment = (orderData) => async (dispatch) => {
       throw new Error("Failed to get payment link");
     }
   } catch (error) {
+    console.error("Payment initialization error:", error);
     dispatch({
       type: PAYMENT_INITIALIZE_FAIL,
       payload: error.response?.data?.message || "Payment initialization failed",

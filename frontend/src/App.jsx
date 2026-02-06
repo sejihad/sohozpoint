@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
+import { toast, Toaster } from "sonner";
 import Footer from "./component/layout/Footer";
 import Header from "./component/layout/Header";
 import ScrollToTop from "./component/layout/ScrollToTop";
@@ -263,7 +263,25 @@ const App = () => {
           <Route path="/admin/notification" element={<NotificationManager />} />
         </Route>
       </Routes>
-      <ToastContainer />
+      <Toaster
+        position="top-center" // top-middle equivalent
+        richColors // colorful success/error/info
+        toastOptions={{
+          duration: 2000, // auto dismiss 2s
+          style: {
+            borderRadius: "0.5rem", // rounded corners
+            padding: "0.75rem 1rem",
+            fontSize: "0.95rem",
+            fontWeight: 500,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            backdropFilter: "blur(4px)",
+          },
+          success: { icon: "✅" },
+          error: { icon: "❌" },
+          warning: { icon: "⚠️" },
+          info: { icon: "ℹ️" },
+        }}
+      />
       <Footer />
     </>
   );

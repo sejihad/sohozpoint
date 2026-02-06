@@ -11,7 +11,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getAdminCategory } from "../../actions/categoryAction";
 import {
   clearErrors,
@@ -33,10 +33,10 @@ const AllSubcategories = () => {
   const { categories } = useSelector((state) => state.categories);
 
   const { subcategories, loading: subcategoriesLoading } = useSelector(
-    (state) => state.subcategories
+    (state) => state.subcategories,
   );
   const { loading, error, success } = useSelector(
-    (state) => state.newSubcategory
+    (state) => state.newSubcategory,
   );
   const {
     error: updateDeleteError,
@@ -154,7 +154,7 @@ const AllSubcategories = () => {
   const filteredSubcategories =
     subcategories && Array.isArray(subcategories)
       ? subcategories.filter((sub) =>
-          sub.name.toLowerCase().includes(searchTerm.toLowerCase())
+          sub.name.toLowerCase().includes(searchTerm.toLowerCase()),
         )
       : [];
 
@@ -470,7 +470,7 @@ const AllSubcategories = () => {
                         </div>
                       </div>
                     </div>
-                  )
+                  ),
                 )}
               </div>
             ) : (

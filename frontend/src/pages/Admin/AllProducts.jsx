@@ -13,8 +13,8 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
 import slugify from "slugify";
+import { toast } from "sonner";
 import {
   clearErrors,
   deleteProduct,
@@ -28,10 +28,10 @@ const AllProducts = () => {
   const dispatch = useDispatch();
 
   const { products, loading, error, productsCount } = useSelector(
-    (state) => state.products
+    (state) => state.products,
   );
   const { error: deleteError, isDeleted } = useSelector(
-    (state) => state.product
+    (state) => state.product,
   );
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,7 +94,7 @@ const AllProducts = () => {
         (product) =>
           product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.category?.toLowerCase().includes(searchTerm.toLowerCase())
+          product.category?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     : [];
 

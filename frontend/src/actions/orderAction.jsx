@@ -51,7 +51,7 @@ export const createOrder = (orderData) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/order/new`,
       orderData,
-      config
+      config,
     );
 
     dispatch({
@@ -125,7 +125,7 @@ export const getAdminOrderDetails = (id) => async (dispatch) => {
 
     const { data } = await axios.get(
       `${API_URL}/api/v1/admin/order/${id}`,
-      config
+      config,
     );
 
     dispatch({ type: ORDER_DETAILS_SUCCESS, payload: data.order });
@@ -172,7 +172,7 @@ export const getSingleUserOrders = (userId) => async (dispatch) => {
 
     const { data } = await axios.get(
       `${API_URL}/api/v1/admin/orders/user/${userId}`,
-      config
+      config,
     );
 
     dispatch({
@@ -201,7 +201,7 @@ export const updateOrder = (id, order) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/admin/order/${id}`,
       order,
-      config
+      config,
     );
 
     dispatch({ type: UPDATE_ORDER_SUCCESS, payload: data.success });
@@ -225,7 +225,7 @@ export const deleteOrder = (id) => async (dispatch) => {
     };
     const { data } = await axios.delete(
       `${API_URL}/api/v1/admin/order/${id}`,
-      config
+      config,
     );
 
     dispatch({ type: DELETE_ORDER_SUCCESS, payload: data.success });
@@ -251,7 +251,7 @@ export const cancelOrder = (orderId) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/order/${orderId}/cancel`,
       {},
-      config
+      config,
     );
 
     dispatch({
@@ -280,7 +280,7 @@ export const requestRefund = (orderId, reason) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/order/${orderId}/refund-request`,
       { reason },
-      config
+      config,
     );
 
     dispatch({
@@ -311,7 +311,7 @@ export const updatePaymentStatus = (id, status) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/admin/payment/${id}`,
       { status }, // "paid" or "pending"
-      config
+      config,
     );
 
     dispatch({

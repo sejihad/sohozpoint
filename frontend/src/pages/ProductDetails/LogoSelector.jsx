@@ -1,7 +1,7 @@
 // src/component/product/LogoSelector.jsx
 import { useRef } from "react";
 import { FaPalette, FaUpload } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import LogoPositionSelector from "./LogoPositionSelector";
 
 const LogoSelector = ({

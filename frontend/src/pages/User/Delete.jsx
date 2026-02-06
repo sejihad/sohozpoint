@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FiArrowLeft, FiFileText, FiMail, FiUser } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, DeleteAccountRequest } from "../../actions/userAction";
 import MetaData from "../../component/layout/MetaData";
 import { ACCOUNT_DELETE_RESET } from "../../constants/userContants";

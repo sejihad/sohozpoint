@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiRotateCw, FiSave, FiTrash2, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   createNotification,
@@ -22,13 +22,13 @@ const NotificationManager = () => {
 
   const { notification, loading } = useSelector((state) => state.notification);
   const { error, success: createSuccess } = useSelector(
-    (state) => state.newNotification
+    (state) => state.newNotification,
   );
   const { error: updateError, isUpdated } = useSelector(
-    (state) => state.notificationUpdate
+    (state) => state.notificationUpdate,
   );
   const { error: deleteError, isDeleted } = useSelector(
-    (state) => state.notificationDelete
+    (state) => state.notificationDelete,
   );
 
   const [formData, setFormData] = useState({
@@ -122,7 +122,7 @@ const NotificationManager = () => {
   const toggleNotificationStatus = () => {
     if (!notification || !notification._id) {
       toast.error(
-        "Please save the notification first before enabling/disabling it"
+        "Please save the notification first before enabling/disabling it",
       );
       return;
     }

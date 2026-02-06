@@ -10,7 +10,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import {
   clearErrors,
@@ -36,7 +36,7 @@ const AllCoupons = () => {
   const dispatch = useDispatch();
 
   const { coupons, loading: couponsLoading } = useSelector(
-    (state) => state.coupons
+    (state) => state.coupons,
   );
   const {
     loading: newCouponLoading,
@@ -119,7 +119,7 @@ const AllCoupons = () => {
         ?.filter(
           (product) =>
             product.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
-            product._id?.includes(productSearch)
+            product._id?.includes(productSearch),
         )
         .slice(0, 10);
       setFilteredProducts(filtered || []);
@@ -137,7 +137,7 @@ const AllCoupons = () => {
             user.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
             user.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
             (user.userCode && user.userCode.includes(userSearch)) || // ✅ userCode দিয়ে search
-            user._id?.includes(userSearch)
+            user._id?.includes(userSearch),
         )
         .slice(0, 10);
       setFilteredUsers(filtered || []);
@@ -261,7 +261,7 @@ const AllCoupons = () => {
   const handleDelete = (id) => {
     if (
       window.confirm(
-        "Are you sure you want to delete this coupon? This action cannot be undone."
+        "Are you sure you want to delete this coupon? This action cannot be undone.",
       )
     ) {
       dispatch(deleteCoupon(id));
@@ -971,7 +971,7 @@ const AllCoupons = () => {
 
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${getStatusColor(
-                            coupon
+                            coupon,
                           )}`}
                         >
                           {getStatusText(coupon)}

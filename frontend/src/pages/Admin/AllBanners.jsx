@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   createBanner,
@@ -279,15 +279,15 @@ const AllBanners = () => {
                             banner.deviceType === "both"
                               ? "bg-green-100 text-green-800"
                               : banner.deviceType === "desktop"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-purple-100 text-purple-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-purple-100 text-purple-800"
                           }`}
                         >
                           {banner.deviceType === "both"
                             ? "Both"
                             : banner.deviceType === "desktop"
-                            ? "Desktop"
-                            : "Mobile"}
+                              ? "Desktop"
+                              : "Mobile"}
                         </span>
                       </div>
                       <div className="flex justify-end gap-2">

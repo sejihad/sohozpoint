@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const PaymentFail = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +22,7 @@ const PaymentFail = () => {
           `${import.meta.env.VITE_API_URL}/api/v1/payment/fail`,
           {
             orderId,
-          }
+          },
         );
         toast.error("❌ Payment failed. Order deleted.");
       } catch (err) {

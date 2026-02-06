@@ -3,155 +3,52 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
-const User = require("../models/userModel");
-
-const Coupon = require("../models/couponModel");
+const { validateOrderData } = require("../services/orderService.js");
 const steadfastService = require("../services/steadfastService");
 const sendEmail = require("../utils/sendEmail");
 const { sendNotify } = require("../services/notifyService");
 const deleteFromS3 = require("../config/deleteFromS3");
-// create order
-const createOrder = async (req, res) => {
-  const {
-    shippingInfo,
-    paymentInfo,
-    orderItems,
-    itemsPrice,
-    deliveryPrice,
-    productDiscount,
-    deliveryDiscount,
-    couponDiscount,
-    totalPrice,
-    cashOnDelivery,
-    coupon,
-    isPreOrder,
-  } = req.body;
-
-  try {
-    // Step 1: Create pending order
-    const pendingOrder = await Order.create({
-      userData: {
-        userId: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        phone: req.user.number,
-        userCode: req.user.userCode,
-      },
-      orderItems,
-      shippingInfo,
-      paymentInfo,
-      itemsPrice,
-      deliveryPrice,
-      productDiscount,
-      deliveryDiscount,
-      couponDiscount,
-      totalPrice,
-      cashOnDelivery,
-      isPreOrder,
-      coupon: coupon,
-      orderStatus: "pending",
-      expiresAt: null,
-    });
-
-    // ----------------------------------------------------
-    // ✅ UPDATE COUPON USED COUNT (IF COUPON APPLIED)
-    // ----------------------------------------------------
-    if (pendingOrder.coupon && pendingOrder.coupon.code) {
-      await Coupon.findOneAndUpdate(
-        { code: pendingOrder.coupon.code },
-        { $inc: { usedCount: 1 } }
-      );
-    }
-    //---------------------------------------------------
-    // 🔥 SEND ORDER EMAIL WITH LOGO ATTACHMENTS
-    //---------------------------------------------------
-
-    let attachments = [];
-    let logoDetails = "";
-
-    // Loop through all order items
-    orderItems.forEach((item) => {
-      // If custom-product type
-      if (item.type === "custom-product") {
-        logoDetails += `\nProduct: ${item.name}\n`;
-
-        item.logos.forEach((logo) => {
-          logoDetails += `   Logo: ${logo.name}\n`;
-          logoDetails += `   Position: ${logo.position}\n`;
-
-          if (logo.isCustom) {
-            // CUSTOM LOGO → FILE ATTACHMENT
-            attachments.push({
-              filename: logo.name,
-              content: logo.image.url.split(";base64,").pop(),
-              encoding: "base64",
-            });
-            logoDetails += "   File: attached\n\n";
-          } else {
-            // DEFAULT LOGO → URL TEXT
-            logoDetails += `   URL: ${logo.image.url}\n\n`;
-          }
-        });
-      }
-    });
-
-    // Email body text
-    const emailMessage = `
-🛍 New Order Created
-
-Order ID: ${pendingOrder.orderId}
-Customer: ${shippingInfo.fullName}
-Phone: ${shippingInfo.phone}
-Email: ${shippingInfo.email}
-
-${
-  logoDetails
-    ? "---- LOGO DETAILS ----\n" + logoDetails
-    : "No custom logos selected."
-}
-
-Total Price: ৳${totalPrice}
-Remaining: ৳${cashOnDelivery}
-`;
-    // await sendNotify({
-    //   title: "Your Order Placed Successfully",
-    //   message: `Your order #${pendingOrder.orderId} has been placed successfully!`,
-    //   users: [req.user._id],
-    // });
-    // Send the email
-    const Admins = await User.find(
-      { role: { $in: ["super-admin", "admin", "user-admin"] } },
-      { _id: 1 }
-    );
-
-    // Extract only IDs
-    const AdminIds = Admins.map((admin) => admin._id);
-    await sendNotify({
-      title: "New Order Created",
-      message: `A new order #${pendingOrder.orderId} has been created.`,
-      users: AdminIds,
-    });
-    await sendEmail({
-      email: process.env.SMTP_MAIL, // your admin email
-      subject: `New Order Created – #${pendingOrder.orderId}`,
-      message: emailMessage,
-      attachments: attachments,
-    });
-    // After order creation, before sending response
-
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully",
-      order: pendingOrder,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to create order",
-      error: error.message,
-    });
+const {
+  createOrderData,
+  updateCouponUsedCount,
+  sendAdminNotifications,
+  generateLogoDetailsForEmail,
+} = require("../shared/helpers");
+// creaete Order
+const createOrder = catchAsyncErrors(async (req, res, next) => {
+  const orderData = req.body;
+  if (!orderData?.shippingInfo) {
+    return next(new ErrorHandler("Shipping information missing", 400));
   }
-};
+
+  if (!orderData?.orderItems || orderData.orderItems.length === 0) {
+    return next(new ErrorHandler("No order items found", 400));
+  }
+
+  const orderPayload = await createOrderData(req, orderData);
+  // console.log(orderPayload);
+  // res.status(201).json({
+  //   success: true,
+  //   message: "Order data validated successfully",
+  //   orderItems: orderPayload.orderItems,
+  // });
+  const pendingOrder = await Order.create({
+    ...orderPayload,
+    expiresAt: null,
+  });
+
+  if (pendingOrder.coupon?.code) {
+    await updateCouponUsedCount(pendingOrder.coupon.code);
+  }
+
+  await sendAdminNotifications(pendingOrder.orderId);
+
+  res.status(201).json({
+    success: true,
+    message: "Order created successfully",
+    order: pendingOrder,
+  });
+});
 // get Single Order
 const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
@@ -163,7 +60,7 @@ const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   // Check if the order belongs to the logged-in user
   if (order.userData.userId.toString() !== req.user._id.toString()) {
     return next(
-      new ErrorHandler("You are not authorized to view this order", 403)
+      new ErrorHandler("You are not authorized to view this order", 403),
     );
   }
 
@@ -653,13 +550,13 @@ const cancelOrder = catchAsyncErrors(async (req, res, next) => {
 
   if (hoursDifference > 12) {
     return next(
-      new ErrorHandler("Order can only be cancelled within 12 hours", 400)
+      new ErrorHandler("Order can only be cancelled within 12 hours", 400),
     );
   }
 
   if (order.orderStatus !== "pending") {
     return next(
-      new ErrorHandler("Order cannot be cancelled at this stage", 400)
+      new ErrorHandler("Order cannot be cancelled at this stage", 400),
     );
   }
 
@@ -692,14 +589,17 @@ const requestRefund = catchAsyncErrors(async (req, res, next) => {
   // Check if order is cancelled
   if (order.orderStatus !== "cancel") {
     return next(
-      new ErrorHandler("Refund can only be requested for cancelled orders", 400)
+      new ErrorHandler(
+        "Refund can only be requested for cancelled orders",
+        400,
+      ),
     );
   }
 
   // Check if refund already requested
   if (order.refund_request) {
     return next(
-      new ErrorHandler("Refund already requested for this order", 400)
+      new ErrorHandler("Refund already requested for this order", 400),
     );
   }
 

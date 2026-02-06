@@ -3,7 +3,7 @@ import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, createBlog } from "../../actions/blogAction";
 import MetaData from "../../component/layout/MetaData";
 import { NEW_BLOG_RESET } from "../../constants/blogContants";

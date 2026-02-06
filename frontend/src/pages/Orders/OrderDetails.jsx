@@ -17,8 +17,8 @@ import {
 } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import slugify from "slugify";
+import { toast } from "sonner";
 import {
   cancelOrder,
   clearErrors,
@@ -56,7 +56,7 @@ const OrderDetails = () => {
       try {
         const promises = order.orderItems.map(async (item) => {
           const res = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/v1/product/id/${item.id}`
+            `${import.meta.env.VITE_API_URL}/api/v1/product/id/${item.id}`,
           );
 
           const data = res.data; // axios automatically parses JSON
@@ -126,7 +126,7 @@ const OrderDetails = () => {
             "Secret-Key": import.meta.env.VITE_STEADFAST_SECRET_KEY,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -338,7 +338,7 @@ const OrderDetails = () => {
 
     if (remainingHours > 0) {
       return `${Math.floor(remainingHours)}h ${Math.floor(
-        (remainingHours % 1) * 60
+        (remainingHours % 1) * 60,
       )}m`;
     }
     return null;
@@ -482,7 +482,7 @@ const OrderDetails = () => {
                 </div>
                 <span
                   className={`px-3 py-2 inline-flex text-sm font-semibold rounded-full ${getStatusColor(
-                    order.orderStatus
+                    order.orderStatus,
                   )}`}
                 >
                   {order.orderStatus || "Pending"}
@@ -509,7 +509,7 @@ const OrderDetails = () => {
                 </div>
                 <span
                   className={`px-3 py-2 inline-flex text-sm font-semibold rounded-full ${getPaymentStatusColor(
-                    order.paymentInfo?.status
+                    order.paymentInfo?.status,
                   )}`}
                 >
                   {order.paymentInfo?.status || "Pending"}
@@ -574,7 +574,7 @@ const OrderDetails = () => {
                       <span
                         className={`px-3 py-1 text-sm font-semibold rounded-full ${getTrackingStatusColor(
                           trackingStatus.delivery_status ||
-                            trackingStatus.status
+                            trackingStatus.status,
                         )}`}
                       >
                         {trackingStatus.delivery_status || trackingStatus.status
@@ -597,7 +597,7 @@ const OrderDetails = () => {
                         <p>
                           {getStatusMeaning(
                             trackingStatus.delivery_status ||
-                              trackingStatus.status
+                              trackingStatus.status,
                           )}
                         </p>
                       </div>

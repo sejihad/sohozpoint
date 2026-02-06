@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   createCustomLogoCharge,
@@ -22,7 +22,7 @@ const AllCustomLogoCharges = () => {
 
   const { charge } = useSelector((state) => state.customLogocharge);
   const { loading, error, success } = useSelector(
-    (state) => state.newCustomLogoCharge
+    (state) => state.newCustomLogoCharge,
   );
   const {
     error: updateDeleteError,

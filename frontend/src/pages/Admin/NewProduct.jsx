@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiCheck, FiPlus, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getBrands } from "../../actions/brandAction";
 import { getCategory } from "../../actions/categoryAction";
 import { getGenders } from "../../actions/genderAction";
@@ -339,7 +339,7 @@ const NewProduct = () => {
     });
     // Get category names
     const selectedCategory = categories.find(
-      (cat) => cat._id === formData.category
+      (cat) => cat._id === formData.category,
     );
     if (selectedCategory) {
       data.set("category", selectedCategory.name);
@@ -348,7 +348,7 @@ const NewProduct = () => {
     // Get subcategory name
     if (formData.subCategory) {
       const selectedSubCategory = subcategories.find(
-        (sub) => sub._id === formData.subCategory
+        (sub) => sub._id === formData.subCategory,
       );
       if (selectedSubCategory) {
         data.set("subCategory", selectedSubCategory.name);
@@ -358,7 +358,7 @@ const NewProduct = () => {
     // Get subsubcategory name
     if (formData.subsubCategory) {
       const selectedSubsubCategory = subsubcategories.find(
-        (subsub) => subsub._id === formData.subsubCategory
+        (subsub) => subsub._id === formData.subsubCategory,
       );
       if (selectedSubsubCategory) {
         data.set("subsubCategory", selectedSubsubCategory.name);

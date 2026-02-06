@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"; // ✅ useEffect add করুন
 import { FiGlobe, FiImage, FiLink, FiSend, FiUsers } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { adminSendNotification } from "../../actions/notifyAction"; // ✅ path ঠিক করুন
 import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
@@ -12,7 +12,7 @@ const AllNotifies = () => {
 
   // Redux states
   const { users, loading: usersLoading } = useSelector(
-    (state) => state.allUsers
+    (state) => state.allUsers,
   );
   const {
     success: sendSuccess,
@@ -56,7 +56,7 @@ const AllNotifies = () => {
           (user) =>
             user.name?.toLowerCase().includes(search.toLowerCase()) ||
             user.email?.toLowerCase().includes(search.toLowerCase()) ||
-            (user.userCode && user.userCode.includes(search))
+            (user.userCode && user.userCode.includes(search)),
         )
         .slice(0, 10);
       setFilteredUsers(filtered || []);

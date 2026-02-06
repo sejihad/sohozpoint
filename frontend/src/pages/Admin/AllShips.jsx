@@ -9,7 +9,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getAdminProduct } from "../../actions/productAction";
 import {
   clearErrors,
@@ -147,7 +147,7 @@ const AllShips = () => {
       toast.success(
         editId
           ? "Shipping settings updated successfully"
-          : "Shipping settings created successfully"
+          : "Shipping settings created successfully",
       );
       dispatch({ type: NEW_SHIP_RESET });
       resetForm();
@@ -186,7 +186,7 @@ const AllShips = () => {
         ?.filter(
           (product) =>
             product.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
-            product._id?.includes(productSearch)
+            product._id?.includes(productSearch),
         )
         .slice(0, 10);
       setFilteredProducts(filtered || []);
@@ -204,7 +204,7 @@ const AllShips = () => {
             user.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
             user.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
             (user.userCode && user.userCode.includes(userSearch)) ||
-            user._id?.includes(userSearch)
+            user._id?.includes(userSearch),
         )
         .slice(0, 10);
       setFilteredUsers(filtered || []);
@@ -215,7 +215,7 @@ const AllShips = () => {
   const getAvailableDistricts = () => {
     const existingDistricts = ships?.map((ship) => ship.district) || [];
     return manualDistricts.filter(
-      (district) => !existingDistricts.includes(district)
+      (district) => !existingDistricts.includes(district),
     );
   };
 
@@ -270,7 +270,7 @@ const AllShips = () => {
       district: formData.district,
       appliesTo: formData.appliesTo,
       products: formData.products.map((p) =>
-        typeof p === "string" ? p : p._id
+        typeof p === "string" ? p : p._id,
       ),
       allowedUsersType: formData.allowedUsersType,
       allowedUsers: formData.allowedUsers.map((u) => u._id),
@@ -300,7 +300,7 @@ const AllShips = () => {
   const handleDelete = (id) => {
     if (
       window.confirm(
-        "Are you sure you want to delete these shipping settings? This action cannot be undone."
+        "Are you sure you want to delete these shipping settings? This action cannot be undone.",
       )
     ) {
       dispatch(deleteShip(id));

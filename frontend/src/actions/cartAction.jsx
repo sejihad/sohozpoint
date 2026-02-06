@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   ADD_TO_CART_FAIL,
   ADD_TO_CART_REQUEST,
@@ -24,7 +24,7 @@ export const addItemsToCart =
       const { data } = await axios.post(
         `${API_URL}/api/v1/cart/add`,
         { productId, quantity, size, color, selectedImageUrl },
-        config
+        config,
       );
 
       dispatch({

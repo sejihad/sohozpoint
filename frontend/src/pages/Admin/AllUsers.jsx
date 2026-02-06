@@ -14,7 +14,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, deleteUser, getAllUsers } from "../../actions/userAction";
 import Loader from "../../component/layout/Loader/Loader";
 import { DELETE_USER_RESET } from "../../constants/userContants";
@@ -24,7 +24,7 @@ const AllUsers = () => {
   const dispatch = useDispatch();
   const { users, error, loading } = useSelector((state) => state.allUsers);
   const { error: deleteError, isDeleted } = useSelector(
-    (state) => state.profile
+    (state) => state.profile,
   );
 
   // Search state
@@ -63,7 +63,7 @@ const AllUsers = () => {
       if (roleFilter) {
         filtered = filtered.filter(
           (user) =>
-            user.role && user.role.toLowerCase() === roleFilter.toLowerCase()
+            user.role && user.role.toLowerCase() === roleFilter.toLowerCase(),
         );
       }
 
@@ -72,7 +72,7 @@ const AllUsers = () => {
         filtered = filtered.filter(
           (user) =>
             user.status &&
-            user.status.toLowerCase() === statusFilter.toLowerCase()
+            user.status.toLowerCase() === statusFilter.toLowerCase(),
         );
       }
 

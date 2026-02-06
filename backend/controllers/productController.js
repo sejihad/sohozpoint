@@ -354,7 +354,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
 
       // 4️⃣ Remaining old images (যেগুলো delete হয়নি)
       const remainingImages = product.images.filter(
-        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id)
+        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id),
       );
 
       // 5️⃣ Final image array (old + new)
@@ -381,7 +381,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
 
       // Remove from database array
       updateData.images = product.images.filter(
-        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id)
+        (img) => !imagesToDelete.some((del) => del.public_id === img.public_id),
       );
     } catch (error) {
       return res.status(500).json({
@@ -399,7 +399,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
       new: true,
       runValidators: true,
       useFindAndModify: false,
-    }
+    },
   );
 
   res.status(200).json({
@@ -572,7 +572,7 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
 
 const getProductDetails = catchAsyncErrors(async (req, res, next) => {
   let product = await Product.findOne({ slug: req.params.slug }).populate(
-    "logos"
+    "logos",
   ); // <-- Populate logos
 
   if (!product) {
@@ -615,7 +615,7 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
       // Maximum 5 ta image check
       if (files.length > 5) {
         return next(
-          new ErrorHandler("Maximum 5 images allowed for review", 400)
+          new ErrorHandler("Maximum 5 images allowed for review", 400),
         );
       }
 
@@ -631,7 +631,7 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
               { quality: "auto" },
               { format: "webp" },
             ],
-          }
+          },
         );
         return {
           public_id: result.public_id,
@@ -675,7 +675,7 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
 
 const getReviews = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id).populate(
-    "reviews.user"
+    "reviews.user",
   );
 
   if (!product) {
@@ -726,7 +726,7 @@ const updateReview = catchAsyncErrors(async (req, res, next) => {
       // Maximum 5 ta image check
       if (files.length > 5) {
         return next(
-          new ErrorHandler("Maximum 5 images allowed for review", 400)
+          new ErrorHandler("Maximum 5 images allowed for review", 400),
         );
       }
 
@@ -741,7 +741,7 @@ const updateReview = catchAsyncErrors(async (req, res, next) => {
               { quality: "auto" },
               { format: "webp" },
             ],
-          }
+          },
         );
         return {
           public_id: result.public_id,
@@ -783,7 +783,7 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
 
   // Find the review to be deleted
   const reviewToDelete = product.reviews.find(
-    (rev) => rev._id.toString() === req.params.reviewId.toString()
+    (rev) => rev._id.toString() === req.params.reviewId.toString(),
   );
 
   if (!reviewToDelete) {
@@ -806,7 +806,7 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
 
   // Filter out the review to be deleted
   const reviews = product.reviews.filter(
-    (rev) => rev._id.toString() !== req.params.reviewId.toString()
+    (rev) => rev._id.toString() !== req.params.reviewId.toString(),
   );
 
   // Calculate new average rating
@@ -834,7 +834,7 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
       new: true,
       runValidators: true,
       useFindAndModify: false,
-    }
+    },
   );
 
   res.status(200).json({

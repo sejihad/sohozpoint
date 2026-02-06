@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   loadUser,
@@ -11,7 +11,7 @@ const Setting = () => {
   const dispatch = useDispatch();
 
   const { user, loading, error, message, success } = useSelector(
-    (state) => state.user
+    (state) => state.user,
   );
   const twoFactorEnabled = user?.isTwoFactorEnabled;
 

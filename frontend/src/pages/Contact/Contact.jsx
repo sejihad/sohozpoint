@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FiFileText, FiMail, FiUser } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { clearErrors, ContactUs } from "../../actions/userAction";
 import MetaData from "../../component/layout/MetaData";
 import { CONTACT_USER_RESET } from "../../constants/userContants";

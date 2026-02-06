@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import Turnstile from "react-turnstile"; // ✅ added
+import { toast } from "sonner";
 import {
   clearErrors,
   login,
@@ -98,7 +98,7 @@ const Login = () => {
     e.preventDefault();
     if (!agreeTerms) {
       toast.error(
-        "Please agree to the Terms and Conditions before registering."
+        "Please agree to the Terms and Conditions before registering.",
       );
       return;
     }

@@ -11,7 +11,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getAdminSubcategories } from "../../actions/subcategoryAction";
 import {
   clearErrors,
@@ -33,10 +33,10 @@ const SubsubcategoryManager = () => {
 
   const { subcategories } = useSelector((state) => state.subcategories);
   const { subsubcategories, loading: subsubcategoriesLoading } = useSelector(
-    (state) => state.subsubcategories
+    (state) => state.subsubcategories,
   );
   const { loading, error, success } = useSelector(
-    (state) => state.newSubsubcategory
+    (state) => state.newSubsubcategory,
   );
   const {
     error: updateDeleteError,
@@ -156,7 +156,7 @@ const SubsubcategoryManager = () => {
   const filteredSubsubcategories =
     subsubcategories && Array.isArray(subsubcategories)
       ? subsubcategories.filter((subsub) =>
-          subsub.name.toLowerCase().includes(searchTerm.toLowerCase())
+          subsub.name.toLowerCase().includes(searchTerm.toLowerCase()),
         )
       : [];
 
@@ -180,7 +180,7 @@ const SubsubcategoryManager = () => {
       acc[subcategoryName].push(subsub);
       return acc;
     },
-    {}
+    {},
   );
 
   const handleSort = (key) => {
@@ -473,7 +473,7 @@ const SubsubcategoryManager = () => {
                               <p className="text-xs text-gray-400 mt-1">
                                 Created:{" "}
                                 {new Date(
-                                  subsub.createdAt
+                                  subsub.createdAt,
                                 ).toLocaleDateString()}
                               </p>
                             </div>
@@ -481,7 +481,7 @@ const SubsubcategoryManager = () => {
                         </div>
                       </div>
                     </div>
-                  )
+                  ),
                 )}
               </div>
             ) : (

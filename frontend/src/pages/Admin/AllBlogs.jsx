@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   deleteBlog,

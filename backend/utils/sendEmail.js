@@ -12,7 +12,8 @@ const sendEmail = async (options) => {
   });
 
   const mailOptions = {
-    from: process.env.SMTP_MAIL,
+    from: `"Sohoz Point" <${process.env.SMTP_MAIL}>`,
+
     to: options.email,
     subject: options.subject,
     text: options.message,

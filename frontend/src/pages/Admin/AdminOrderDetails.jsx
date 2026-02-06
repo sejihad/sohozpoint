@@ -2,7 +2,7 @@ import html2pdf from "html2pdf.js";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   getAdminOrderDetails,
@@ -764,7 +764,7 @@ const AdminOrderDetails = () => {
                     </h3>
                     <span
                       className={`inline-flex mt-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(
-                        order.orderStatus
+                        order.orderStatus,
                       )}`}
                     >
                       {order.orderStatus}
@@ -1024,7 +1024,7 @@ const AdminOrderDetails = () => {
                       <p className="font-medium text-green-800">
                         -৳
                         {formatPrice(
-                          order.coupon.discountAmount || order.couponDiscount
+                          order.coupon.discountAmount || order.couponDiscount,
                         )}
                       </p>
                     </div>

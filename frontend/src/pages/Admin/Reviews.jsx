@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   clearErrors,
   deleteReview,
@@ -70,14 +70,14 @@ const Reviews = () => {
   const { reviews, loading, error } = useSelector((state) => state.reviews);
   const { product } = useSelector((state) => state.productDetails);
   const { isDeleted, error: deleteError } = useSelector(
-    (state) => state.review
+    (state) => state.review,
   );
   const { user } = useSelector((state) => state.user);
   const { success: reviewSubmitted, error: newReviewError } = useSelector(
-    (state) => state.newReview
+    (state) => state.newReview,
   );
   const { success: reviewUpdated, error: updateError } = useSelector(
-    (state) => state.reviewUpdate
+    (state) => state.reviewUpdate,
   );
 
   useEffect(() => {

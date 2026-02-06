@@ -13,7 +13,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { getAllUsers } from "../../actions/userAction";
 import MetaData from "../../component/layout/MetaData";
 import Sidebar from "./Sidebar";
@@ -62,7 +62,7 @@ const UserEmails = () => {
       // 24 hours er users filter korlam
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const recentUsers = userEmails.filter(
-        (user) => new Date(user.createdAt) > twentyFourHoursAgo
+        (user) => new Date(user.createdAt) > twentyFourHoursAgo,
       );
       setRecentUsers(recentUsers);
     }
@@ -71,7 +71,7 @@ const UserEmails = () => {
   useEffect(() => {
     if (searchTerm) {
       const filtered = emails.filter((user) =>
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()),
       );
       setFilteredEmails(filtered);
     } else {
@@ -79,7 +79,7 @@ const UserEmails = () => {
     }
   }, [searchTerm, emails]);
   const pastedOnlyRecipients = emailData.recipients.filter(
-    (email) => !emails.some((u) => u.email === email)
+    (email) => !emails.some((u) => u.email === email),
   );
 
   const parseEmailsFromText = (text) => {
@@ -286,12 +286,12 @@ const UserEmails = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (data.success) {
         toast.success(
-          `Email sent to ${emailData.recipients.length} recipients successfully!`
+          `Email sent to ${emailData.recipients.length} recipients successfully!`,
         );
         closeEmailModal();
         setAttachments([]);
@@ -301,7 +301,7 @@ const UserEmails = () => {
     } catch (error) {
       toast.error(
         "Failed to send email: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     } finally {
       setIsSending(false);
@@ -606,7 +606,7 @@ const UserEmails = () => {
                             setEmailData((prev) => ({
                               ...prev,
                               recipients: prev.recipients.filter(
-                                (e) => e !== email
+                                (e) => e !== email,
                               ),
                             }))
                           }
