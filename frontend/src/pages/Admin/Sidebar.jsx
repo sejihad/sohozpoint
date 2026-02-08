@@ -82,7 +82,7 @@ const Sidebar = () => {
 
       {/* Sidebar for Mobile */}
       <div
-        className={`md:hidden fixed top-16 left-0 h-full z-40 transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed top-16 pb-12 left-0 h-full z-40 transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
