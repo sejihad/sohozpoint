@@ -31,7 +31,7 @@ const Shop = () => {
 
   // Redux states
   const { loading, products, totalCount, page } = useSelector(
-    (state) => state.products
+    (state) => state.products,
   );
 
   const { categories } = useSelector((state) => state.categories);
@@ -226,7 +226,7 @@ const Shop = () => {
     // subsubcategory
     if (params.subsub) {
       const subsubcategory = subsubcategories?.find(
-        (s) => s.slug === params.subsub
+        (s) => s.slug === params.subsub,
       );
       if (subsubcategory) {
         setFilters((prev) => ({ ...prev, subsubCategory: subsubcategory._id }));
@@ -274,7 +274,7 @@ const Shop = () => {
       // Clear All এর ক্ষেত্রে বিশেষ হ্যান্ডেলিং
       const isClearAll = Object.keys(params).length === 0;
       const hasFilterChanged = Object.keys(params).some(
-        (key) => key !== "page" && params[key]
+        (key) => key !== "page" && params[key],
       );
 
       if (isClearAll || hasFilterChanged) {
@@ -326,19 +326,19 @@ const Shop = () => {
               getProduct({
                 ...params, // 🔥 বর্তমান ফিল্টার রাখুন
                 page: nextPage,
-              })
+              }),
             );
           }
         },
         {
           threshold: 0.1,
           rootMargin: "200px",
-        }
+        },
       );
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, page, dispatch] // 🔥 location.search যোগ করার দরকার নেই
+    [loading, hasMore, page, dispatch], // 🔥 location.search যোগ করার দরকার নেই
   );
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
@@ -500,7 +500,7 @@ const Shop = () => {
 
     return (
       subcategories?.filter(
-        (subCat) => subCat.category?._id === filters.category
+        (subCat) => subCat.category?._id === filters.category,
       ) || []
     );
   };
@@ -510,7 +510,7 @@ const Shop = () => {
     if (!filters.subCategory) return [];
     return (
       subsubcategories?.filter(
-        (subSubCat) => subSubCat.subcategory?._id === filters.subCategory
+        (subSubCat) => subSubCat.subcategory?._id === filters.subCategory,
       ) || []
     );
   };
@@ -519,7 +519,7 @@ const Shop = () => {
   const getActiveFiltersCount = () => {
     const params = getFiltersFromURL();
     return Object.keys(params).filter(
-      (key) => !["page", "limit"].includes(key) && params[key]
+      (key) => !["page", "limit"].includes(key) && params[key],
     ).length;
   };
 
@@ -827,8 +827,8 @@ const Shop = () => {
   );
 
   return (
-    <section className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <section className="min-h-screen container bg-gray-50">
+      <div className=" mx-auto px-4 py-8">
         {/* Mobile Filter Button */}
         <div className="lg:hidden mb-4">
           <button
@@ -915,7 +915,7 @@ const Shop = () => {
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
                       Sub Sub:{" "}
                       {subsubcategories?.find(
-                        (s) => s.slug === query.get("subsub")
+                        (s) => s.slug === query.get("subsub"),
                       )?.name || query.get("subsub")}
                       <button
                         onClick={() => updateURL({}, ["subsub"])}
@@ -979,7 +979,7 @@ const Shop = () => {
                   <p className="text-gray-500 mb-6">
                     {query.get("s")
                       ? `We couldn't find any products matching "${query.get(
-                          "s"
+                          "s",
                         )}". Try adjusting your search or filters.`
                       : "There are currently no products available in this category."}
                   </p>
@@ -1019,12 +1019,6 @@ const Shop = () => {
                 {loading && page > 1 && (
                   <div className="text-center py-4">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                  </div>
-                )}
-
-                {!hasMore && products.length > 0 && (
-                  <div className="text-center py-4 text-gray-500">
-                    No more products to load
                   </div>
                 )}
               </>

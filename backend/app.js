@@ -29,6 +29,7 @@ const meta = require("./routes/metaRoute");
 const notify = require("./routes/notifyRoute");
 require("./jobs/notificationCleanup");
 const order = require("./routes/orderRoute");
+const admin = require("./routes/adminRoute");
 
 dotenv.config();
 require("./config/passport");
@@ -52,12 +53,13 @@ app.use(
       "https://www.sohozpoint.com",
     ],
     credentials: true,
-  })
+  }),
 );
 
 // API Routes
 
 app.use("/api/v1", user);
+app.use("/api/v1", admin);
 app.use("/api/v1", blog);
 app.use("/api/v1", category);
 app.use("/api/v1", subcategory);

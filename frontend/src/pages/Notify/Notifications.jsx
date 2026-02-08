@@ -100,7 +100,7 @@ const Notifications = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen container flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-4">
           <Bell size={64} className="mx-auto mb-6 text-gray-400" />
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
@@ -121,7 +121,7 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-10">
+    <div className="min-h-screen container bg-gray-50 pt-20 pb-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="mb-8">

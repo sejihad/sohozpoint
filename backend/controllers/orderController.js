@@ -176,7 +176,7 @@ Sohoz Point Team
       message: `Your order #${order.orderId} has been confirmed!`,
       users: [order.userData.userId],
     });
-    await sendEmail({
+    sendEmail({
       email: order.userData.email,
       subject: emailSubject,
       message: emailMessage,
@@ -225,7 +225,7 @@ Sohoz Point Team
         message: `Your order #${order.orderId} is out for delivery!`,
         users: [order.userData.userId],
       });
-      await sendEmail({
+      sendEmail({
         email: order.userData.email,
         subject: emailSubject,
         message: emailMessage,
@@ -257,7 +257,7 @@ Best regards,
 Sohoz Point Team
     `;
 
-      await sendEmail({
+      sendEmail({
         email: order.userData.email,
         subject: emailSubject,
         message: emailMessage,
@@ -303,7 +303,7 @@ Sohoz Point Team
       message: `Your order #${order.orderId} is now processing!`,
       users: [order.userData.userId],
     });
-    await sendEmail({
+    sendEmail({
       email: order.userData.email,
       subject: emailSubject,
       message: emailMessage,
@@ -379,7 +379,7 @@ Sohoz Point Team
       message: `Your order #${order.orderId} has been delivered!`,
       users: [order.userData.userId],
     });
-    await sendEmail({
+    sendEmail({
       email: order.userData.email,
       subject: emailSubject,
       message: emailMessage,
@@ -448,7 +448,7 @@ Sohoz Point Team
       users: [order.userData.userId],
     });
     try {
-      await sendEmail({
+      sendEmail({
         email: order.userData.email,
         subject: emailSubject,
         message: emailMessage,
@@ -495,7 +495,7 @@ Sohoz Point Team
       message: `Your order #${order.orderId} has been cancelled!`,
       users: [order.userData.userId],
     });
-    await sendEmail({
+    sendEmail({
       email: order.userData.email,
       subject: emailSubject,
       message: emailMessage,

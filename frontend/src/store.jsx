@@ -74,6 +74,7 @@ import {
   customLogochargesReducer,
   newCustomLogoChargeReducer,
 } from "./reducers/customLogoChargeReducer";
+import { dashboardReducer } from "./reducers/dashboardReducer";
 import {
   genderDetailsReducer,
   genderReducer,
@@ -240,6 +241,9 @@ const rootReducer = combineReducers({
   // notify
   notify: notifyReducer,
   sendNotification: sendNotificationReducer,
+
+  // admin
+  dashboard: dashboardReducer,
 });
 
 // Create persisted reducer
@@ -255,7 +259,7 @@ const store = createStore(
   persistedReducer,
   initialState,
   // applyMiddleware(...middleware),
-  composeWithDevTools(applyMiddleware(...middleware))
+  composeWithDevTools(applyMiddleware(...middleware)),
 );
 
 // Persistor

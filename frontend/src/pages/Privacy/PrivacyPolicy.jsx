@@ -2,7 +2,7 @@ import { Globe, Lock, Mail, MapPin, Phone, Shield } from "lucide-react";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="bg-white text-gray-800">
+    <div className="bg-white container text-gray-800">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 py-16 text-center">
         <div className="container mx-auto px-4">

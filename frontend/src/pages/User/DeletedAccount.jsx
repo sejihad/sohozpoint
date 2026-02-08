@@ -4,13 +4,13 @@ import { FiAlertTriangle } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-const SuspendedAccount = () => {
+const DeletedAccount = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
 
   useEffect(() => {
-    if (user && user.status !== "suspended") {
+    if (user && user.status !== "deleted") {
       navigate("/");
     }
   }, [user, navigate]);
@@ -25,13 +25,13 @@ const SuspendedAccount = () => {
               <FiAlertTriangle className="h-10 w-10 sm:h-10 sm:w-10" />
             </div>
           </div>
-          <h1 className="text-xl sm:text-xl font-bold">Account Suspended</h1>
+          <h1 className="text-xl sm:text-xl font-bold">Account Deleted</h1>
         </div>
 
         {/* Content */}
         <div className="p-5 sm:p-8 md:p-10">
           {/* User Info */}
-          {user && (
+          {/* {user && (
             <div className="mb-6 sm:mb-8 p-4 bg-gray-50 rounded-lg">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                 <img
@@ -44,7 +44,7 @@ const SuspendedAccount = () => {
                     {user.name}
                   </h2>
                   <p className="text-sm sm:text-base text-gray-600 break-all">
-                    {user.email}
+                    ********@gmail.com
                   </p>
                   <p className="text-xs sm:text-sm text-gray-500">
                     User Code: {user.userCode}
@@ -52,37 +52,26 @@ const SuspendedAccount = () => {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Suspension Details */}
+          {/* Deletion Details */}
           <div>
             <div className="flex items-center mb-4">
               <div className="bg-red-100 p-2 rounded-lg mr-3">
                 <FiAlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                Suspension Details
+                Deletion Details
               </h2>
             </div>
 
             {/* Reason */}
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <h3 className="font-semibold text-sm sm:text-base text-red-700 mb-2">
-                Reason for Suspension:
+                Reason for Deletion:
               </h3>
               <p className="text-sm sm:text-base text-red-600">
                 {user?.reason || "Violation of our terms and conditions"}
-              </p>
-            </div>
-
-            {/* Next Steps */}
-            <div>
-              <h3 className="font-semibold text-sm sm:text-base text-gray-700 mb-2">
-                What to do next?
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600">
-                If you believe this suspension is a mistake, or if you would
-                like to appeal the decision, please contact our support team.
               </p>
             </div>
           </div>
@@ -92,4 +81,4 @@ const SuspendedAccount = () => {
   );
 };
 
-export default SuspendedAccount;
+export default DeletedAccount;

@@ -2,8 +2,6 @@ import { Bell, Home, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   FaAngleDown,
-  FaCog,
-  FaLock,
   FaShoppingBag,
   FaSignOutAlt,
   FaTachometerAlt,
@@ -47,13 +45,13 @@ const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const { cartItems = [] } = useSelector((state) => state.cart);
   const { categories, loading: categoriesLoading } = useSelector(
-    (state) => state.categories
+    (state) => state.categories,
   );
 
   // Unread notification count - if you have notifications in Redux state
   const { notifications = [] } = useSelector((state) => state.notify || {});
   const unreadCount = notifications.filter(
-    (notification) => !notification.isRead
+    (notification) => !notification.isRead,
   ).length;
 
   useEffect(() => {
@@ -65,7 +63,7 @@ const Header = () => {
   useEffect(() => {
     const cartCount = cartItems.reduce(
       (total, item) => total + (item.quantity || 1),
-      0
+      0,
     );
     setCartItemCount(cartCount);
   }, [cartItems]);
@@ -357,7 +355,7 @@ const Header = () => {
                         Profile
                       </Link>
 
-                      {user?.provider === "local" && (
+                      {/* {user?.provider === "local" && (
                         <Link
                           to="/profile/setting"
                           onClick={() => setShowDesktopUserMenu(false)}
@@ -370,7 +368,7 @@ const Header = () => {
                           <FaLock className="text-base" />
                           Security
                         </Link>
-                      )}
+                      )} */}
 
                       <Link
                         to="/orders"
@@ -500,7 +498,7 @@ const Header = () => {
                         Profile
                       </Link>
 
-                      {user?.provider === "local" && (
+                      {/* {user?.provider === "local" && (
                         <Link
                           to="/profile/setting"
                           onClick={() => setShowMobileUserMenu(false)}
@@ -513,7 +511,7 @@ const Header = () => {
                           <FaCog className="text-base" />
                           Security
                         </Link>
-                      )}
+                      )} */}
 
                       <Link
                         to="/orders"

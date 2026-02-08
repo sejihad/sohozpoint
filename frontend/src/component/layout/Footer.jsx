@@ -285,7 +285,7 @@ const Footer = () => {
                   />
                 </svg>
                 <span className="text-sm">
-                  73, NilerPara, Joydebpur; Gazipur Sadar, Bangladesh
+                  73, NilerPara, Joydebpur, Gazipur Sadar, Bangladesh
                 </span>
               </li>
               <li className="flex items-center">

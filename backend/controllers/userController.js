@@ -102,13 +102,13 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
   const tokenValid = await verifyTurnstile(cfToken, req.ip);
   if (!tokenValid) {
     return next(
-      new ErrorHandler("Human verification failed. Please try again.", 400)
+      new ErrorHandler("Human verification failed. Please try again.", 400),
     );
   }
 
   if (!email || !password) {
     return next(
-      new ErrorHandler("Please enter email or number and password", 400)
+      new ErrorHandler("Please enter email or number and password", 400),
     );
   }
   const query = email.includes("@") ? { email: email } : { number: email };
@@ -116,7 +116,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler("Account doesn't exist. Please register first.", 404)
+      new ErrorHandler("Account doesn't exist. Please register first.", 404),
     );
   }
 
@@ -217,7 +217,7 @@ const googleLoginCallback = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler("Google authentication failed. Please try again.", 401)
+      new ErrorHandler("Google authentication failed. Please try again.", 401),
     );
   }
   if (user.isNewUser) {
@@ -253,7 +253,7 @@ const googleLoginCallback = catchAsyncErrors(async (req, res, next) => {
   // Cookie set করা
   res.cookie("token", token, {
     expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -269,7 +269,10 @@ const facebookLoginCallback = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler("Facebook authentication failed. Please try again.", 401)
+      new ErrorHandler(
+        "Facebook authentication failed. Please try again.",
+        401,
+      ),
     );
   }
 
@@ -278,7 +281,7 @@ const facebookLoginCallback = catchAsyncErrors(async (req, res, next) => {
   // Cookie set করা
   res.cookie("token", token, {
     expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -334,7 +337,7 @@ const forgotPassword = catchAsyncErrors(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     return next(
-      new ErrorHandler("Email could not be sent. Please try again later.", 500)
+      new ErrorHandler("Email could not be sent. Please try again later.", 500),
     );
   }
 });
@@ -353,7 +356,7 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler("Reset Password Token is invalid or has expired", 400)
+      new ErrorHandler("Reset Password Token is invalid or has expired", 400),
     );
   }
 
@@ -409,7 +412,7 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
     // Remove "data:image/png;base64,"
     const base64Data = Buffer.from(
       avatar.replace(/^data:.+;base64,/, ""),
-      "base64"
+      "base64",
     );
 
     // Create fake file object for uploadToS3
@@ -465,7 +468,7 @@ const deleteUser = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler(`User does not exist with Id: ${req.params.id}`, 400)
+      new ErrorHandler(`User does not exist with Id: ${req.params.id}`, 400),
     );
   }
 
@@ -489,7 +492,7 @@ const updateUser = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler(`User does not exist with Id: ${req.params.id}`, 400)
+      new ErrorHandler(`User does not exist with Id: ${req.params.id}`, 400),
     );
   }
 
@@ -498,13 +501,13 @@ const updateUser = catchAsyncErrors(async (req, res, next) => {
     user.role = role;
   }
 
-  // status update (active / suspended)
   if (status) {
     user.status = status;
 
-    // যদি suspended হয়, reason সেট করা হবে
     if (status === "suspended") {
       user.reason = reason || "Violation of rules";
+    } else if (status === "deleted") {
+      user.reason = reason || "User requested deletion";
     } else {
       user.reason = null; // active হলে reason clear
     }
@@ -532,7 +535,7 @@ const getSingleUser = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler(`User does not exist with Id: ${req.params.id}`)
+      new ErrorHandler(`User does not exist with Id: ${req.params.id}`),
     );
   }
 

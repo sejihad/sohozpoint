@@ -124,12 +124,17 @@ const UserDetails = () => {
 
     if (status && status !== user.status) {
       userData.status = status;
-      if (status === "suspended" && reason.trim()) {
-        userData.reason = reason;
-      } else if (status === "active") {
+
+      // reason common logic
+      if (status === "active") {
         userData.reason = null;
+      } else {
+        userData.reason = reason?.trim() || "No reason provided";
       }
-    } else if (status === "suspended" && reason.trim()) {
+    }
+
+    // status same কিন্তু reason change
+    if (status && status === user.status && reason?.trim()) {
       userData.reason = reason;
     }
 
@@ -166,6 +171,8 @@ const UserDetails = () => {
       case "active":
         return "bg-green-100 text-green-800 border border-green-200";
       case "suspended":
+        return "bg-red-100 text-red-800 border border-red-200";
+      case "deleted":
         return "bg-red-100 text-red-800 border border-red-200";
       default:
         return "bg-gray-100 text-gray-800 border border-gray-200";
@@ -331,16 +338,20 @@ const UserDetails = () => {
                 </div>
               </div>
 
-              {/* Suspension Reason (if any) */}
-              {user?.status === "suspended" && user?.reason && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center text-red-700">
-                    <FiXCircle className="mr-2" />
-                    <span className="font-semibold">Suspension Reason:</span>
+              {(user?.status === "suspended" || user?.status === "deleted") &&
+                user?.reason && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center text-red-700">
+                      <FiXCircle className="mr-2" />
+                      <span className="font-semibold">
+                        {user.status === "deleted"
+                          ? "Deletion Reason:"
+                          : "Suspension Reason:"}
+                      </span>
+                    </div>
+                    <p className="text-red-600 mt-1 ml-6">{user.reason}</p>
                   </div>
-                  <p className="text-red-600 mt-1 ml-6">{user.reason}</p>
-                </div>
-              )}
+                )}
             </div>
           </div>
         </div>
@@ -493,20 +504,28 @@ const UserDetails = () => {
                     >
                       <option value="active">Active</option>
                       <option value="suspended">Suspended</option>
+                      <option value="deleted">Deleted</option>
                     </select>
                   </div>
 
                   {/* Suspension Reason */}
-                  {status === "suspended" && (
+                  {(status === "suspended" || status === "deleted") && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Suspension Reason
+                        {status === "deleted"
+                          ? "Deletion Reason"
+                          : "Suspension Reason"}
                       </label>
+
                       <textarea
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         rows="3"
-                        placeholder="Enter reason for suspension..."
+                        placeholder={
+                          status === "deleted"
+                            ? "Enter reason for deletion..."
+                            : "Enter reason for suspension..."
+                        }
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>

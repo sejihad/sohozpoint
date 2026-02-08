@@ -74,6 +74,7 @@ import Shop from "./pages/Shop/Shop";
 import SuspendedAccount from "./pages/Suspend/SuspendedAccount";
 import TermsConditions from "./pages/Terms/TermsAndConditions";
 import Delete from "./pages/User/Delete";
+import DeletedAccount from "./pages/User/DeletedAccount.jsx";
 import Profile from "./pages/User/Profile";
 import Setting from "./pages/User/Setting";
 import UpdatePassword from "./pages/User/UpdatePassword";
@@ -169,6 +170,7 @@ const App = () => {
         <Route path="/:category/:slug" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/suspended" element={<SuspendedAccount />} />
+        <Route path="/deleted" element={<DeletedAccount />} />
         <Route path="/google-success" element={<GoogleSuccess />} />
         <Route path="/facebook-success" element={<GoogleSuccess />} />
         <Route path="/password/forgot" element={<ForgotPassword />} />

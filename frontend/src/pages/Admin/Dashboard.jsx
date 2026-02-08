@@ -10,12 +10,10 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { getAllOrders } from "../../actions/orderAction";
-import { getAdminProduct } from "../../actions/productAction";
-import { getAllUsers } from "../../actions/userAction";
+import { getDashboardStats } from "../../actions/dashboardAction";
 import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
 import Sidebar from "./Sidebar";
@@ -30,169 +28,29 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
 );
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(true);
 
-  const { products } = useSelector((state) => state.products);
-  const { orders } = useSelector((state) => state.allOrders);
-  const { users } = useSelector((state) => state.allUsers);
+  const { stats, loading } = useSelector((state) => state.dashboard);
 
-  // Calculate total amount and order status counts
-  let totalAmount = 0;
-  let outOfStock = 0;
-  let unavailable = 0;
-  let inStock = 0;
-
-  // Calculate product stock status
-  products?.forEach((product) => {
-    if (product.availability === "inStock") {
-      inStock += 1;
-    }
-  });
-  products?.forEach((product) => {
-    if (product.availability === "outOfStock") {
-      outOfStock += 1;
-    }
-  });
-  products?.forEach((product) => {
-    if (product.availability === "unavailable") {
-      unavailable += 1;
-    }
-  });
-
-  // Calculate order status counts
-  const pendingOrders =
-    orders?.filter((order) => order.orderStatus === "pending")?.length || 0;
-  const confirmedOrders =
-    orders?.filter((order) => order.orderStatus === "confirm")?.length || 0;
-  const deliveredOrders =
-    orders?.filter((order) => order.orderStatus === "delivered")?.length || 0;
-  const cancelledOrders =
-    orders?.filter((order) => order.orderStatus === "cancel")?.length || 0;
-  const returnedOrders =
-    orders?.filter((order) => order.orderStatus === "return")?.length || 0;
-  const deliveringOrders =
-    orders?.filter((order) => order.orderStatus === "delivering")?.length || 0;
-  const processingOrders =
-    orders?.filter((order) => order.orderStatus === "processing")?.length || 0;
-
-  // Calculate total revenue from delivered orders
-  orders
-    ?.filter((order) => order.orderStatus === "delivered")
-    .forEach((order) => {
-      totalAmount += order.totalPrice;
-    });
+  const { users, products, orders, totalRevenue } = stats || {};
+  const { inStock, outOfStock, unavailable } = stats?.productStock || {};
+  const {
+    pending: pendingOrders,
+    confirmed: confirmedOrders,
+    processing: processingOrders,
+    delivering: deliveringOrders,
+    delivered: deliveredOrders,
+    cancelled: cancelledOrders,
+    returned: returnedOrders,
+  } = stats?.orderStatus || {};
 
   useEffect(() => {
-    Promise.all([
-      dispatch(getAdminProduct()),
-      dispatch(getAllOrders()),
-      dispatch(getAllUsers()),
-    ]).then(() => setLoading(false));
+    dispatch(getDashboardStats());
   }, [dispatch]);
-
-  // Order Status Doughnut Chart Data
-  const orderStatusData = {
-    labels: [
-      "Pending",
-      "Confirmed",
-      "Processing",
-      "delivering",
-      "Delivered",
-      "Cancelled",
-      "Returned",
-    ],
-    datasets: [
-      {
-        data: [
-          pendingOrders,
-          confirmedOrders,
-          processingOrders,
-          deliveringOrders,
-          deliveredOrders,
-          cancelledOrders,
-          returnedOrders,
-        ],
-        backgroundColor: [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56",
-          "#4BC0C0",
-          "#00C851",
-          "#FF4444",
-          "#AA66CC",
-        ],
-        hoverBackgroundColor: [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56",
-          "#4BC0C0",
-          "#00C851",
-          "#FF4444",
-          "#AA66CC",
-        ],
-        borderWidth: 2,
-        borderColor: "#fff",
-      },
-    ],
-  };
-
-  // Monthly Revenue Bar Chart Data (Sample - you can replace with actual data)
-  const monthlyRevenueData = {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        label: "Monthly Revenue (৳)",
-        data: [
-          120000, 190000, 150000, 180000, 160000, 195000, 210000, 185000,
-          175000, 200000, 220000, 240000,
-        ],
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
-        borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "bottom",
-      },
-    },
-  };
-
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
 
   if (loading) return <Loader />;
 
@@ -210,7 +68,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gradient-to-r from-blue-500 to-blue-400 text-white rounded-lg p-4 text-center shadow-md">
             <p className="text-sm mb-1 font-medium">Total Revenue</p>
-            <p className="text-xl font-bold">৳{totalAmount.toFixed(2)}</p>
+            <p className="text-xl font-bold">৳{totalRevenue}</p>
           </div>
 
           <div className="bg-gradient-to-r from-cyan-500 to-cyan-400 text-white rounded-lg p-4 text-center shadow-md">
@@ -234,7 +92,7 @@ const Dashboard = () => {
             className="bg-gradient-to-r from-pink-500 to-pink-400 text-white w-32 h-32 rounded-lg flex flex-col justify-center items-center shadow hover:-translate-y-1 transition transform duration-300"
           >
             <p className="text-sm font-medium mb-1">Products</p>
-            <p className="text-xl font-bold">{products?.length}</p>
+            <p className="text-xl font-bold">{products}</p>
           </Link>
 
           <Link
@@ -242,7 +100,7 @@ const Dashboard = () => {
             className="bg-gradient-to-r from-purple-500 to-purple-400 text-white w-32 h-32 rounded-lg flex flex-col justify-center items-center shadow hover:-translate-y-1 transition transform duration-300"
           >
             <p className="text-sm font-medium mb-1">Orders</p>
-            <p className="text-xl font-bold">{orders?.length}</p>
+            <p className="text-xl font-bold">{orders}</p>
           </Link>
 
           <Link
@@ -250,7 +108,7 @@ const Dashboard = () => {
             className="bg-gradient-to-r from-cyan-500 to-cyan-400 text-white w-32 h-32 rounded-lg flex flex-col justify-center items-center shadow hover:-translate-y-1 transition transform duration-300"
           >
             <p className="text-sm font-medium mb-1">Users</p>
-            <p className="text-xl font-bold">{users?.length}</p>
+            <p className="text-xl font-bold">{users}</p>
           </Link>
         </div>
 
@@ -294,7 +152,7 @@ const Dashboard = () => {
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-800 mb-1">All Orders</p>
-            <p className="text-lg font-bold text-gray-600">{orders?.length}</p>
+            <p className="text-lg font-bold text-gray-600">{orders}</p>
           </div>
         </div>
       </div>

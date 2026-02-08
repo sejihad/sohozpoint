@@ -1,18 +1,43 @@
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  clearErrors,
+  loadUser,
+  toggleTwoFactor,
+} from "../../actions/userAction";
 import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
 
 const Profile = () => {
-  const { user, loading, isAuthenticated } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const { user, loading, isAuthenticated, error, message, success } =
+    useSelector((state) => state.user);
   const navigate = useNavigate();
+
+  const twoFactorEnabled = user?.isTwoFactorEnabled;
+
+  const handleToggle = () => {
+    dispatch(toggleTwoFactor());
+  };
 
   useEffect(() => {
     if (isAuthenticated === false) {
       navigate("/login");
     }
   }, [navigate, isAuthenticated]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearErrors());
+    }
+    if (success) {
+      toast.success(message);
+      dispatch(loadUser());
+    }
+  }, [error, dispatch, success, message]);
 
   if (loading) {
     return <Loader />;
@@ -22,7 +47,7 @@ const Profile = () => {
     <>
       <MetaData title={`${user?.name || "User"}'s Profile`} />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-50 py-12 px-4">
+      <div className="min-h-screen container bg-gradient-to-br from-green-50 to-green-50 py-12 px-4">
         <div className="max-w-5xl mx-auto">
           {/* Profile Header */}
           <div className="text-center mb-8">
@@ -139,6 +164,89 @@ const Profile = () => {
                       ? new Date(user.createdAt).toLocaleDateString()
                       : "N/A"}
                   </p>
+
+                  {/* Two-Factor Authentication Toggle */}
+                  <div className="mt-6 pt-6 border-t border-green-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-green-800">
+                        Two-Factor Authentication
+                      </h4>
+                      <button
+                        onClick={handleToggle}
+                        disabled={loading}
+                        className={`
+    relative inline-flex items-center 
+    h-8 w-16 sm:h-7 sm:w-14 
+    rounded-full transition-all duration-300 
+    ${twoFactorEnabled ? "bg-green-500" : "bg-gray-300"}
+    ${loading ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}
+    active:scale-95
+  `}
+                        aria-label={
+                          twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"
+                        }
+                      >
+                        {/* Toggle Circle */}
+                        <span
+                          className={`
+      absolute inline-block 
+      h-6 w-6 sm:h-5 sm:w-5 
+      rounded-full bg-white shadow-md
+      transform transition-all duration-300
+      ${twoFactorEnabled ? "translate-x-9 sm:translate-x-8" : "translate-x-1"}
+    `}
+                        />
+
+                        {/* Status Labels */}
+                        <div className="absolute inset-0 flex items-center justify-between px-2">
+                          <span
+                            className={`
+      text-xs font-medium
+      ${twoFactorEnabled ? "text-transparent" : "text-gray-700"}
+    `}
+                          >
+                            OFF
+                          </span>
+                          <span
+                            className={`
+      text-xs font-medium
+      ${twoFactorEnabled ? "text-white" : "text-transparent"}
+    `}
+                          >
+                            ON
+                          </span>
+                        </div>
+
+                        {/* Loading Spinner */}
+                        {loading && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="relative">
+                              <div className="h-6 w-6 sm:h-5 sm:w-5 rounded-full border-2 border-transparent border-t-white animate-spin" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {twoFactorEnabled
+                        ? "✓ Extra security layer enabled"
+                        : "Add extra security to your account"}
+                    </p>
+
+                    {twoFactorEnabled && (
+                      <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                        <p className="text-xs text-green-800 font-medium mb-1">
+                          How it works:
+                        </p>
+                        <ul className="text-xs text-green-700 list-disc pl-4 space-y-1">
+                          <li>Sign in with your password as usual</li>
+                          <li>
+                            Enter verification code from email to complete login
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -202,24 +310,15 @@ const Profile = () => {
                         </p>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Additional Info Section */}
-                <div className="mt-6 bg-white rounded-xl border border-gray-100 p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                    Additional Information
-                  </h2>
-                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">
-                        Account Created
+                        Account Role
                       </label>
-                      <p className="text-gray-800">
-                        {user?.createdAt
-                          ? new Date(user.createdAt).toLocaleString()
-                          : "N/A"}
-                      </p>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm md:text-base font-mono text-gray-800 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+                          {user?.role}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

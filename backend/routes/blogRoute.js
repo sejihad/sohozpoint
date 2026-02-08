@@ -31,33 +31,33 @@ router.get("/blog/:slug", getBlogDetails);
 router.get(
   "/admin/blogs",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ...ROLES.USER_ADMIN),
-  getAdminBlogs
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
+  getAdminBlogs,
 );
 
 router.post(
   "/admin/blog/new",
   isAuthenticator,
-  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ...ROLES.USER_ADMIN),
-  createBlog
+  authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
+  createBlog,
 );
 
 router
   .route("/admin/blog/:id")
   .get(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ...ROLES.USER_ADMIN),
-    getAdminBlogDetails
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
+    getAdminBlogDetails,
   )
   .put(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ...ROLES.USER_ADMIN),
-    updateBlog
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
+    updateBlog,
   )
   .delete(
     isAuthenticator,
-    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ...ROLES.USER_ADMIN),
-    deleteBlog
+    authorizeRoles(...ROLE_GROUPS.ADMINS_AND_UP, ROLES.USER_ADMIN),
+    deleteBlog,
   );
 
 module.exports = router;

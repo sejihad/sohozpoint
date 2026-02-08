@@ -14,9 +14,13 @@ const ProtectedRoute = ({ roles = [], children }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+  if (user?.status === "deleted") {
+    return <Navigate to="/deleted" replace />;
+  }
   if (user?.status === "suspended") {
     return <Navigate to="/suspended" replace />;
   }
+
   if (roles.length && !roles.includes(user?.role)) {
     // User's role is not allowed
     return <Navigate to="/" replace />;
