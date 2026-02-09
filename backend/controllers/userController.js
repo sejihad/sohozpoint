@@ -37,12 +37,23 @@ const registerUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Please fill all fields", 400));
   }
 
-  const existUser = await User.findOne({
-    $or: [{ email }, { number }],
-  });
+  const phoneRegex = /^01\d{9}$/;
+  if (!phoneRegex.test(number)) {
+    return next(
+      new ErrorHandler("Invalid phone number. Must be 11 digits.", 400),
+    );
+  }
 
-  if (existUser) {
-    return next(new ErrorHandler("User already exists", 400));
+  // ✅ Check email and number separately
+  const emailUsed = await User.findOne({ email });
+  const numberUsed = await User.findOne({ number });
+
+  let errors = [];
+  if (emailUsed) errors.push("Email already used");
+  if (numberUsed) errors.push("Number already used");
+
+  if (errors.length > 0) {
+    return next(new ErrorHandler(errors.join(" & "), 400));
   }
 
   // Create user but NOT verified
@@ -80,7 +91,7 @@ const registerUser = catchAsyncErrors(async (req, res, next) => {
     title: "Account Registered",
   });
 
-  await sendEmail({
+  sendEmail({
     email: user.email,
     subject: "Verify your Sohoz Point account",
     message,
@@ -110,6 +121,15 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(
       new ErrorHandler("Please enter email or number and password", 400),
     );
+  }
+  if (!email.includes("@")) {
+    const phoneRegex = /^01[0-9]{9}$/;
+
+    if (!phoneRegex.test(email)) {
+      return next(
+        new ErrorHandler("Invalid phone number. Must be 11 digits.", 400),
+      );
+    }
   }
   const query = email.includes("@") ? { email: email } : { number: email };
   const user = await User.findOne(query).select("+password");
@@ -144,7 +164,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
 
     const message = `Your login OTP is ${otp}. It will expire in 5 minutes.`;
 
-    await sendEmail({
+    sendEmail({
       email: user.email,
       subject: "Sohoz Point Login OTP Code",
       message,
@@ -387,13 +407,36 @@ const getUserDetails = catchAsyncErrors(async (req, res, next) => {
 const updateProfile = catchAsyncErrors(async (req, res, next) => {
   const { name, number, avatar, country } = req.body;
 
-  const newUserData = { name, number, country };
-
+  const newUserData = { name, country };
+  if (number) newUserData.number = number;
   const user = await User.findById(req.user.id);
 
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
   }
+  if (number) {
+    const phoneRegex = /^01[0-9]{9}$/;
+
+    if (!phoneRegex.test(number)) {
+      return next(
+        new ErrorHandler("Phone number must be valid and  11 digits.", 400),
+      );
+    }
+  }
+
+  if (number) {
+    const existingUser = await User.findOne({
+      number: number,
+      _id: { $ne: req.user.id }, // নিজেরটা বাদ
+    });
+
+    if (existingUser) {
+      return next(
+        new ErrorHandler("This phone number is already in use.", 400),
+      );
+    }
+  }
+
   function getMimeType(base64String) {
     const match = base64String.match(/^data:(.+);base64,/);
     return match ? match[1] : "image/jpeg"; // fallback
@@ -433,7 +476,6 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
   const updatedUser = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true,
-    useFindAndModify: false,
   });
 
   res.status(200).json({

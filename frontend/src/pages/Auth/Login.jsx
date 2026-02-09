@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import Turnstile from "react-turnstile"; // ✅ added
+import Turnstile from "react-turnstile";
 import { toast } from "sonner";
 import {
   clearErrors,
@@ -118,7 +118,7 @@ const Login = () => {
   };
 
   return (
-    <div className="login-div">
+    <div className="login-div container">
       <div className="form-container">
         {/* OTP Verification Form */}
         <div className="form-box otp-verify">
