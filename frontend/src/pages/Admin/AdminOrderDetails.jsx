@@ -1,4 +1,3 @@
-import html2pdf from "html2pdf.js";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -9,7 +8,7 @@ import {
   updateOrder,
   updatePaymentStatus,
 } from "../../actions/orderAction";
-import logo from "../../assets/invoice.png";
+
 import Loader from "../../component/layout/Loader/Loader";
 import {
   UPDATE_ORDER_RESET,
@@ -83,14 +82,15 @@ const AdminOrderDetails = () => {
     dispatch(updatePaymentStatus(order._id, newStatus));
   };
   // ✅ Download PDF Function - Fixed version
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     try {
       const element = pdfRef.current;
       if (!element) {
         toast.error("PDF content not found!");
         return;
       }
-
+      // dynamic import (BIG FIX)
+      const html2pdf = (await import("html2pdf.js")).default;
       // Store original display state
       const originalDisplay = element.style.display;
 
@@ -279,7 +279,7 @@ const AdminOrderDetails = () => {
                   >
                     {/* Logo */}
                     <img
-                      src={logo}
+                      src="/invoice.png"
                       alt="Company Logo"
                       style={{
                         height: "200px",

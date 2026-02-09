@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { toast, Toaster } from "sonner";
@@ -6,13 +6,13 @@ import Footer from "./component/layout/Footer";
 import Header from "./component/layout/Header";
 import ScrollToTop from "./component/layout/ScrollToTop";
 import ProtectedRoute from "./component/Route/ProtectedRoute";
-import AdminOrderDetails from "./pages/Admin/AdminOrderDetails";
 import AllBlogs from "./pages/Admin/AllBlogs";
 import AllCategories from "./pages/Admin/AllCategories";
 import AllOrders from "./pages/Admin/AllOrders";
 import AllProducts from "./pages/Admin/AllProducts";
 import UserEmails from "./pages/Admin/UserEmails";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
+const AdminOrderDetails = lazy(() => import("./pages/Admin/AdminOrderDetails"));
 
 import AllReviews from "./pages/Admin/AllReviews";
 import AllShips from "./pages/Admin/AllShips";
@@ -80,7 +80,11 @@ import Setting from "./pages/User/Setting";
 import UpdatePassword from "./pages/User/UpdatePassword";
 import UpdateProfile from "./pages/User/UpdateProfile";
 import { connectSocket } from "./utils/socket.js";
-
+const LazyAdminOrder = () => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <AdminOrderDetails />
+  </Suspense>
+);
 const App = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -261,7 +265,9 @@ const App = () => {
           <Route path="/admin/logocharges" element={<AllCustomLogoCharges />} />
           <Route path="/admin/ships" element={<AllShips />} />
           <Route path="/admin/orders" element={<AllOrders />} />
-          <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
+
+          <Route path="/admin/order/:id" element={<LazyAdminOrder />} />
+
           <Route path="/admin/notification" element={<NotificationManager />} />
         </Route>
       </Routes>
