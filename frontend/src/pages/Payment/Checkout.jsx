@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getAdvancedPayment } from "../../actions/AdvancedPaymentAction.jsx";
 import { getCharge } from "../../actions/chargeAction";
+
 import {
   applyCoupon,
   clearCoupon,
@@ -42,7 +44,8 @@ const Checkout = () => {
     redirectUrl,
     error: paymentError,
   } = useSelector((state) => state.payment);
-
+  const { advancedPayment } = useSelector((state) => state.advancedPayment);
+  console.log(advancedPayment);
   // Location state with defaults
   const { cartItems = [], isPreOrder = false } = location.state || {};
 
@@ -72,6 +75,33 @@ const Checkout = () => {
 
   // ✅ New state for updated cart items
   const [updatedCartItems, setUpdatedCartItems] = useState(cartItems);
+  // ✅ AdvancedPayment eligibility (same pattern as Ship)
+  const isUserEligibleForAdvancedPayment = (rule) => {
+    if (!rule || !user) return false;
+
+    if (rule.allowedUsersType === "all") return true;
+
+    if (rule.allowedUsersType === "specific") {
+      const currentUserId = user?._id || user?.id;
+      return rule.allowedUsers?.some((u) => (u._id || u.id) === currentUserId);
+    }
+    return false;
+  };
+
+  const getEligibleProductsForAdvancedPayment = (rule, items) => {
+    if (!rule || !items?.length) return [];
+
+    if (rule.appliesTo === "all") return items.map((it) => it.id || it._id);
+
+    if (rule.appliesTo === "specific" && rule.products?.length) {
+      const ids = rule.products.map((p) => p._id || p.id);
+      return items
+        .filter((it) => ids.includes(it.id || it._id))
+        .map((it) => it.id || it._id);
+    }
+
+    return [];
+  };
 
   // ✅ Ship rules checking functions
   const checkShipRulesForDistrict = (district) => {
@@ -235,20 +265,42 @@ const Checkout = () => {
     payableDeliveryCharge -
     productDiscountFromFreeDelivery -
     deliveryDiscount;
+  // -------------------------------
+  // ✅ Advanced Payment Logic (COD)
+  // -------------------------------
+  let advancedPayNow = null; // null = not applicable
+
+  if (advancedPayment && Number(advancedPayment.amount) > 0) {
+    const userEligible = isUserEligibleForAdvancedPayment(advancedPayment);
+
+    if (userEligible) {
+      const eligibleProductIds = getEligibleProductsForAdvancedPayment(
+        advancedPayment,
+        updatedCartItems,
+      );
+
+      if (eligibleProductIds.length > 0) {
+        advancedPayNow = Math.min(Number(advancedPayment.amount), finalTotal);
+      }
+    }
+  }
 
   // ✅ FIXED: Payment calculations - DELIVERY CHARGE ALWAYS PAID
   let payableNow = 0;
   let remaining = 0;
-
-  if (paymentType === "delivery_only") {
-    // COD: Pay delivery charge ALWAYS + product amount later
-    // payableNow = payableDeliveryCharge;
-    payableNow = 0;
-    remaining =
-      finalProductTotal +
-      payableDeliveryCharge -
-      productDiscountFromFreeDelivery -
-      deliveryDiscount;
+  // -------------------------------
+  // ✅ COD + Advanced Payment override
+  // -------------------------------
+  if (paymentType === "delivery_only" || paymentMethod === "cod") {
+    if (advancedPayNow !== null) {
+      // Advanced payment required
+      payableNow = advancedPayNow;
+      remaining = Math.max(0, finalTotal - payableNow);
+    } else {
+      // Normal COD (no advance)
+      payableNow = 0;
+      remaining = finalTotal;
+    }
   } else if (paymentType === "preorder_50") {
     // Preorder 50%: Pay 50% product price + FULL delivery charge
     const halfProductPrice = finalProductTotal * 0.5;
@@ -301,6 +353,7 @@ const Checkout = () => {
     }
     dispatch(getShips()); // ✅ Load ships data
     dispatch(getCharge());
+    dispatch(getAdvancedPayment());
     if (success) {
       toast.success(message);
       navigate("/orders");
@@ -583,11 +636,13 @@ const Checkout = () => {
         : null,
     };
 
-    if (paymentMethod === "cod" || paymentType === "delivery_only") {
-      // COD এর ক্ষেত্রে direct order create করো
+    const needsOnlinePayment = amounts.payableNow > 0;
+
+    if (!needsOnlinePayment) {
+      // Pure COD (no advance, no online payment)
       dispatch(createOrder(orderData));
     } else {
-      // অন্যান্য payment method এর জন্য payment initialize করো
+      // Advanced payment / preorder / full payment
       dispatch(initializePayment(orderData));
     }
   };
@@ -595,6 +650,9 @@ const Checkout = () => {
   const getPaymentDescription = () => {
     switch (paymentType) {
       case "delivery_only":
+        if (advancedPayNow !== null) {
+          return `Pay advance ৳${advancedPayNow.toFixed(2)} now, remaining ৳${(finalTotal - advancedPayNow).toFixed(2)} on delivery`;
+        }
         return `full cash on delivery`;
       case "preorder_50":
         return `Pay 50% product price + delivery charge (৳${amounts.payableDeliveryCharge.toFixed(

@@ -502,7 +502,7 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
       ratings: 1,
       numOfReviews: 1,
       sold: 1,
-      images: 1, // শুধু প্রথম ইমেজের url
+      images: 1,
     }) // Exclude reviews to improve performance
     .sort({ createdAt: -1 }) // Sort by newest first
     .skip((pageNum - 1) * limitNum) // Pagination offset
@@ -571,9 +571,9 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
 // get single product
 
 const getProductDetails = catchAsyncErrors(async (req, res, next) => {
-  let product = await Product.findOne({ slug: req.params.slug }).populate(
-    "logos",
-  ); // <-- Populate logos
+  let product = await Product.findOne({ slug: req.params.slug })
+    .populate("logos")
+    .select("-buyPrice -source");
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
@@ -843,7 +843,9 @@ const deleteReview = catchAsyncErrors(async (req, res, next) => {
   });
 });
 const getOrderProductDetails = catchAsyncErrors(async (req, res, next) => {
-  const product = await Product.findById(req.params.id).populate("logos");
+  const product = await Product.findById(req.params.id)
+
+    .select("slug category");
 
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));

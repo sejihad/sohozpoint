@@ -44,6 +44,11 @@ import {
 } from "./reducers/productReducer";
 
 import {
+  advancedPaymentDeleteReducer,
+  advancedPaymentReducer,
+  advancedPaymentUpdateReducer,
+} from "./reducers/AdvancedPaymentReducer";
+import {
   bannerDetailsReducer,
   bannerReducer,
   bannersReducer,
@@ -206,11 +211,17 @@ const rootReducer = combineReducers({
   subsubcategories: subsubcategoriesReducer,
   subsubcategory: subsubcategoryReducer,
   subsubcategoryDetails: subsubcategoryDetailsReducer,
-
+  // ships
   newShip: newShipReducer,
   ships: shipsReducer,
   ship: shipReducer,
   shipDetails: shipDetailsReducer,
+
+  // advanced payment
+  advancedPayment: advancedPaymentReducer,
+  advancedPaymentUpdate: advancedPaymentUpdateReducer,
+  advancedPaymentDelete: advancedPaymentDeleteReducer, // optional
+
   products: productsReducer,
   newProduct: newProductReducer,
   product: productReducer,

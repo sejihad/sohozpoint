@@ -2,6 +2,7 @@ const Product = require("../models/productModel.js");
 const Charge = require("../models/chargeModel.js");
 const Ship = require("../models/shipModel.js");
 const Coupon = require("../models/couponModel.js");
+const AdvancedPayment = require("../models/advancedPaymentModel.js");
 
 const orderValidate = async (
   orderItems,
@@ -16,6 +17,8 @@ const orderValidate = async (
   let paidDeliveryWeight = 0;
   let couponDiscount = 0;
   let couponData = null;
+  let advancedPayNow = null; // null = not applicable
+  let advancedPaymentRule = null; // store rule (optional)
 
   // 1️⃣ PRODUCT VALIDATION (ফ্রন্টএন্ড থেকে আসা items validate)
   for (const item of orderItems) {
@@ -95,6 +98,37 @@ const orderValidate = async (
   const ships = await Ship.find()
     .populate("allowedUsers", "_id")
     .populate("products", "_id");
+
+  // 4️⃣.1️⃣ ADVANCED PAYMENT RULE LOAD
+  advancedPaymentRule = await AdvancedPayment.findOne()
+    .populate("allowedUsers", "_id")
+    .populate("products", "_id");
+
+  const isUserEligibleForAdvancedPayment = (rule) => {
+    if (!rule) return false;
+
+    if (rule.allowedUsersType === "all") return true;
+
+    if (rule.allowedUsersType === "specific" && shippingInfo.userId) {
+      const allowedIds = (rule.allowedUsers || []).map((u) => u._id.toString());
+      return allowedIds.includes(shippingInfo.userId.toString());
+    }
+
+    return false;
+  };
+
+  const getEligibleProductsForAdvancedPayment = (rule, items) => {
+    if (!rule || !items?.length) return [];
+
+    if (rule.appliesTo === "all") return items.map((it) => it.id);
+
+    if (rule.appliesTo === "specific" && rule.products?.length) {
+      const ids = rule.products.map((p) => p._id.toString());
+      return items.filter((it) => ids.includes(it.id)).map((it) => it.id);
+    }
+
+    return [];
+  };
 
   if (shippingInfo?.district) {
     const shipRule = ships.find(
@@ -308,6 +342,25 @@ const orderValidate = async (
     payableDeliveryCharge -
     productDiscountFromFreeDelivery -
     deliveryDiscount;
+  // 🔟 ADVANCED PAYMENT CALCULATION (COD)
+  if (advancedPaymentRule && Number(advancedPaymentRule.amount) > 0) {
+    const userEligible = isUserEligibleForAdvancedPayment(advancedPaymentRule);
+
+    if (userEligible) {
+      const eligibleProductIds = getEligibleProductsForAdvancedPayment(
+        advancedPaymentRule,
+        validatedItems,
+      );
+
+      if (eligibleProductIds.length > 0) {
+        // payableNow = min(advancedPayment.amount, finalTotal)
+        advancedPayNow = Math.min(
+          Number(advancedPaymentRule.amount),
+          Number(finalTotal),
+        );
+      }
+    }
+  }
 
   // 9️⃣ PAYMENT CALCULATIONS (ফ্রন্টএন্ডের Checkout.jsx এর মতোই)
   let payableNow = 0;
@@ -315,13 +368,14 @@ const orderValidate = async (
   const paymentType = shippingInfo?.paymentType;
 
   if (paymentType === "delivery_only") {
-    // COD: Pay delivery charge ALWAYS + product amount later
-    payableNow = 0;
-    remaining =
-      finalProductTotal +
-      payableDeliveryCharge -
-      productDiscountFromFreeDelivery -
-      deliveryDiscount;
+    // ✅ COD + advanced payment rule
+    if (advancedPayNow !== null) {
+      payableNow = advancedPayNow;
+      remaining = Math.max(0, finalTotal - payableNow);
+    } else {
+      payableNow = 0;
+      remaining = finalTotal;
+    }
   } else if (paymentType === "preorder_50") {
     // Preorder 50%: Pay 50% product price + FULL delivery charge
     const halfProductPrice = finalProductTotal * 0.5;
@@ -365,6 +419,7 @@ const orderValidate = async (
     couponData: couponData,
     finalTotal: roundedFinalTotal,
     payableNow: payableNow,
+    advancedPayNow,
     remaining: remaining,
     totalWeight: totalWeight,
     freeDeliveryWeight: freeDeliveryWeight,

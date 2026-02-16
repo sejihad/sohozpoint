@@ -30,6 +30,7 @@ const notify = require("./routes/notifyRoute");
 require("./jobs/notificationCleanup");
 const order = require("./routes/orderRoute");
 const admin = require("./routes/adminRoute");
+const advancedPayment = require("./routes/advancedPaymentRoute");
 
 dotenv.config();
 require("./config/passport");
@@ -81,6 +82,7 @@ app.use("/api/v1", coupon);
 app.use("/api/v1", cart);
 app.use("/api/v1", meta);
 app.use("/api/v1", notify);
+app.use("/api/v1", advancedPayment);
 
 // Error Middleware
 app.use(errorMiddleware);

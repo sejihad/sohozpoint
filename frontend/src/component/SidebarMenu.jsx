@@ -144,6 +144,12 @@ export const SIDEBAR_MENU = [
     roles: ROLE_GROUPS.SUPER_ADMIN_ONLY,
   },
   {
+    label: "Advanced Payment",
+    path: "/admin/advanced-payment",
+    icon: FaRegMoneyBillAlt,
+    roles: ROLE_GROUPS.SUPER_ADMIN_ONLY,
+  },
+  {
     label: "Notifies",
     path: "/admin/notifies",
     icon: FaBell,

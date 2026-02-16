@@ -33,7 +33,9 @@ const Dashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const Messages = lazy(() => import("./pages/Admin/Messages.jsx"));
 const NewBlog = lazy(() => import("./pages/Admin/NewBlog"));
 const NewProduct = lazy(() => import("./pages/Admin/NewProduct"));
-
+const AllAdvancedPayment = lazy(
+  () => import("./pages/Admin/AllAdvancedPayment"),
+);
 const Reviews = lazy(() => import("./pages/Admin/Reviews"));
 const UpdateBlog = lazy(() => import("./pages/Admin/UpdateBlog"));
 const UpdateProduct = lazy(() => import("./pages/Admin/UpdateProduct"));
@@ -273,6 +275,10 @@ const App = () => {
               element={<AllCustomLogoCharges />}
             />
             <Route path="/admin/ships" element={<AllShips />} />
+            <Route
+              path="/admin/advanced-payment"
+              element={<AllAdvancedPayment />}
+            />
             <Route path="/admin/orders" element={<AllOrders />} />
 
             <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
