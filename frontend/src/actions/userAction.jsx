@@ -61,7 +61,7 @@ export const login = (email, password, cfToken) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/login`,
       { email, password, cfToken },
-      config
+      config,
     );
 
     if (data.twoFactorRequired) {
@@ -95,7 +95,7 @@ export const verifyOtp = (userId, otp) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/verify-otp`,
       { userId, otp },
-      config
+      config,
     );
 
     localStorage.setItem("token", data.token);
@@ -146,7 +146,7 @@ export const register = (userData) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/register`,
       userData,
-      config
+      config,
     );
 
     // OTP is required after registration
@@ -190,6 +190,27 @@ export const loadUser = () => async (dispatch) => {
     });
   }
 };
+// export const saveFcmToken = (tokenValue) => async (dispatch) => {
+//   try {
+//     const token = localStorage.getItem("token");
+//     if (!token || !tokenValue) return;
+
+//     const config = {
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//     };
+
+//     await axios.post(
+//       `${API_URL}/api/v1/fcm-token`,
+//       { token: tokenValue },
+//       config,
+//     );
+//   } catch (error) {
+//     // silent fail (optional)
+//   }
+// };
 
 // logout
 export const logout = () => async (dispatch) => {
@@ -225,7 +246,7 @@ export const updateProfile = (userData) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/me/update`,
       userData,
-      config
+      config,
     );
 
     dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.success });
@@ -252,7 +273,7 @@ export const updatePassword = (passwords) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/password/update`,
       passwords,
-      config
+      config,
     );
 
     dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.success });
@@ -276,7 +297,7 @@ export const forgotPassword = (email) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/password/forgot`,
       email,
-      config
+      config,
     );
 
     dispatch({ type: FORGOT_PASSWORD_SUCCESS, payload: data.message });
@@ -298,7 +319,7 @@ export const resetPassword = (token, passwords) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/password/reset/${token}`,
       passwords,
-      config
+      config,
     );
 
     dispatch({ type: RESET_PASSWORD_SUCCESS, payload: data.success });
@@ -340,7 +361,7 @@ export const getUserDetails = (id) => async (dispatch) => {
     };
     const { data } = await axios.get(
       `${API_URL}/api/v1/admin/user/${id}`,
-      config
+      config,
     );
 
     dispatch({ type: USER_DETAILS_SUCCESS, payload: data.user });
@@ -365,7 +386,7 @@ export const updateUser = (id, userData) => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/admin/user/${id}`,
       userData,
-      config
+      config,
     );
 
     dispatch({ type: UPDATE_USER_SUCCESS, payload: data.success });
@@ -389,7 +410,7 @@ export const deleteUser = (id) => async (dispatch) => {
     };
     const { data } = await axios.delete(
       `${API_URL}/api/v1/admin/user/${id}`,
-      config
+      config,
     );
 
     dispatch({ type: DELETE_USER_SUCCESS, payload: data });
@@ -414,7 +435,7 @@ export const toggleTwoFactor = () => async (dispatch) => {
     const { data } = await axios.put(
       `${API_URL}/api/v1/twofactor/toggle`,
       {},
-      config
+      config,
     );
 
     dispatch({
@@ -442,7 +463,7 @@ export const DeleteAccountRequest = (userData) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/me/delete`,
       userData,
-      config
+      config,
     );
 
     dispatch({
@@ -470,7 +491,7 @@ export const ContactUs = (userData) => async (dispatch) => {
     const { data } = await axios.post(
       `${API_URL}/api/v1/contact/us`,
       userData,
-      config
+      config,
     );
 
     dispatch({

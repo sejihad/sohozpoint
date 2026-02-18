@@ -98,6 +98,11 @@ const userSchema = new mongoose.Schema({
   googleId: String,
   facebookId: String,
 
+  fcmTokens: {
+    type: [String],
+    default: [],
+  },
+
   // ✅ Unique random code
   userCode: {
     type: String,

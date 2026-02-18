@@ -167,7 +167,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
 
   const product = await Product.create(productData);
 
-  await sendNotify({
+  sendNotify({
     title: "New Product",
     message: `Our new product ${product.name} has been launched.`,
     link: `${process.env.FRONTEND_URL}/${slugify(product.category, {

@@ -2,6 +2,7 @@ const Notify = require("../models/notifyModel");
 const UserNotify = require("../models/userNotifyModel");
 const User = require("../models/userModel");
 const { getIO, onlineUsers } = require("../utils/socket");
+const admin = require("../config/firebase"); // তোমার firebase init যেটা
 
 const BATCH_SIZE = 500;
 
@@ -39,6 +40,61 @@ const sendNotify = async ({ title, message, users = [], image, link }) => {
       const inserted = await UserNotify.insertMany(mappings, {
         ordered: false,
       });
+      // ✅ FCM push (batch-wise)
+      const usersWithTokens = await User.find(
+        { _id: { $in: batch } },
+        "fcmTokens",
+      ).lean();
+
+      const tokens = [
+        ...new Set(
+          usersWithTokens.flatMap((u) => u.fcmTokens || []).filter(Boolean),
+        ),
+      ];
+
+      try {
+        if (tokens.length) {
+          const dataPayload = {};
+          if (link) dataPayload.link = String(link);
+          if (notify?._id) dataPayload.notifyId = String(notify._id);
+
+          for (let t = 0; t < tokens.length; t += 500) {
+            const tokenChunk = tokens.slice(t, t + 500);
+
+            const resp = await admin.messaging().sendEachForMulticast({
+              tokens: tokenChunk,
+              notification: {
+                title: String(title),
+                body: String(message),
+              },
+              data: dataPayload,
+            });
+
+            const badTokens = [];
+            resp.responses.forEach((r, idx) => {
+              if (!r.success) {
+                const code = r.error?.code || "";
+                if (
+                  code.includes("registration-token-not-registered") ||
+                  code.includes("invalid-registration-token") ||
+                  code.includes("invalid-argument")
+                ) {
+                  badTokens.push(tokenChunk[idx]);
+                }
+              }
+            });
+
+            if (badTokens.length) {
+              await User.updateMany(
+                { fcmTokens: { $in: badTokens } },
+                { $pull: { fcmTokens: { $in: badTokens } } },
+              );
+            }
+          }
+        }
+      } catch (e) {
+        console.log("FCM send failed:", e?.message || e);
+      }
 
       // 4️⃣ Emit real-time notification via Socket.IO
       inserted.forEach((userNotify) => {
@@ -48,8 +104,8 @@ const sendNotify = async ({ title, message, users = [], image, link }) => {
         const socketIds = Array.isArray(socketIdOrArray)
           ? socketIdOrArray
           : socketIdOrArray
-          ? [socketIdOrArray]
-          : [];
+            ? [socketIdOrArray]
+            : [];
 
         socketIds.forEach((socketId) => {
           io.to(socketId).emit("newNotification", {

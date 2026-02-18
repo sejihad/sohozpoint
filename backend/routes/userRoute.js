@@ -1,6 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 
+const admin = require("../config/firebase");
 const {
   registerUser,
   loginUser,
@@ -20,6 +21,7 @@ const {
   deleteUserRequest,
   contactUs,
   updateUser,
+  saveFcmToken,
 } = require("../controllers/userController");
 
 const { isAuthenticator, authorizeRoles } = require("../middleware/auth");
@@ -43,6 +45,8 @@ router.post("/contact/us", contactUs);
    AUTH ROUTES
 ======================= */
 router.get("/me", isAuthenticator, getUserDetails);
+router.post("/fcm-token", isAuthenticator, saveFcmToken);
+
 router.put("/password/update", isAuthenticator, updatePassword);
 router.put("/me/update", isAuthenticator, updateProfile);
 router.post("/me/delete", isAuthenticator, deleteUserRequest);
@@ -53,7 +57,7 @@ router.put("/twofactor/toggle", isAuthenticator, enableTwoFactor);
 ======================= */
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"] }),
 );
 
 router.get(
@@ -62,12 +66,12 @@ router.get(
     failureRedirect: `${process.env.FRONTEND_URL}/login`,
     session: false,
   }),
-  googleLoginCallback
+  googleLoginCallback,
 );
 
 router.get(
   "/facebook",
-  passport.authenticate("facebook", { scope: ["email"] })
+  passport.authenticate("facebook", { scope: ["email"] }),
 );
 
 router.get(
@@ -76,7 +80,7 @@ router.get(
     failureRedirect: `${process.env.FRONTEND_URL}/login`,
     session: false,
   }),
-  facebookLoginCallback
+  facebookLoginCallback,
 );
 
 /* =======================
@@ -86,7 +90,7 @@ router.get(
   "/admin/users",
   isAuthenticator,
   authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
-  getAllUser
+  getAllUser,
 );
 
 router
@@ -94,17 +98,17 @@ router
   .get(
     isAuthenticator,
     authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY, ROLES.USER_ADMIN),
-    getSingleUser
+    getSingleUser,
   )
   .put(
     isAuthenticator,
     authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
-    updateUser
+    updateUser,
   )
   .delete(
     isAuthenticator,
     authorizeRoles(...ROLE_GROUPS.SUPER_ADMIN_ONLY),
-    deleteUser
+    deleteUser,
   );
 
 module.exports = router;

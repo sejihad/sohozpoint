@@ -311,6 +311,24 @@ const facebookLoginCallback = catchAsyncErrors(async (req, res, next) => {
   // ফ্রন্টএন্ডে redirect, token URL param হিসেবে পাঠানো
   res.redirect(`${process.env.FRONTEND_URL}/facebook-success?token=${token}`);
 });
+const saveFcmToken = catchAsyncErrors(async (req, res, next) => {
+  const { fcmToken } = req.body;
+
+  if (!fcmToken) {
+    return next(new ErrorHandler("FCM token required", 400));
+  }
+
+  await User.findByIdAndUpdate(
+    req.user.id,
+    { $addToSet: { fcmTokens: fcmToken } }, // ✅ same থাকলে auto skip
+    { new: true },
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "FCM token updated",
+  });
+});
 
 // ✅ Logout User
 const logoutUser = catchAsyncErrors(async (req, res, next) => {
@@ -644,4 +662,5 @@ module.exports = {
   deleteUserRequest,
   deleteUser,
   updateUser,
+  saveFcmToken,
 };
