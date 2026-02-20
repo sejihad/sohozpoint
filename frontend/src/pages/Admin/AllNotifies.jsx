@@ -3,6 +3,7 @@ import { FiGlobe, FiImage, FiLink, FiSend, FiUsers } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { adminSendNotification } from "../../actions/notifyAction"; // ✅ path ঠিক করুন
+import { getAllUsers } from "../../actions/userAction"; // তোমার প্রজেক্ট অনুযায়ী path ঠিক করো
 import Loader from "../../component/layout/Loader/Loader";
 import MetaData from "../../component/layout/MetaData";
 import Sidebar from "./Sidebar";
@@ -46,6 +47,9 @@ const AllNotifies = () => {
     }
   }, [sendSuccess, sendError]); // ✅ dependencies array
 
+  useEffect(() => {
+    dispatch(getAllUsers());
+  }, [dispatch]);
   // Filter users based on search
   const filterUsers = (search) => {
     if (search.trim() === "") {

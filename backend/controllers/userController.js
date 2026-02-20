@@ -320,7 +320,7 @@ const saveFcmToken = catchAsyncErrors(async (req, res, next) => {
 
   await User.findByIdAndUpdate(
     req.user.id,
-    { $addToSet: { fcmTokens: fcmToken } }, // ✅ same থাকলে auto skip
+    { $addToSet: { fcmTokens: fcmToken } }, // same token skip
     { new: true },
   );
 
