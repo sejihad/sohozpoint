@@ -18,7 +18,7 @@ import { NEW_REVIEW_RESET } from "../../constants/productContants";
 
 // Reusable Components
 import { FaRulerCombined, FaWeight } from "react-icons/fa";
-import { FiUsers } from "react-icons/fi";
+import { FiActivity, FiGlobe, FiUsers } from "react-icons/fi";
 import ImageZoom from "./ImageZoom";
 import LogoSelector from "./LogoSelector";
 import ProductBreadcrumb from "./ProductBreadcrumb";
@@ -739,6 +739,19 @@ const ProductDetails = () => {
                   <div className="flex items-center text-sm text-gray-600">
                     <FiUsers className="mr-2" />
                     <span>Gender: {product.gender}</span>
+                  </div>
+                )}
+                {product.country && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiGlobe className="mr-2" />
+                    <span>Country: {product.country}</span>
+                  </div>
+                )}
+
+                {product.status && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiActivity className="mr-2" />
+                    <span>Status: {product.status}</span>
                   </div>
                 )}
 

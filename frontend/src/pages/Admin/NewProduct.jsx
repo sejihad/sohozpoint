@@ -36,6 +36,8 @@ const NewProduct = () => {
     brand: "",
     deliveryCharge: "",
     show: "",
+    status: "",
+    country: "",
     oldPrice: "",
     salePrice: "",
     buyPrice: "",
@@ -117,6 +119,8 @@ const NewProduct = () => {
       brand: "",
       deliveryCharge: "",
       show: "",
+      status: "",
+      country: "",
       oldPrice: "",
       salePrice: "",
       buyPrice: "",
@@ -313,6 +317,8 @@ const NewProduct = () => {
     data.set("source", formData.source);
     data.set("deliveryCharge", formData.deliveryCharge);
     data.set("show", formData.show);
+    data.set("country", formData.country);
+    data.set("status", formData.status);
     if (formData.videoLink) data.set("videoLink", formData.videoLink);
     data.set("oldPrice", formData.oldPrice);
     data.set("salePrice", formData.salePrice);
@@ -724,6 +730,32 @@ const NewProduct = () => {
                     name="source"
                     placeholder="Enter Product Source"
                     value={formData.source}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    name="country"
+                    placeholder="Enter Product Country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    name="status"
+                    placeholder="Enter Product Status"
+                    value={formData.status}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />

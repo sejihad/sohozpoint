@@ -216,6 +216,8 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     "source",
     "deliveryCharge",
     "show",
+    "country",
+    "status",
   ];
 
   textFields.forEach((field) => {

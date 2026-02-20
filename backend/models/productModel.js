@@ -31,6 +31,12 @@ const productSchema = new mongoose.Schema({
   source: {
     type: String,
   },
+  country: {
+    type: String,
+  },
+  status: {
+    type: String,
+  },
   videoLink: {
     type: String,
     default: null,
