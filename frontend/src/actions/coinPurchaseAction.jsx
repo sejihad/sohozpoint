@@ -40,7 +40,6 @@ export const initializeCoinPurchase = (coins) => async (dispatch) => {
       window.location.href = data.redirectUrl; // ✅ EPS redirect
     }
   } catch (error) {
-    console.log("Coin purchase initialization error:", error);
     dispatch({
       type: COIN_PURCHASE_INIT_FAIL,
       payload:

@@ -45,7 +45,7 @@ const Checkout = () => {
     error: paymentError,
   } = useSelector((state) => state.payment);
   const { advancedPayment } = useSelector((state) => state.advancedPayment);
-  console.log(advancedPayment);
+
   // Location state with defaults
   const { cartItems = [], isPreOrder = false } = location.state || {};
 

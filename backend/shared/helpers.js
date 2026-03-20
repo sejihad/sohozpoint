@@ -15,15 +15,7 @@ const {
   EPS_MERCHANT_ID,
   FRONTEND_URL,
 } = process.env;
-console.log(
-  EPS_USERNAME,
-  EPS_PASSWORD,
-  EPS_HASH_KEY,
-  EPS_STORE_ID,
-  EPS_BASE_URL,
-  EPS_MERCHANT_ID,
-  FRONTEND_URL,
-);
+
 // -----------------------
 // 🔹 Token Cache for Reuse
 // -----------------------
@@ -47,74 +39,36 @@ const generateHash = (data) => {
 const getEpsToken = async () => {
   const now = Date.now();
 
-  console.log("⏱ Checking token cache...");
-
-  // ✅ cached token check
+  // ✅ valid cached token
   if (cachedToken && tokenExpiry && now < tokenExpiry) {
-    console.log("✅ Using cached token");
     return cachedToken;
   }
 
+  // ✅ if a token request is already running, await it
   if (inflightTokenPromise) {
-    console.log("⏳ Waiting for existing token request...");
     return inflightTokenPromise;
   }
 
   inflightTokenPromise = (async () => {
-    try {
-      console.log("🚀 Requesting new EPS token...");
+    const hashForToken = generateHash(EPS_USERNAME);
 
-      // 🔍 ENV debug
-      console.log("EPS_BASE_URL:", EPS_BASE_URL);
-      console.log("EPS_USERNAME:", EPS_USERNAME ? "OK" : "MISSING");
-      console.log("EPS_PASSWORD:", EPS_PASSWORD ? "OK" : "MISSING");
-      console.log("EPS_HASH_KEY:", EPS_HASH_KEY ? "OK" : "MISSING");
+    const tokenResponse = await axios.post(
+      `${EPS_BASE_URL}/v1/Auth/GetToken`,
+      { userName: EPS_USERNAME, password: EPS_PASSWORD },
+      { headers: { "x-hash": hashForToken }, timeout: 15000 },
+    );
 
-      const hashForToken = generateHash(EPS_USERNAME);
-      console.log("🔐 Generated Hash:", hashForToken);
+    const token = tokenResponse?.data?.token;
+    const expiresIn = Number(tokenResponse?.data?.expiresIn || 300);
 
-      const url = `${EPS_BASE_URL}/v1/Auth/GetToken`;
-      console.log("🌐 URL:", url);
+    if (!token) throw new Error("Failed to get EPS token");
 
-      const tokenResponse = await axios.post(
-        url,
-        {
-          userName: EPS_USERNAME,
-          password: EPS_PASSWORD,
-        },
-        {
-          headers: {
-            "x-hash": hashForToken,
-          },
-          timeout: 15000,
-        },
-      );
+    cachedToken = token;
 
-      console.log("📥 EPS Response:", tokenResponse.data);
+    // ✅ add safety buffer (e.g., 30 seconds আগে expire ধরে নিন)
+    tokenExpiry = Date.now() + Math.max(expiresIn - 30, 30) * 1000;
 
-      const token = tokenResponse?.data?.token;
-      const expiresIn = Number(tokenResponse?.data?.expiresIn || 300);
-
-      if (!token) {
-        console.error("❌ Token missing in response");
-        throw new Error("Failed to get EPS token - no token in response");
-      }
-
-      cachedToken = token;
-      tokenExpiry = Date.now() + Math.max(expiresIn - 30, 30) * 1000;
-
-      console.log("✅ Token received & cached");
-
-      return cachedToken;
-    } catch (error) {
-      console.error("❌ EPS TOKEN ERROR");
-
-      console.error("Message:", error.message);
-      console.error("Status:", error.response?.status);
-      console.error("Response Data:", error.response?.data);
-
-      throw new Error("Failed to get EPS token");
-    }
+    return cachedToken;
   })();
 
   try {

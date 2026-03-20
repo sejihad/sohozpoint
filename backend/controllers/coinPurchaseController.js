@@ -102,7 +102,7 @@ exports.initializeCoinPurchase = catchAsyncErrors(async (req, res, next) => {
       { merchantTransactionId },
       { status: "FAILED", $set: { "meta.initFailed": true } },
     );
-    console.log("EPS initialization failed:", paymentResponse.data);
+
     return next(new ErrorHandler("Failed to initialize coin payment", 400));
   }
 
