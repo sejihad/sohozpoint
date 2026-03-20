@@ -15,7 +15,15 @@ const {
   EPS_MERCHANT_ID,
   FRONTEND_URL,
 } = process.env;
-
+console.log(
+  EPS_USERNAME,
+  EPS_PASSWORD,
+  EPS_HASH_KEY,
+  EPS_STORE_ID,
+  EPS_BASE_URL,
+  EPS_MERCHANT_ID,
+  FRONTEND_URL,
+);
 // -----------------------
 // 🔹 Token Cache for Reuse
 // -----------------------
