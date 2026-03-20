@@ -55,10 +55,10 @@ const Header = () => {
   ).length;
 
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated) {
       dispatch(getCart());
     }
-  }, [dispatch, user]);
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     const cartCount = cartItems.reduce(
@@ -107,7 +107,9 @@ const Header = () => {
     dispatch(getCategory());
   }, [dispatch]);
   useEffect(() => {
-    dispatch(getNotifies());
+    if (isAuthenticated) {
+      dispatch(getNotifies());
+    }
   }, [dispatch]);
 
   const handleCategoryEnter = () => {

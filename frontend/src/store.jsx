@@ -66,6 +66,7 @@ import {
   chargesReducer,
   newChargeReducer,
 } from "./reducers/chargeReducer";
+import { coinPurchaseReducer } from "./reducers/coinPurchaseReducer";
 import {
   applyCouponReducer,
   couponDetailsReducer,
@@ -255,6 +256,9 @@ const rootReducer = combineReducers({
 
   // admin
   dashboard: dashboardReducer,
+
+  // coin purchase
+  coinPurchase: coinPurchaseReducer,
 });
 
 // Create persisted reducer

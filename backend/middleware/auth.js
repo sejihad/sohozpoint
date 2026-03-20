@@ -29,8 +29,8 @@ const authorizeRoles = (...roles) => {
       return next(
         new ErrorHandler(
           `Role (${req.user.role}) is not allowed to access this resource`,
-          403
-        )
+          403,
+        ),
       );
     }
 

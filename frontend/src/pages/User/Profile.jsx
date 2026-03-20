@@ -166,15 +166,16 @@ const Profile = () => {
                   </p>
 
                   {/* Two-Factor Authentication Toggle */}
-                  <div className="mt-6 pt-6 border-t border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-green-800">
-                        Two-Factor Authentication
-                      </h4>
-                      <button
-                        onClick={handleToggle}
-                        disabled={loading}
-                        className={`
+                  {user?.provider === "local" && (
+                    <div className="mt-6 pt-6 border-t border-green-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-green-800">
+                          Two-Factor Authentication
+                        </h4>
+                        <button
+                          onClick={handleToggle}
+                          disabled={loading}
+                          className={`
     relative inline-flex items-center 
     h-8 w-16 sm:h-7 sm:w-14 
     rounded-full transition-all duration-300 
@@ -182,71 +183,73 @@ const Profile = () => {
     ${loading ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}
     active:scale-95
   `}
-                        aria-label={
-                          twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"
-                        }
-                      >
-                        {/* Toggle Circle */}
-                        <span
-                          className={`
+                          aria-label={
+                            twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"
+                          }
+                        >
+                          {/* Toggle Circle */}
+                          <span
+                            className={`
       absolute inline-block 
       h-6 w-6 sm:h-5 sm:w-5 
       rounded-full bg-white shadow-md
       transform transition-all duration-300
       ${twoFactorEnabled ? "translate-x-9 sm:translate-x-8" : "translate-x-1"}
     `}
-                        />
+                          />
 
-                        {/* Status Labels */}
-                        <div className="absolute inset-0 flex items-center justify-between px-2">
-                          <span
-                            className={`
+                          {/* Status Labels */}
+                          <div className="absolute inset-0 flex items-center justify-between px-2">
+                            <span
+                              className={`
       text-xs font-medium
       ${twoFactorEnabled ? "text-transparent" : "text-gray-700"}
     `}
-                          >
-                            OFF
-                          </span>
-                          <span
-                            className={`
+                            >
+                              OFF
+                            </span>
+                            <span
+                              className={`
       text-xs font-medium
       ${twoFactorEnabled ? "text-white" : "text-transparent"}
     `}
-                          >
-                            ON
-                          </span>
-                        </div>
-
-                        {/* Loading Spinner */}
-                        {loading && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="relative">
-                              <div className="h-6 w-6 sm:h-5 sm:w-5 rounded-full border-2 border-transparent border-t-white animate-spin" />
-                            </div>
+                            >
+                              ON
+                            </span>
                           </div>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      {twoFactorEnabled
-                        ? "✓ Extra security layer enabled"
-                        : "Add extra security to your account"}
-                    </p>
 
-                    {twoFactorEnabled && (
-                      <div className="mt-3 p-3 bg-green-100 rounded-lg">
-                        <p className="text-xs text-green-800 font-medium mb-1">
-                          How it works:
-                        </p>
-                        <ul className="text-xs text-green-700 list-disc pl-4 space-y-1">
-                          <li>Sign in with your password as usual</li>
-                          <li>
-                            Enter verification code from email to complete login
-                          </li>
-                        </ul>
+                          {/* Loading Spinner */}
+                          {loading && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="relative">
+                                <div className="h-6 w-6 sm:h-5 sm:w-5 rounded-full border-2 border-transparent border-t-white animate-spin" />
+                              </div>
+                            </div>
+                          )}
+                        </button>
                       </div>
-                    )}
-                  </div>
+                      <p className="text-xs text-gray-600">
+                        {twoFactorEnabled
+                          ? "✓ Extra security layer enabled"
+                          : "Add extra security to your account"}
+                      </p>
+
+                      {twoFactorEnabled && (
+                        <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                          <p className="text-xs text-green-800 font-medium mb-1">
+                            How it works:
+                          </p>
+                          <ul className="text-xs text-green-700 list-disc pl-4 space-y-1">
+                            <li>Sign in with your password as usual</li>
+                            <li>
+                              Enter verification code from email to complete
+                              login
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -1,7 +1,8 @@
 const express = require("express");
 const app = express();
+const rateLimit = require("express-rate-limit");
 const cors = require("cors");
-const dotenv = require("dotenv");
+
 const errorMiddleware = require("./middleware/error");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
@@ -16,6 +17,7 @@ const logoCharge = require("./routes/customLogoChargeRoute");
 const cart = require("./routes/cartRoute");
 const charge = require("./routes/chargeRoute");
 const email = require("./routes/emailRoute");
+const wallet = require("./routes/walletRoute");
 const category = require("./routes/categoryRoute");
 const brand = require("./routes/brandRoute");
 const type = require("./routes/typeRoute");
@@ -24,20 +26,33 @@ const subcategory = require("./routes/subcategoryRoute");
 const subsubcategory = require("./routes/subsubcategoryRoute");
 const product = require("./routes/productRoute");
 const ship = require("./routes/shipRoute");
+
 const payment = require("./routes/paymentRoute");
 const meta = require("./routes/metaRoute");
 const notify = require("./routes/notifyRoute");
+const helmet = require("helmet");
 require("./jobs/notificationCleanup");
+require("./jobs/affiliateMonthClose");
+require("./jobs/scheduler");
 const order = require("./routes/orderRoute");
+const coin = require("./routes/coinRoute");
 const admin = require("./routes/adminRoute");
 const advancedPayment = require("./routes/advancedPaymentRoute");
+const coinPayment = require("./routes/coinPurchaseRoute");
 
-dotenv.config();
 require("./config/passport");
 
 app.use(passport.initialize());
 
 // Middleware
+app.use(helmet());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+});
+if (process.env.NODE_ENV === "production") {
+  app.use(limiter);
+}
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
@@ -54,6 +69,7 @@ app.use(
       "https://www.sohozpoint.com",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   }),
 );
 
@@ -83,7 +99,9 @@ app.use("/api/v1", cart);
 app.use("/api/v1", meta);
 app.use("/api/v1", notify);
 app.use("/api/v1", advancedPayment);
-
+app.use("/api/v1", coinPayment);
+app.use("/api/v1", wallet);
+app.use("/api/v1", coin);
 // Error Middleware
 app.use(errorMiddleware);
 

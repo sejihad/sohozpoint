@@ -1,4 +1,3 @@
-// socket.js
 let io;
 const onlineUsers = new Map();
 const jwt = require("jsonwebtoken");

@@ -1,20 +1,23 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
+import { jwtDecode } from "jwt-decode";
 import { toast, Toaster } from "sonner";
 import Footer from "./component/layout/Footer";
 import Header from "./component/layout/Header";
 import ScrollToTop from "./component/layout/ScrollToTop";
 import ProtectedRoute from "./component/Route/ProtectedRoute";
-
 // import Checkout from "./pages/Payment/Checkout";
 // without lazy loading
-import { jwtDecode } from "jwt-decode";
 import { useDispatch, useSelector } from "react-redux";
 import { loadUser, logout } from "./actions/userAction";
 import Loader from "./component/layout/Loader/Loader.jsx";
 import NotificationBanner from "./component/layout/NotificationBanner";
 import { ROLE_GROUPS, ROLES } from "./constants/roles.jsx";
+
+import CoinPaymentCancel from "./pages/Payment/CoinPaymentCancel.jsx";
+import CoinPaymentFail from "./pages/Payment/CoinPaymentFail.jsx";
+import CoinPaymentSuccess from "./pages/Payment/CoinPaymentSuccess.jsx";
 import { connectSocket } from "./utils/socket.js";
 
 const AllBlogs = lazy(() => import("./pages/Admin/AllBlogs"));
@@ -25,6 +28,8 @@ const UserEmails = lazy(() => import("./pages/Admin/UserEmails"));
 const ProductDetails = lazy(
   () => import("./pages/ProductDetails/ProductDetails"),
 );
+const CoinBuy = lazy(() => import("./pages/Coin/CoinBuy.jsx"));
+
 const AdminOrderDetails = lazy(() => import("./pages/Admin/AdminOrderDetails"));
 const AllReviews = lazy(() => import("./pages/Admin/AllReviews"));
 const AllShips = lazy(() => import("./pages/Admin/AllShips"));
@@ -100,26 +105,7 @@ const App = () => {
   // useEffect(() => {
   //   enableContentProtection();
   // }, []);
-  useEffect(() => {
-    const eventID = "pv-" + Date.now();
 
-    // Pixel PageView event
-    if (window.fbq) {
-      window.fbq("track", "PageView", {}, { eventID });
-    }
-
-    // CAPI PageView event
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/track-pageview`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eventID,
-        url: window.location.href,
-        email: user?.email || "",
-        phone: user?.number || "",
-      }),
-    }).catch();
-  }, []);
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -200,6 +186,7 @@ const App = () => {
             <Route path="/profile/delete" element={<Delete />} />
             <Route path="/password/update" element={<UpdatePassword />} />
             <Route path="/profile/setting" element={<Setting />} />
+            <Route path="/coin-buy" element={<CoinBuy />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<MyOrders />} />
@@ -207,6 +194,15 @@ const App = () => {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/payment-fail" element={<PaymentFail />} />
+            <Route
+              path="/coin-payment-success"
+              element={<CoinPaymentSuccess />}
+            />
+            <Route
+              path="/coin-payment-cancel"
+              element={<CoinPaymentCancel />}
+            />
+            <Route path="/coin-payment-fail" element={<CoinPaymentFail />} />
           </Route>
 
           {/* moderator, admin, super-admin route */}

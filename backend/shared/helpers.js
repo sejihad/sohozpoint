@@ -21,6 +21,7 @@ const {
 // -----------------------
 let cachedToken = null;
 let tokenExpiry = null;
+let inflightTokenPromise = null;
 
 /**
  * Generate HMACSHA512 Base64 hash
@@ -38,27 +39,43 @@ const generateHash = (data) => {
 const getEpsToken = async () => {
   const now = Date.now();
 
+  // ✅ valid cached token
   if (cachedToken && tokenExpiry && now < tokenExpiry) {
     return cachedToken;
   }
 
-  const hashForToken = generateHash(EPS_USERNAME);
+  // ✅ if a token request is already running, await it
+  if (inflightTokenPromise) {
+    return inflightTokenPromise;
+  }
 
-  const tokenResponse = await axios.post(
-    `${EPS_BASE_URL}/v1/Auth/GetToken`,
-    { userName: EPS_USERNAME, password: EPS_PASSWORD },
-    { headers: { "x-hash": hashForToken } },
-  );
+  inflightTokenPromise = (async () => {
+    const hashForToken = generateHash(EPS_USERNAME);
 
-  const token = tokenResponse?.data?.token;
-  const expiresIn = tokenResponse?.data?.expiresIn || 300;
+    const tokenResponse = await axios.post(
+      `${EPS_BASE_URL}/v1/Auth/GetToken`,
+      { userName: EPS_USERNAME, password: EPS_PASSWORD },
+      { headers: { "x-hash": hashForToken }, timeout: 15000 },
+    );
 
-  if (!token) throw new Error("Failed to get EPS token");
+    const token = tokenResponse?.data?.token;
+    const expiresIn = Number(tokenResponse?.data?.expiresIn || 300);
 
-  cachedToken = token;
-  tokenExpiry = now + expiresIn * 1000;
+    if (!token) throw new Error("Failed to get EPS token");
 
-  return token;
+    cachedToken = token;
+
+    // ✅ add safety buffer (e.g., 30 seconds আগে expire ধরে নিন)
+    tokenExpiry = Date.now() + Math.max(expiresIn - 30, 30) * 1000;
+
+    return cachedToken;
+  })();
+
+  try {
+    return await inflightTokenPromise;
+  } finally {
+    inflightTokenPromise = null;
+  }
 };
 
 /**

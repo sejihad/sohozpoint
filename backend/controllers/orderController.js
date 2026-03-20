@@ -8,6 +8,9 @@ const steadfastService = require("../services/steadfastService");
 const sendEmail = require("../utils/sendEmail");
 const { sendNotify } = require("../services/notifyService");
 const deleteFromS3 = require("../config/deleteFromS3");
+const { onOrderCompletedReferral } = require("../services/referralService");
+const { reverseCoinsForOrder } = require("../services/orderCoinReversal");
+const { onOrderCompletedCommission } = require("../services/commissionService");
 const {
   createOrderData,
   updateCouponUsedCount,
@@ -346,7 +349,27 @@ Sohoz Point Team
       }
     }
     order.deliveredAt = new Date();
+    // ✅ Referral + Commission trigger
+    try {
+      const completedAt = order.deliveredAt || new Date();
+      const orderAmount = Math.round(Number(order.totalPrice) || 0);
 
+      await onOrderCompletedReferral({
+        userId: order.userData.userId,
+        orderId: order.orderId || String(order._id),
+        orderAmount,
+        completedAt,
+      });
+
+      await onOrderCompletedCommission({
+        userId: order.userData.userId,
+        orderId: order.orderId || String(order._id),
+        orderAmount,
+        completedAt,
+      });
+    } catch (err) {
+      console.error("Referral/Commission error:", err?.message || err);
+    }
     // Send delivery confirmation email
     const emailSubject = `🚚 Your Order #${order.orderId} has been delivered!`;
 
@@ -457,6 +480,17 @@ Sohoz Point Team
   }
   if (newStatus === "refund" && oldStatus !== "refund") {
     order.refund_request = false;
+    try {
+      const oid = order.orderId || String(order._id);
+      await reverseCoinsForOrder({
+        userId: order.userData.userId,
+        orderId: oid,
+        reason: "REFUND",
+        note: "Coins reversed after refund completed",
+      });
+    } catch (e) {
+      console.error("Refund coin reversal error:", e?.message || e);
+    }
     await sendNotify({
       title: "Refunded Successfully",
       message: `Your order #${order.orderId} has been refunded successfully!`,
